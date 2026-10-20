@@ -1,0 +1,6 @@
+# What Quiver vendors, each project at one revision (kiln's docs/vendoring.md). scripts/vendor.py
+# reads it; kiln, vendoring Quiver, holds every project named here at the same revision.
+format = 1
+
+# Quiver's gate, run after a re-vendor.
+gate = ["bash scripts/gates.sh"]

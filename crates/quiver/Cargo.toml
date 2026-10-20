@@ -1,0 +1,16 @@
+[package]
+name = "quiver"
+description = "Quiver: the topic store: the cornerstone for an event-driven world"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+rust-version.workspace = true
+repository.workspace = true
+publish.workspace = true
+
+[[bin]]
+name = "quiver"
+path = "src/main.rs"
+
+[lints]
+workspace = true
