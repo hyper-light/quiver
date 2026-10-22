@@ -8,7 +8,9 @@ resolver = "3"
 version = "0.1.0"
 edition = "2024"
 license = "MIT"
-rust-version = "1.99.1"
+# The least toolchain Quiver builds on: Focal's bus's and hyper-raft's, so whoever vendors it (kiln)
+# builds it on theirs. The gate pins its own exactly (rust-toolchain.toml).
+rust-version = "1.98.1"
 repository = "https://github.com/hyper-light/quiver"
 publish = false
 
