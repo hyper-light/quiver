@@ -24,11 +24,16 @@ macOS and Windows lints) and the evidence its requirement names is recorded.
 - **GroupStore mandated** (CP-T2.1, T-T2.1.2): hyper-durable's `RamStore` is for tests alone, and a
   build that names it outside one fails (`crates/quiver/tests/ram_store.rs`).
 - **The `quiver` binary** says what it is (`quiver --version`, `quiver --help`), and nothing more yet.
+- **The bench** (`crates/quiver-bench`, `bench/README.md`): the ephemeral class's fan-out and soak,
+  and the comparison, class for class, with NATS core, Redis Pub/Sub and Kafka on the same machine
+  (`bench/compare.sh`, each broker in Docker on CPUs of its own), every system on the same open-loop
+  schedule, measured by the same harness.
 
 ## Next
 
-- **CP-T2.1's measurements**: the fan-out bench and the hour's soak (`bench/README.md`) on fedora, in a
-  quiet window.
+- **CP-T2.1's measurements**: the fan-out bench, the hour's soak and the comparison
+  (`bench/README.md`) on fedora, in a quiet window. The bar for the comparison: Quiver's p99 and
+  p99.9 an order of magnitude under the best competitor's, load by load.
 - **CP-T2.2**: The persisted class's 1.4 s tail fixed at its cause (a disk stall never costs leadership), cheaper elections, and kiln's CI and deploy events on the persisted class, on Focal's replicated part.
 - **CP-T2.3**: Typed acknowledgements stating the fate reached and its loss bound.
 
