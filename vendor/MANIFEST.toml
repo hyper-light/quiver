@@ -13,7 +13,7 @@ gate = ["bash scripts/gates.sh"]
 [projects.focal-bus]
 kind = "git"
 repository = "https://github.com/hyper-light/focal"
-commit = "0d1fab4d6eea2fbc1013f20ebf27bb4621588e05"
+commit = "b408a3b1592ec754dfcfb6a6547111428629761a"
 path = "vendor/focal-bus"
 take = [
   "Cargo.toml",
