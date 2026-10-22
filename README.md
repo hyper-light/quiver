@@ -5,9 +5,10 @@ Quiver is the topic store: the cornerstone for an event-driven world. Topics, pa
 bus with its gaps fixed and offered back. One binary from a laptop to global multi-region. Kiln
 moves to publish and subscribe on it.
 
-**Status:** the repository has its bar (`CLAUDE.md`, the gate, the requirement registry); the
-`quiver` binary says what it is, and nothing more yet. `STATUS.md` says what works and what's next;
-`docs/design/` is the design.
+**Status:** topics of the ephemeral class on one node, in process (`quiver::Node`, reached through
+`quiver-api`), on Focal's bus; kiln's live feed of every session rides it. The `quiver` binary says
+what it is, and nothing more yet. `STATUS.md` says what works and what's next; `docs/design/` is the
+design; `bench/` the benchmarks.
 
 ```sh
 cargo build --release      # target/release/quiver

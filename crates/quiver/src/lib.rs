@@ -1,5 +1,26 @@
-//! Quiver: the topic store: the cornerstone for an event-driven world. For now this is the `quiver` binary saying what it is; Quiver itself
-//! comes with CP-T2.1 (docs/design/README.md, STATUS.md).
+#![cfg_attr(
+    test,
+    allow(
+        clippy::unwrap_used,
+        clippy::expect_used,
+        clippy::panic,
+        clippy::indexing_slicing,
+        clippy::arithmetic_side_effects,
+        clippy::disallowed_macros
+    )
+)]
+//! Quiver: the topic store, the cornerstone for an event-driven world (docs/design/README.md).
+//!
+//! A [`Node`] holds topics of messages in this process and serves them through `quiver-api`'s
+//! [`quiver_api::Topics`]: messages in order, read from any offset kept or followed by
+//! subscriptions told what they missed, each message a Focal batch charged to Focal's memory budget
+//! (vendor/focal-bus). It serves the ephemeral class today (kiln's CP-T2.1); STATUS.md says what
+//! comes next. The `quiver` binary says what it is.
+
+pub mod ephemeral;
+pub mod node;
+
+pub use node::{Clock, Node, NodeConfig, Stats, wall_clock};
 
 /// What `quiver` prints for its arguments, where, and the exit status.
 #[derive(Debug, PartialEq, Eq)]

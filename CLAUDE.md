@@ -115,12 +115,16 @@ the first failure; kiln CI runs it on every push and pull request (`.kiln/ci.yam
 ```
 cargo fmt --all --check
 cargo clippy --workspace --all-targets --locked -- -D warnings
-cargo clippy --workspace --all-targets --locked --target aarch64-apple-darwin -- -D warnings
-cargo clippy --workspace --all-targets --locked --target x86_64-pc-windows-msvc -- -D warnings
+cargo-zigbuild clippy --workspace --all-targets --locked --target aarch64-apple-darwin -- -D warnings
+cargo-zigbuild clippy --workspace --all-targets --locked --target x86_64-pc-windows-gnu -- -D warnings
 bash scripts/check-production.sh
 cargo test --workspace --locked
 python3 scripts/vendor.py check
 ```
+
+The macOS and Windows lints compile aws-lc's C (Focal's bus takes it through hyper-raft's TLS and
+QUIC), so zig is their C compiler, through cargo-zigbuild; `gates.sh` takes them from the PATH or
+installs kiln's pinned versions into a virtualenv of their own.
 
 ## Working here
 
