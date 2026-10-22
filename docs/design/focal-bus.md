@@ -113,6 +113,14 @@ checked against Focal's tree:
      hyper-raft's `main` is `2b13b15` (2026-10-22), which Mantle vendors (kiln's docs/mantle.md), and
      neither line contains the other. Kiln holds one copy, so Quiver's bus and Mantle meet on one
      revision before both are in kiln: asked of Focal's agent and kiln's coordinator.
+   - **The split** (Focal's agent, from hyper-raft's remote, 2026-10-22): `main` (`2b13b15`) and
+     `fate-commit` (`c004deb`) part at `6df7b3e` (2026-10-17). `fate-commit` has 40 commits `main`
+     lacks (R-8's commits held in memory across fates, which Focal's replicated bus is built on, the
+     transport's and hyper-rt's driver work the bus needs, the learned connection charge); `main` has
+     14 that `fate-commit` lacks (the liveness judge's rules, leader hand-over, the transport's dial
+     lifecycle event, hyper-durable's and hyper-log's page read), and one fix is on both in two forms
+     (the port-0 shared bind). No revision serves both; one would be a merge of the two lines, gated
+     in both consumers, which is Ada's to decide (Focal's agent raised it with her).
 2. **The API.** `focal_bus::part::Part`, `focal_bus::log::{SegmentPool, Position}`,
    `focal_bus::batch::{Batch, BatchBuilder, Producing}` and `focal_memory::MemoryBudget` exist, are
    public and reasonable to build on, but Focal publishes no stable API: they are internal surfaces
