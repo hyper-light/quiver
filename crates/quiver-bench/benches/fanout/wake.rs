@@ -148,6 +148,7 @@ pub fn run(a: &Args, seed: u64) -> Run {
         unoffered: schedule.unoffered,
         publish_errors: 0,
         seconds,
+        window_s: a.seconds,
         seen,
         undelivered: t.undelivered,
         silent: t.silent,

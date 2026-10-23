@@ -185,6 +185,7 @@ pub fn run(a: &Args, seed: u64, mut minute: impl FnMut(u64, u64)) -> Run {
         unoffered: schedule.unoffered,
         publish_errors: refused,
         seconds,
+        window_s: a.seconds,
         seen,
         undelivered: t.undelivered,
         silent: t.silent,
