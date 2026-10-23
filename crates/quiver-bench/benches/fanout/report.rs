@@ -15,6 +15,8 @@ pub struct Run {
     pub busy: bool,
     pub rate: f64,
     pub subscribers: usize,
+    /// The subscriptions it checked: one each, or one each waiter thread of the wake-up's floor.
+    pub subscriptions: usize,
     pub workers: usize,
     pub published: u64,
     /// Messages the schedule still held when its time was over: the system held its publisher
@@ -107,7 +109,7 @@ pub fn row(i: &str, r: &Run) -> String {
         r.lags,
         r.silent,
         r.kept_up,
-        r.subscribers,
+        r.subscriptions,
         r.cpu_s,
         r.publisher_cpu_s,
         r.broker_cpu_s
@@ -242,7 +244,7 @@ pub fn compare(paths: &[std::path::PathBuf]) -> String {
         }
     }
     let mut out = String::from(
-        "| subscribers' threads | rate /s | subscribers | Quiver p99 / p99.9 µs | NATS | Redis | Kafka | the best competitor | Quiver's lead, p99 / p99.9 | an order of magnitude |\n|---|---|---|---|---|---|---|---|---|---|\n",
+        "| subscribers' threads | rate /s | subscribers | the wake-up's floor, p99 / p99.9 µs | Quiver | NATS | Redis | Kafka | the best competitor | Quiver's lead, p99 / p99.9 | an order of magnitude |\n|---|---|---|---|---|---|---|---|---|---|---|\n",
     );
     let pair = |l: Option<&&Line>| {
         l.map_or_else(
@@ -265,7 +267,8 @@ pub fn compare(paths: &[std::path::PathBuf]) -> String {
             _ => ("-".to_owned(), "-".to_owned(), "-"),
         };
         out.push_str(&format!(
-            "| {busy} | {rate} | {subscribers} | {} | {} | {} | {} | {} | {lead_p99} / {lead_p999} | {verdict} |\n",
+            "| {busy} | {rate} | {subscribers} | {} | {} | {} | {} | {} | {} | {lead_p99} / {lead_p999} | {verdict} |\n",
+            pair(systems.get(System::Wake.name())),
             pair(quiver),
             pair(systems.get(System::Nats.name())),
             pair(systems.get(System::Redis.name())),

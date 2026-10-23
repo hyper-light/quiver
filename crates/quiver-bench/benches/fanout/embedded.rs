@@ -179,6 +179,7 @@ pub fn run(a: &Args, seed: u64, mut minute: impl FnMut(u64, u64)) -> Run {
         busy: a.busy,
         rate: a.rate,
         subscribers: a.subscribers,
+        subscriptions: a.subscribers,
         workers,
         published: schedule.offered(),
         unoffered: schedule.unoffered,
