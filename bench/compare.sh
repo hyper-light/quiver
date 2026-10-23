@@ -18,6 +18,9 @@
 # librdkafka's build needs a C and a C++ compiler and make (bench/README.md).
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
+# A thousand subscribers' connections, and Kafka's consumers' sockets, need more files than a
+# session's soft limit (often 1,024): it's raised to the hard one.
+ulimit -n "$(ulimit -Hn)"
 out=${1:?usage: bench/compare.sh OUT}
 mkdir -p "$out"
 systems=${SYSTEMS:-wake quiver nats redis kafka}
