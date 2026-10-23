@@ -151,7 +151,8 @@ pub fn run(a: &Args, seed: u64, mut minute: impl FnMut(u64, u64)) -> Run {
         _ => f64::NAN,
     };
     // Every worker takes what was published (the fact waited on), then the topic ends.
-    let deadline = Instant::now() + Duration::from_secs(60);
+    // As long as a broker's subscribers get (`--drain`): what isn't taken by then is undelivered.
+    let deadline = Instant::now() + Duration::from_secs(a.drain);
     while shared
         .caught_up
         .iter()

@@ -30,6 +30,9 @@ QUIVER_COMMIT=$(git rev-parse HEAD) cargo bench -p quiver-bench --bench fanout -
   notice before it is a frame lost silently. CPU is the process's, and the publisher's own thread's
   beside it: its open loop paces by spinning, a CPU that isn't Quiver's work
   (`/proc/thread-self/schedstat`).
+- **Which path.** A delivery here is a subscription's take, Quiver's shared, zero-copy path. kiln's
+  live feed reads by offset through kiln-seams' `Bus`, which copies each frame out and takes the
+  topic's lock to find its segment; kiln measures that path itself (`kiln_bus_delivery_seconds`).
 - **Its bar** (kiln's plan `01a157fdefc37396957ea10adb51a19f`): AC-T2.1.2, publish-to-deliver p99
   at most 300 µs at 100,000 messages a second on one node; AC-T2.1.3, kept with at least 1,000
   subscribers; AC-T2.1.4, no frame lost to a subscriber that keeps up over an hour (`soak`).

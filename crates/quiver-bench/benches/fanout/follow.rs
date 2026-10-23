@@ -171,16 +171,19 @@ impl Follow {
         self.lagged = true;
     }
 
-    fn took(&mut self, number: u64) {
+    /// Took message `number`: whether it was new (a number taken again, or out of order, is
+    /// counted doubled and timed no more).
+    fn took(&mut self, number: u64) -> bool {
         if number < self.next {
             self.doubled += 1;
-            return;
+            return false;
         }
         if number > self.next {
             self.missed.push((self.next, number, self.lagged));
         }
         self.lagged = false;
         self.next = number + 1;
+        true
     }
 
     /// What it never took of the window's numbers, `[first, last)`: what it skipped, and what it
@@ -241,7 +244,9 @@ impl Seen {
         if number == PRIMING {
             return Taken::Priming;
         }
-        follow.took(number);
+        if !follow.took(number) {
+            return Taken::Message;
+        }
         self.deliveries += 1;
         if window.contains(scheduled) {
             self.latency.record(at.saturating_sub(scheduled));
