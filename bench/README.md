@@ -42,7 +42,7 @@ QUIVER_COMMIT=$(git rev-parse HEAD) cargo bench -p quiver-bench --bench fanout -
 `bench/compare.sh OUT` runs every system on the same schedule, payloads and fan-out, measured by
 the same harness, and writes `OUT/report.md`: each system's best run beside Quiver's, load by load,
 and Quiver's lead over the best competitor at p99 and at p99.9. The bar is an order of magnitude
-at both.
+at both (Q-1.1, docs/requirements.toml).
 
 - **The class.** Quiver's ephemeral class keeps messages in memory, at most once across a node's
   loss, a gap announced. Its peers are the brokers' own in-memory delivery: NATS core (no
