@@ -58,6 +58,8 @@ stop() {
   fi
 }
 trap stop EXIT
+# Stopped (a watchdog, systemctl stop), it exits, so the broker it started stops with it.
+trap 'exit 143' TERM INT
 
 # Each broker as shipped, on loopback alone, its CPUs its own, 8 GiB of memory.
 start() {
