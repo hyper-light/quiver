@@ -27,7 +27,8 @@ cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 # session's soft limit (often 1,024): it's raised to the hard one.
 ulimit -n "$(ulimit -Hn)"
 out=${1:?usage: bench/compare.sh OUT}
-mkdir -p "$out"
+# An absolute path: cargo runs a bench from its package's folder.
+mkdir -p "$out" && out=$(cd "$out" && pwd)
 systems=${SYSTEMS:-wake quiver nats redis kafka}
 rates=${RATES:-100000}
 fanouts=${SUBSCRIBERS:-1 100 1000}

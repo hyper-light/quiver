@@ -8,7 +8,9 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 out=${1:?usage: bench/budget.sh OUT}
-mkdir -p "$out"
+# Absolute paths: cargo runs a bench from its package's folder.
+mkdir -p "$out" && out=$(cd "$out" && pwd)
+budgets=$PWD/bench/budgets.tsv
 limit=${LOAD_LIMIT:-2}
 QUIVER_COMMIT=$(git rev-parse HEAD)
 export QUIVER_COMMIT
@@ -16,9 +18,9 @@ cargo bench --locked -q -p quiver-bench --bench fanout --no-run
 status=0
 while IFS=$'\t' read -r system waits rate subscribers; do
   flags=(--system "$system" --rate "$rate" --subscribers "$subscribers" --seconds 60 --warmup 5
-    --runs 1 --max-load "$limit" --budgets bench/budgets.tsv --out "$out/runs.tsv")
+    --runs 1 --max-load "$limit" --budgets "$budgets" --out "$out/runs.tsv")
   if [ "$waits" = busy ]; then flags+=(--busy); fi
   cargo bench --locked -q -p quiver-bench --bench fanout -- fanout "${flags[@]}" \
     | tee -a "$out/budget.md" || status=1
-done < <(grep -v -e '^#' -e '^$' bench/budgets.tsv | cut -f1-4 | sort -u)
+done < <(grep -v -e '^#' -e '^$' "$budgets" | cut -f1-4 | sort -u)
 exit "$status"

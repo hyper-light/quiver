@@ -15,7 +15,8 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.."
 out=${1:?usage: bench/plant.sh OUT}
-mkdir -p "$out"
+# An absolute path: cargo runs a bench from its package's folder.
+mkdir -p "$out" && out=$(cd "$out" && pwd)
 flags=(--rate 10000 --subscribers 16 --workers 4 --busy --seconds 3 --warmup 1 --runs 1 --max-load 1000)
 for build in base plant; do
   features=()
