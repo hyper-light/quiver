@@ -87,6 +87,13 @@ polling and none of them any waiting. Quiver delivered every message of every ru
 The floor itself fails at 100,000 a second to 100 and 1,000 waiting subscribers: its publisher wakes
 each waiter thread for every message, more wake-ups than one thread makes.
 
+- **Kafka**, never the best competitor in a cell: Quiver's p99 and p99.9 are at most a tenth of
+  Kafka's in all twelve, the closest one waiting subscriber at 10,000 a second (21.2 / 69.6 µs
+  against 237.6 / 2,752.5 µs: 11.2× / 39.5×). Where Kafka's tail is seconds (100 subscribers, and
+  one at 100,000 a second: 2.25 s polling and 16.0 s waiting, both in clean runs) it delivered
+  every message but fell behind the schedule, with the comparison's `linger.ms` 0 (Focal's setting,
+  each message its own send): those leads are Kafka set for latency at a rate it can't carry so,
+  not Kafka at its best, and aren't quoted as such. Kafka at its default linger (5 ms) isn't run.
 - **Where subscribers poll** (the step's bar): every load at most a tenth of the best competitor's,
   at p99 and p99.9, over every run: met. Four of the six cells rest on runs no one has shown clean
   (10,000 a second to 1, 100 and 1,000, and 100,000 to 1,000), so they run again.
