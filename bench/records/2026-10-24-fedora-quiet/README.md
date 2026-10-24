@@ -108,9 +108,13 @@ each waiter thread for every message, more wake-ups than one thread makes.
   outlast C2's target residency, more than the 1% past the p99: the waiting subscriber's CPU has
   gone idle, now and then deeply, when its message comes. At 100,000 a second (10 µs gaps) none
   do, and the floor's p99 falls from 20.5 to 5.6 µs. (Which states the CPUs entered in each run
-  isn't counted here: the floor's own latency, measured beside Quiver, is the figure.) The choice
-  goes to Ada: polling subscribers where latency matters (every polling cell met the bar), or the
-  idle states held shallow for the run (root), which lowers every system's floor.
+  isn't counted here: the floor's own latency, measured beside Quiver, is the figure.)
+- **Ada's decision on the sleeping-subscriber cells** (2026-10-24, 14:30 PDT), between polling
+  subscribers where latency matters and the idle states held shallow for the run (root): **polling
+  where latency matters.** The two cells stand as misses bound by the kernel's wake-up, with the
+  floor's figures above, and Quiver's guidance is that a subscriber that needs Q-1.1's order of
+  magnitude polls, as every polling cell met it (docs/design/topics.md). fedora's idle states stay
+  as they are.
 - **The deployment.** Quiver ran in the generator's process, a library, as kiln runs it; each
   competitor ran as a server over loopback TCP, reached by its own client. Every competitor's
   figure includes a hop to its server and on to the subscriber, and the server's own wake-up;
