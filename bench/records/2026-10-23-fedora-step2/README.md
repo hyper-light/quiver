@@ -17,6 +17,12 @@ met every budget (`budget.md`, every run as the bench printed it; `runs.tsv`).
 | last-level cache read misses a delivery, the subscribers' threads | 0.000168 | |
 | CPU a delivery, the subscribers' threads | 106.2 ns | |
 
+One subscriber at 100,000 messages a second, 30 s windows (`quiver-1-wait.md`, `quiver-1-busy.md`;
+from fedora's synced copy at 88409dd, clean, at 20:15 PDT at a load average of 2.5 to 3.6, their
+`commit:` line the script's label): no allocation or reallocation on the subscriber's thread
+either, a publish's 2.010 allocations, 2 minor page faults a million messages; and the tail of a
+machine near quiet: p50, p99 and p99.9 of 0.4, 1.8 and 9.9 µs polling, 4.0, 7.2 and 62 µs waiting.
+
 Where it started (`../2026-10-23-fedora-profile/`): a waiting subscriber allocated once a wait,
 a publish allocated 4.01 times and reallocated 3.00 times, and 51,000 minor page faults came a
 million messages (with retention still filling in that record's 2 s warm-up).
