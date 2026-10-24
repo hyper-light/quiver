@@ -142,6 +142,18 @@ others', load by load. A figure the machine won't give says why: never a zero in
   once a wait, and how often it waits moves with the machine's load between two runs.
   `compare.sh` runs it before its brokers start (`OUT/plant.md`).
 
+## The budgets
+
+`bench/budgets.tsv` holds what one run of a load may spend, figure by figure, a message or a
+delivery (kiln's CP-T2.1, step 2): a subscriber's take allocates nothing, waiting or polling; a
+publish allocates twice (the future `Topics::publish` answers with, and the block its batch is kept
+in) and reallocates nothing; at most 100 minor page faults a million messages after the warm-up;
+and on fedora a waiting subscriber's last-level cache misses and CPU a delivery. `--budgets FILE`
+holds each run to the budgets for its load and machine, printed under its profile, and fails the
+run's exit status if it went over one. `bench/budget.sh OUT` is the bench gate: each budgeted load
+for 60 s after 5 s of warm-up, failing where a run is over a budget by more than a tenth (over one of
+zero at all) or doesn't count a figure it's held to. Like every measure here, on a quiet machine.
+
 ## Records
 
 Each run's output, as the harness prints it, under `bench/records/`, named by date and what ran.

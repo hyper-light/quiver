@@ -1,0 +1,25 @@
+# The ephemeral class's budgets (kiln's CP-T2.1, step 2; bench/README.md, "The budgets"): what one
+# run of a load may spend, a message or a delivery. bench/budget.sh holds a run of each load to them:
+# a run over one by more than a tenth fails, over one of zero at all, and one whose figure isn't
+# there to check fails. Tab-separated:
+# system	waits	rate	subscribers	figure	per	budget	machine
+#
+# A subscriber's take allocates nothing, waiting or polling.
+quiver	wait	100000	1000	subscribers_allocations	delivery	0	any
+quiver	wait	100000	1000	subscribers_reallocations	delivery	0	any
+quiver	busy	100000	1000	subscribers_allocations	delivery	0	any
+quiver	busy	100000	1000	subscribers_reallocations	delivery	0	any
+# A publish allocates twice, the boxed future `Topics::publish` answers with and the block its
+# batch is kept in, and reallocates nothing.
+quiver	wait	100000	1000	publisher_allocations	message	2.01	any
+quiver	wait	100000	1000	publisher_reallocations	message	0	any
+quiver	busy	100000	1000	publisher_allocations	message	2.01	any
+quiver	busy	100000	1000	publisher_reallocations	message	0	any
+# After the warm-up, 100 minor page faults a million messages at most: step 2's bar.
+quiver	wait	100000	1000	process_minor_faults	message	0.0001	any
+quiver	busy	100000	1000	process_minor_faults	message	0.0001	any
+# On fedora's i9-14900HX, subscribers waiting: their last-level cache read misses and CPU a
+# delivery, recorded 2026-10-23 at a load average of 15 beside other sessions' work (a quiet run
+# spends less; step 3 records polling's on a quiet machine).
+quiver	wait	100000	1000	subscribers_llc_read_misses	delivery	0.000865	i9-14900HX
+quiver	wait	100000	1000	subscribers_cpu_ns	delivery	97.73	i9-14900HX

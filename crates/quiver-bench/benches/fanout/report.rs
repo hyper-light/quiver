@@ -65,7 +65,7 @@ pub fn tally(seen: &mut Seen, follows: &[Follow], schedule: &Schedule) -> Tally 
         kept_up: 0,
     };
     for f in follows {
-        let m = f.missed(schedule.first, schedule.last);
+        let m = f.missed(schedule.first, schedule.last, schedule.offered());
         t.undelivered += m.undelivered;
         t.silent += m.silent;
         t.lags += f.lags;
