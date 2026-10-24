@@ -44,7 +44,8 @@ macOS and Windows lints) and the evidence its requirement names is recorded.
   order of magnitude under the best competitor's, load by load (Q-1.1). A comparison on a loaded
   adacachy (2026-10-23, `bench/records/2026-10-23-adacachy-comparison/`, no record) met it in 8 of
   12 loads, all but one subscriber at 100,000 a second polling or waiting at either rate, and 100
-  subscribers waiting at 10,000.
+  subscribers waiting at 10,000. The hour's soak on adacachy lost no frame (AC-T2.1.4): 360 billion
+  deliveries to 1,000 subscribers that all kept up (`bench/records/2026-10-23-adacachy-soak/`).
 - **CP-T2.2**: The persisted class's 1.4 s tail fixed at its cause (a disk stall never costs leadership), cheaper elections, and kiln's CI and deploy events on the persisted class, on Focal's replicated part.
 - **CP-T2.3**: Typed acknowledgements stating the fate reached and its loss bound.
 
