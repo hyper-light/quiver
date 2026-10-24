@@ -1,0 +1,210 @@
+== 10:20:11
+
+== 10:21:16
+ 309 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+99.5 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+99.3 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+16.21
+active
+== 10:22:30
+
+== 10:23:37
+ 631 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+ 465 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/planner-20966191737834f6
+98.2 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+44.57
+active
+== 10:24:46
+ 580 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+ 348 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/reader_cache-22a32dee996ace8b
+98.1 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+39.21
+active
+== 10:25:54
+ 261 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/skip_scan-3252821b23681a74
+98.4 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+34.42
+active
+== 10:27:09
+
+== 10:28:23
+
+== 10:29:28
+13.63
+active
+== 10:30:34
+8.06
+active
+== 10:31:42
+6.89
+active
+== 10:32:53
+1330 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/amphora_engine-33bd47024d10f20f
+31.34
+active
+== 10:34:07
+
+== 10:35:25
+
+== 10:36:32
+28.73
+active
+== 10:37:49
+35.79
+active
+== 10:38:57
+ 380 /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-ll
+ 150 /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name mantle_meta --edition=202
+ 125 /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -I /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-
+ 123 /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name mantle_engine --edition=2
+ 100 /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -I /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-
+29.16
+active
+== 10:40:15
+ 201 [rust-lld] <defunct>
+ 183 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-ll
+ 168 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-ll
+ 165 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-ll
+ 161 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-ll
+15.76
+active
+== 10:41:28
+
+== 10:42:34
+ 397 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/reader_cache-22a32dee996ace8b
+ 104 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/issuer-1c9a8ac68ad15fad
+86.7 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+31.08
+active
+== 10:43:42
+ 423 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/kill-51189fd034f08417
+ 287 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/skip_scan-3252821b23681a74
+ 170 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+20.74
+active
+== 10:45:00
+ 216 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/block_test-ce178e028213f2
+ 157 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+10.60
+active
+== 10:46:14
+
+== 10:47:31
+
+== 10:48:39
+ 662 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+98.9 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/p3_differential-3f327c541
+14.91
+active
+== 10:49:58
+
+== 10:51:14
+
+== 10:52:33
+
+== 10:53:41
+ 111 /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 cr
+98.3 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+91.6 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+33.73
+active
+== 10:54:57
+99.2 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+96.5 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+15.66
+active
+== 10:56:11
+
+== 10:57:18
+98.1 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-837d12d9
+98.0 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+78.6 /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -mac
+15.21
+active
+== 10:58:25
+ 315 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+19.44
+active
+== 10:59:31
+ 696 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crate
+24.67
+active
+== 11:00:45
+
+== 11:01:50
+6.91
+active
+== 11:02:57
+14.90
+active
+== 11:04:31
+
+== 11:05:38
+ 101 /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name amphora_engine --edition=
+27.12
+active
+== 11:06:52
+
+== 11:08:00
+ 393 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/reader_cache-22a32dee996ace8b
+46.87
+active
+== 11:09:08
+ 105 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/shared_pages-a91bfee40f7f8fad
+31.53
+active
+== 11:10:43
+11.07
+active
+== 11:11:51
+ 461 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/planner-20966191737834f6
+99.1 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+98.6 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+15.13
+active
+== 11:12:58
+ 101 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/shared_pages-a91bfee40f7f8fad
+92.3 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+86.8 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+18.24
+active
+== 11:14:14
+
+== 11:15:28
+
+== 11:16:38
+ 133 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/shared_pages-a91bfee40f7f8fad
+97.3 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+95.8 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+35.19
+active
+== 11:17:54
+ 150 /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/skip_scan-3252821b23681a74
+99.0 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+98.8 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolch
+29.96
+active
+== 11:19:07
+
+== 11:20:19
+
+== 11:21:24
+
+== 11:22:28
+
+== 11:23:32
+
+== 11:24:37
+
+== 11:25:41
+
+== 11:26:46
+
+== 11:27:50
+
+== 11:28:54
+
+== 11:29:59
+
+== 11:31:03
+

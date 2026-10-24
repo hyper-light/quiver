@@ -1,0 +1,7 @@
+# start	end	what (before the busy log began at 10:20)
+09:35:13	09:45:26	kiln CI ui checks (run 1138, fedora runner)
+09:54:00	10:20:30	a kiln build in ~/.cache/kiln-gs (stable rustc)
+09:55:00	09:58:00	Mantle disk probe
+10:04:00	10:05:00	rustfmt from a reach copy
+10:05:00	10:52:30	Focal builds and cold-stream bench pinned to CPU 4
+10:07:00	10:20:30	Mantle gate (gate-fw) and Amphora engine build
