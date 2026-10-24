@@ -1,6 +1,6 @@
 # Status
 
-Updated 2026-10-22. A piece is done when its tests pass in the gate (`scripts/gates.sh`: Linux, with the
+Updated 2026-10-23. A piece is done when its tests pass in the gate (`scripts/gates.sh`: Linux, with the
 macOS and Windows lints) and the evidence its requirement names is recorded.
 
 ## Implemented
@@ -28,13 +28,23 @@ macOS and Windows lints) and the evidence its requirement names is recorded.
 - **The bench** (`crates/quiver-bench`, `bench/README.md`): the ephemeral class's fan-out and soak,
   and the comparison, class for class, with NATS core, Redis Pub/Sub and Kafka on the same machine
   (`bench/compare.sh`, each broker in Docker on CPUs of its own), every system on the same open-loop
-  schedule, measured by the same harness.
+  schedule, measured by the same harness; each run carries its profile (allocations, page faults,
+  context switches, the CPU's counters, memory held, storage I/O, and each broker's own runtime's
+  figures, per message and per delivery), its allocation count checked against a planted answer
+  (`bench/plant.sh`). Records in `bench/records/`.
 
 ## Next
 
 - **CP-T2.1's measurements**: the fan-out bench, the hour's soak and the comparison
-  (`bench/README.md`) on fedora, in a quiet window. The bar for the comparison: Quiver's p99 and
-  p99.9 an order of magnitude under the best competitor's, load by load.
+  (`bench/README.md`) on a quiet machine. The bar for the comparison: Quiver's p99 and p99.9 an
+  order of magnitude under the best competitor's, load by load (Q-1.1). A comparison on a loaded
+  adacachy (2026-10-23, `bench/records/2026-10-23-adacachy-comparison/`, no record) met it in 8 of
+  12 loads, all but one subscriber at 100,000 a second polling or waiting at either rate, and 100
+  subscribers waiting at 10,000.
+- **The ephemeral hot path allocation-free**: the profile's first record shows Quiver's publish
+  allocating 4 times and reallocating 3 times a message, a waiting subscriber allocating once a
+  wait (a polling one never), and the publisher taking 0.051 minor page faults a message, 51,000 a
+  million against the budget of 100 (`bench/records/2026-10-23-fedora-profile/`).
 - **CP-T2.2**: The persisted class's 1.4 s tail fixed at its cause (a disk stall never costs leadership), cheaper elections, and kiln's CI and deploy events on the persisted class, on Focal's replicated part.
 - **CP-T2.3**: Typed acknowledgements stating the fate reached and its loss bound.
 
