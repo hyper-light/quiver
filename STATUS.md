@@ -20,8 +20,12 @@ macOS and Windows lints) and the evidence its requirement names is recorded.
   each message a Focal batch charged to Focal's memory budget; reads from any offset kept,
   subscriptions that share what they read, a typed lag notice for a subscriber that falls behind,
   and no publish that waits on a reader (`docs/design/focal-bus.md`). It passes the suite; a stalled
-  subscriber among 100 delays no other (`crates/quiver/tests/stalled.rs`). Kiln's live feed of
-  every session rides it on kiln's branch `cp/t2-quiver`, not yet on kiln's main.
+  subscriber among 100 delays no other (`crates/quiver/tests/stalled.rs`). A subscriber's take and
+  wait allocate nothing, a publish allocates twice (the seam's boxed future and its batch's block),
+  and after the warm-up the class takes under 100 minor page faults a million messages, held by
+  the bench gate (`bench/budgets.tsv`, `bench/budget.sh`; `bench/records/2026-10-23-fedora-step2/`).
+  Kiln's live feed of every session rides it on kiln's branch `cp/t2-quiver`, not yet on kiln's
+  main.
 - **GroupStore mandated** (CP-T2.1, T-T2.1.2): hyper-durable's `RamStore` is for tests alone, and a
   build that names it outside one fails (`crates/quiver/tests/ram_store.rs`).
 - **The `quiver` binary** says what it is (`quiver --version`, `quiver --help`), and nothing more yet.
@@ -41,10 +45,6 @@ macOS and Windows lints) and the evidence its requirement names is recorded.
   adacachy (2026-10-23, `bench/records/2026-10-23-adacachy-comparison/`, no record) met it in 8 of
   12 loads, all but one subscriber at 100,000 a second polling or waiting at either rate, and 100
   subscribers waiting at 10,000.
-- **The ephemeral hot path allocation-free**: the profile's first record shows Quiver's publish
-  allocating 4 times and reallocating 3 times a message, a waiting subscriber allocating once a
-  wait (a polling one never), and the publisher taking 0.051 minor page faults a message, 51,000 a
-  million against the budget of 100 (`bench/records/2026-10-23-fedora-profile/`).
 - **CP-T2.2**: The persisted class's 1.4 s tail fixed at its cause (a disk stall never costs leadership), cheaper elections, and kiln's CI and deploy events on the persisted class, on Focal's replicated part.
 - **CP-T2.3**: Typed acknowledgements stating the fate reached and its loss bound.
 
