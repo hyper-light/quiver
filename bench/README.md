@@ -76,6 +76,17 @@ at both (Q-1.1, docs/requirements.toml).
   (`Thread::unpark`, the futex Quiver's waits come down to) and each waiter taking what was
   written. It's measured on the machine as it runs, idle states and all: what a system's waiting
   subscriber takes above it is the system's own, and no system's waiting subscriber goes under it.
+- **The floor over TCP.** Beside it, `--system tcp`: the same open loop through a relay that does
+  nothing but forward (`fanout relay`, a server of its own on the brokers' CPUs, a writer thread for
+  each), over loopback TCP with Nagle off, each subscriber a connection of its own on the
+  generator's threads as a broker's are. Every frame the publisher writes goes on whole to every
+  subscriber of its topic, as many as one read took in one write, and the relay's threads poll
+  rather than sleep while a topic is published: it adds the kernel's sends and receives and no
+  wake-up of its own. No broker a hop away costs less, so the report splits Quiver's lead there:
+  the floor over TCP over Quiver is the deployment's part (a server over loopback against a library
+  in the process), and the competitor over the floor over TCP the broker's own. The relay's CPU is
+  its time, not its work (it polls its socket by reading it); its log (`OUT/tcp-relay.log`) says
+  what each run's topic took.
 - **Before each run** the publisher sends priming messages until every subscriber has taken one,
   so every subscription stands at its broker before the first measured message; Kafka's run has a
   topic of its own, read from its beginning. A broker's subscriber that hasn't taken everything
