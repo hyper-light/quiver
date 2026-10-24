@@ -138,7 +138,9 @@ others', load by load. A figure the machine won't give says why: never a zero in
 - **Its check.** `bench/plant.sh OUT` runs Quiver and the floor briefly from the bench as built and
   from a test build that plants one allocation in every delivery (`--features plant`): the profiles
   must differ by one allocation and one free a delivery, all on the subscribers' threads, so the
-  count sees every thread. `compare.sh` runs it before its brokers start (`OUT/plant.md`).
+  count sees every thread. Their subscribers poll (`--busy`): a waiting Quiver subscriber allocates
+  once a wait, and how often it waits moves with the machine's load between two runs.
+  `compare.sh` runs it before its brokers start (`OUT/plant.md`).
 
 ## Records
 
