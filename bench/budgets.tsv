@@ -18,8 +18,10 @@ quiver	busy	100000	1000	publisher_reallocations	message	0	any
 # After the warm-up, 100 minor page faults a million messages at most: step 2's bar.
 quiver	wait	100000	1000	process_minor_faults	message	0.0001	any
 quiver	busy	100000	1000	process_minor_faults	message	0.0001	any
-# On fedora's i9-14900HX, subscribers waiting: their last-level cache read misses and CPU a
-# delivery, recorded 2026-10-23 at a load average of 15 beside other sessions' work (a quiet run
-# spends less; step 3 records polling's on a quiet machine).
-quiver	wait	100000	1000	subscribers_llc_read_misses	delivery	0.000865	i9-14900HX
-quiver	wait	100000	1000	subscribers_cpu_ns	delivery	97.73	i9-14900HX
+# On fedora's i9-14900HX, the subscribers' last-level cache read misses a delivery, and a waiting
+# subscriber's CPU a delivery (a polling one's CPU is its time, not its work): the figures of step
+# 2's record (bench/records/2026-10-23-fedora-step2/), measured at a load average of 16 to 24
+# beside other sessions' work, which a quiet run spends less than.
+quiver	wait	100000	1000	subscribers_llc_read_misses	delivery	0.000168	i9-14900HX
+quiver	wait	100000	1000	subscribers_cpu_ns	delivery	106.2	i9-14900HX
+quiver	busy	100000	1000	subscribers_llc_read_misses	delivery	0.0000413	i9-14900HX

@@ -148,7 +148,8 @@ others', load by load. A figure the machine won't give says why: never a zero in
 delivery (kiln's CP-T2.1, step 2): a subscriber's take allocates nothing, waiting or polling; a
 publish allocates twice (the future `Topics::publish` answers with, and the block its batch is kept
 in) and reallocates nothing; at most 100 minor page faults a million messages after the warm-up;
-and on fedora a waiting subscriber's last-level cache misses and CPU a delivery. `--budgets FILE`
+and on fedora the subscribers' last-level cache misses a delivery and a waiting one's CPU a
+delivery (a polling thread's CPU is its time, not its work). `--budgets FILE`
 holds each run to the budgets for its load and machine, printed under its profile, and fails the
 run's exit status if it went over one. `bench/budget.sh OUT` is the bench gate: each budgeted load
 for 60 s after 5 s of warm-up, failing where a run is over a budget by more than a tenth (over one of
