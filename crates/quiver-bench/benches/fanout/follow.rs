@@ -115,6 +115,11 @@ impl Schedule {
         true
     }
 
+    /// The measured window, nanoseconds from the run's base: `[from, until)`.
+    pub fn window(&self) -> (u64, u64) {
+        (self.from, self.until)
+    }
+
     /// The messages published: those scheduled, less those never offered.
     pub fn offered(&self) -> u64 {
         self.issued - self.unoffered
@@ -248,6 +253,11 @@ impl Seen {
             return Taken::Message;
         }
         self.deliveries += 1;
+        crate::profile::delivered();
+        // A test build's planted allocation, one a delivery (bench/plant.sh): the profile must
+        // show it, whichever thread the delivery is on.
+        #[cfg(feature = "plant")]
+        drop(std::hint::black_box(Box::new(number)));
         if window.contains(scheduled) {
             self.latency.record(at.saturating_sub(scheduled));
             self.measured += 1;
