@@ -391,15 +391,35 @@ disks hold it.
 Focal's agent set six conditions on the disk mode before it goes anywhere. Where each stands on
 2026-10-25:
 
-1. **Mode agreement:** not yet begun.
+1. **Mode agreement:** met (hyper-raft cp/t2.2-mode 0854933, on Mantle's degraded-suspicion-main).
+   - The heartbeat states the mode in flags bit 2, after Mantle's stopping bit 1. A heartbeat of
+     the other mode is refused, typed (`Refusal::OtherMode`), and its sender is never misjudged.
+   - As Focal's agent decided, the mode is the group's own, in its replicated configuration
+     (`DiskMode` in `ConfState`): its founding configuration states it, or a conf change sets it,
+     at one index at every member. The core, the replica and the stream all take it from the
+     configuration a member has applied.
+   - A record that states no mode is byte for byte as before. Turning the mode on waits for the
+     owner's fence (`Config::disk_fence`, Focal's upgrade fence), because an older build refuses a
+     configuration that states it.
+   - The harness switches a running group under a publish a millisecond (8 seeds). With the
+     fences closed the change is refused, typed, and nothing moves. With them open, a follower made
+     late by its Raft traffic applies it 300 ms after the others; meanwhile heartbeats are refused
+     both ways, nothing is suspected and no term is spent. A 2 s stall of the leader's disk then
+     spends no term.
+   - Made late by its disk instead, the follower, still in today's mode, sends no heartbeat until
+     a flush proves one. It is suspected for that silence before it switches, as today's mode
+     suspects a stalled disk, and no term is spent. A switch made while the leader's own disk
+     stalls would cost what today's mode costs (inferred, not tested).
 2. **A model of the Persisted acknowledgement:** met. hyper-check's model of the persisted class's
    commits (`tests/models/unpersisted.rs`) found no fault at any of three scopes (192,592 to
    4,133,285 classes). The rule taken out (the leader's memory counted) was refused in 7 steps. Both
    searches run in hyper-raft CI's explore job (d69f309).
 3. **Images and compaction:** met (below).
 4. **Votes:** met (fb44834): a stalled disk gives no vote it doesn't hold.
-5. **The hand-over:** the flush tail, the disk verdicts and the heir rule are met. The patience's law
-   waits on Focal's agent.
+5. **The hand-over:** the flush tail, the disk verdicts and the heir rule are met. For the
+   patience, Focal's agent asks for a stated cap and its source. The cap proposed is the counted
+   budget: the bytes the owner states a stalled leader may hold, filled at the measured growth
+   rate. Under it the doubling has no room left, and building that is next.
 6. **All disks slow:** met (2060014). Meeting it took a fix to the patience: it counts from when a
    voter could take the lead.
 
