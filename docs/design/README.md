@@ -44,7 +44,7 @@ Kiln vendors Quiver at `vendor/quiver` and reaches it only through kiln-seams' `
 | Decision | Made by | Status |
 |---|---|---|
 | Vendoring Focal's bus behind `quiver-api` (`focal-bus.md`), the contract (`topics.md`) | CP-T2.1 | decided |
-| The persisted tail: liveness apart from disk progress, leases, per-device I/O | CP-T2.2 | open |
+| The persisted tail: liveness apart from disk progress, leases, per-device I/O (`persisted-tail.md`) | CP-T2.2 | open |
 | Typed acknowledgements and loss bounds | CP-T2.3 | open |
 | The windowed class, calibration and accrual suspicion | CP-T2.4 | open |
 | The topic catalog and schema compatibility | CP-T2.5 | open |
