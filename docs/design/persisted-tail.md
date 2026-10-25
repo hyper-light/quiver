@@ -467,8 +467,47 @@ Both fixes are Focal's to take. One patch on Focal main 10fb5b9 (`rejoin-fixes.p
 What would falsify this: a run that loses or moves an acknowledged batch, that opens on a log that
 doesn't fit its image, or that finds an image past what two members' disks hold.
 
+**The restart Focal's agent then asked for.** Focal's agent also asked for a restart with the part's
+image past the local log's durable index. Recovery must open at the image, and must neither truncate
+nor replay below it. The leader's P3a to P6 restart that way, but the test checked only what
+survived, not where the member opened. A replay below the image wouldn't show in the part either: the
+part takes a batch it already holds as `Again`, and its streams don't move. So now (b162c2f):
+
+- The part records the image it opened on and counts the entries it applies at or below it. A unit
+  test applies the entry at the image's point again: it is counted, and the streams don't move.
+- After each restart the test checks three things:
+  - the member opened on its disk's image, neither below the newest image made durable before the
+    kill nor past the one out then;
+  - its replica opened at or past that point;
+  - where the image was past its log's durable index, the log starts at the image (§4.3's third
+    case); otherwise the log keeps its durable entries past the image.
+- At each run's end, nothing was applied at or below the image, and every part ends exactly at the
+  batches published.
+
+**The results.** 42 of 42 runs, in 122 s, on adas-mac-studio-3 in release:
+
+- All 18 leader runs from P3a to P6 restarted on an image 1 to 7 entries past the log's durable
+  index. In each one, the log started at the image.
+- No entry was applied at or below an opened image.
+- 2,265 batches were acknowledged, each once and at its offset.
+- 482,503 image checks found none past two members' disks.
+
+A first run passed 41 of 42. In one Leader P3a run, the leader's log, held since the seek began,
+outlasted the lab's 5 s patience at a load of 11. The leader handed the lead over before its point,
+as the mode should.
+
+Two mutants check the checks, with 3 Leader P4 runs each:
+
+- **replay-below** opens the replica at its log's start rather than at its image. The new checks
+  caught 3 of 3 at the open ("its replica opened below its image": applied 23, image 43). The old
+  checks also caught 3 of 3, but only 30 s later, as a member that never came to hold every batch.
+- **drop-image** deletes the image before the reopen. hyper-durable refused all 3 opens, because the
+  log starts past the machine. So the new checks add nothing there.
+
 **Where it is:**
 
-- Focal's lab branch `lab/disk-apart`: 5f4510c to 87eca91 on 3549be9. Local, and never to be pushed.
+- Focal's lab branch `lab/disk-apart`: 5f4510c to 87eca91 on 3549be9, then b162c2f for the restart
+  checks. Local, and never to be pushed.
 - The drop for Focal's agent: fedora's `~/quiver-review/focal-condition-3/`.
-- The runs' logs: adas-mac-studio-3's `~/.cache/quiver-t2/f3-143538/`.
+- The runs' logs: adas-mac-studio-3's `~/.cache/quiver-t2/f3-143538/`, then `f3b-155239/` (the
+  mutants) and `f3b-155816/` (the 42).
