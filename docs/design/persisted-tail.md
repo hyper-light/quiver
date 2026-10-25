@@ -16,6 +16,19 @@ nodes, so no node's heartbeat was proved for 0.6 s and each node suspected both 
 leader, left no trusted quorum, stepped down, and won the next term. Each detector stood at 165 to
 216 ms of detection ... where the step-down cost a second."
 
+Focal's agent added how it happened (2026-10-25). The bare-metal machine is adacachy, kiln's
+production host (an AMD Ryzen 9 9950X3D2, its root and `/home` on one btrfs volume: `compress=zstd:1`,
+`ssd`, `discard=async`, no `commit=` option). Nothing held the flushes. The volume stalled about 0.6
+s every 20 to 30 s, for all three nodes at once, their logs on its one disk. The step-down was traced
+natively at 10,000 a second, three `focal start bus` processes with data on that btrfs, with each
+member's statistics a second and the stream's suspicions. That the stalls are btrfs's periodic
+transaction commit is inferred, not measured: with no `commit=` option the interval is btrfs's
+default of 30 s. It matters past this step. Quiver's persisted class is to carry kiln's CI and
+deploy events on that host. A 0.6 s stall every 20 to 30 s holds 2 to 3% of all publishes, those
+offered during a stall, for up to 0.6 s. Alone, that puts the p99 near 0.3 to 0.4 s there,
+whatever the elections do: one such stall in 30 s gave 405 to 416 ms in the real-disk runs below.
+AC-T2.2.2's bar is 10 ms.
+
 ## The cause
 
 Doc 34's run was built on focal 7a79f0d7 (2026-10-18 14:09), which vendors hyper-raft b5ea01ba
@@ -125,8 +138,13 @@ term in only 3 of 30 runs: the first three, just after their build, for a reason
 every link stayed trusted with its freshness point passed (572 ms and then 1.38 s before), and its
 stream asked no wake, so it judged nothing. When heartbeats came again, the 106 slots their sender
 had skipped put the freshness points back. The hold didn't always stop every stream either: in 4 of
-36 runs looked at halfway through, a member had sent 4 to 6 heartbeats. Focal's member does judge
-through a stall, as the runs above show.
+36 runs looked at halfway through, a member had sent 4 to 6 heartbeats. The difference is the
+owner's, not the stream's, as Focal's agent explained. focal-bus's member polls its stream at the
+top of every turn (`Member::turn`), and its serve loop runs a turn after every endpoint event,
+deadline and log answer. Under a publish load the judge runs all through a stall, whatever the
+stream's wake says. hyper-durable-e2e's member polls only on a datagram or the stream's wake. With
+heartbeats held and the wake none, it never judges. Held with no traffic, focal-bus would likely do
+the same.
 
 ## What step 2 inherits
 
