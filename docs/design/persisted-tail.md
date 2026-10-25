@@ -1,9 +1,10 @@
 # The persisted tail
 
 CP-T2.2 (kiln plan `01a16c5b7e8c75acbdfafd51315c3885`) fixes the persisted class's tail at its
-cause. This page is its step 1: the tail traced to its cause, and the reproduction, in simulation
-and on a real disk, that steps 2 on are measured against. The decisions it leads to (the leader's
-liveness judged apart from its disk, leases, I/O a device) are steps 2 on, and open.
+cause. Step 1 traced the tail to its cause and built the reproduction, in simulation and on a real
+disk, that later steps are measured against. Step 2, at the end of this page, judges each node's
+process apart from its disk, so that a stall of the leader's disk spends no term and no publish
+waits it out. Cheap elections, the three-machine lab and the comparison are steps 3 on.
 
 ## What Focal measured
 
@@ -179,3 +180,208 @@ diagnostic patch and each run's report, node logs and client log are in fedora's
 What would falsify this account: a run of doc 34's shape on focal-bus's member at b5ea01ba that
 keeps its leader, or a run on a commit with the three rules that loses it. Over the seven real-disk
 runs above, neither happened.
+
+## Step 2: each process judged apart from its disk
+
+### What changed
+
+Three changes, on hyper-raft branch `cp/t2.2-disk-apart` on main 698c0da. Each is off by default,
+so today's groups run as they did:
+- **Heartbeats apart from flushes** (hyper-liveness, `Liveness::set_disk_apart`). A heartbeat
+  leaves when it is due, whatever a flush is doing, and still carries its sender's durable count.
+  Its receiver takes it as its sender's process alive, with no proof of a fresh flush, and a judge's
+  own stalled flush no longer holds its judging back. A peer is suspected for silence alone: a
+  process that stopped, or a link that broke.
+- **Commits on a majority's disks without the leader's** (`Config::apply_unpersisted`, hyper-raft
+  core's R-6, there before this step). A leader applies an entry of its own term, and so answers
+  its publish, once two of the three disks hold it, whether its own is one of them or not. Ongaro's
+  thesis has it (§10.2.1, "Writing to the leader's disk in parallel"): "The leader may even commit
+  an entry before it has been written to its own disk, if a majority of followers have written it
+  to their disks; this is still safe." TiKV's RFC 0112 and raft-rs's
+  `max_apply_unpersisted_log_limit` apply entries the same way.
+- **A leader's patience with its own disk** (hyper-durable, `Replica::set_disk_patience`). A
+  leader whose oldest write has been out longer than its patience hands the lead to the voter its
+  detectors trust that holds most of its log. It does so by `TimeoutNow`, which leaves without a
+  write of its own. A disk that stops for good costs one hand-over, rather than a lead kept with no
+  disk under it.
+
+The step names two more things, and each already holds:
+- **The leader's lease kept while its own fsync is slow.** Focal's member elects by suspicion
+  (`Elections::Suspicion`). A leader keeps the lead while it trusts a quorum, and a follower stands
+  by a leader it trusts. Judged apart from the disk, both rest on processes alone, so no fsync can
+  take the lease.
+- **Flushes scheduled per device.** hyper-log keeps "one log per device, shared by every group on
+  it, so that one flush commits every group's writes" (`crates/hyper-log/src/lib.rs`). A bus node
+  opens one log (`member.rs`, `open_log`), which both its part's group and its liveness stream's
+  group write, and it serves one part (`serve.rs`). Per group is the lab's shape alone: three nodes
+  on one machine's file system, where btrfs couples their flushes (below).
+
+### Each change on its own
+
+The simulation, the leader's disk alone stalled 2 s under a publish a millisecond, 8 seeds a row
+(`survey_of_stalls`, at 8443cac):
+
+| The group | Seeds that spent a term | Publishes lost | Of the 2,000 offered in the stall, those its leader answered in it | Its leader's slowest answer to them |
+|---|---|---|---|---|
+| Today's: heartbeats proved by a flush | 8 of 8, 1 or 2 terms each | 37 | none | — (another leader takes them) |
+| Heartbeats apart from flushes | 0 of 8 | 0 | none | 2,001 to 2,002 ms |
+| And commits on the followers' disks | 0 of 8 | 0 | 1,996 to 1,998, the rest just after its end | 4.2 to 4.5 ms |
+
+In today's group both followers suspect the stalled leader once their freshness (54 to 64 ms)
+passes and elect another, and the old leader's uncommitted publishes are lost with it. With heartbeats
+apart, nobody suspects the leader and the group applies every publish within 5.3 ms, but the leader
+answers only what its own disk holds: the stall's publishes wait for its end. With commits on the
+followers' disks too, the leader answers them as they come.
+
+The patience, on its own: the leader's disk stops for 6 s, with a patience of 1 s
+(`judged_apart_a_leaders_disk_that_stops_costs_one_hand_over`). The leader answers its first
+second's publishes, about 1,000, within 4.2 ms each, then hands over. Over the 8 seeds that's 1 or
+2 hand-overs and 1 or 2 terms, at most 7 ms without a leader, and every publish applied, the slowest
+in 15.7 ms. A second hand-over is the first one given up by the core (its transfer's timeout) and
+begun again. A second term is the heir's. It campaigns without pre-vote on the core's word, and its
+ballot's round (the quorum's round trip and one flush, `hyper_timing::Ballot`) can end before a vote
+that waited on its voter's flush comes (seed 1: the vote came 0.2 ms after the round ended).
+
+### The bar: 10,000 seeds
+
+`judged_apart_ten_thousand_stalls_of_the_leaders_disk_start_no_election` stalls the leader's disk
+alone for 2 s, a publish a millisecond, in the step's group, and counts elections by the
+simulator's terms. It ran on adas-mac-studio-3 as twelve processes of the release test binary, each
+on its own range of seeds: at 7b4250f (2026-10-25 07:40 PDT), and at 8443cac (09:29 PDT), whose
+code the branch's commit keeps (it changes only another test's assertions). Both runs had 0
+elections in 10,000 seeds. Of the 20,000,000 publishes offered in the stalls, none went
+unanswered and none was answered before two disks held it. The slowest answer took 5.2 ms.
+
+### The tests
+
+Each passes in every one of its seeds:
+- **Step 1's stall test in the step's group**
+  (`judged_apart_a_flush_stall_every_node_shares_spends_no_term`): no term is spent, and every
+  publish is answered, each on a majority's disks when it is answered.
+- **A 2 s stall of each node's disk in turn**, the leader's among them, 500 ms apart
+  (`judged_apart_a_stall_of_each_node_in_turn_spends_no_term`): no term is spent, and the leader
+  answers every publish within 10 ms, each on a majority's disks.
+- **The leader's disk alone for 2 s**
+  (`judged_apart_a_2_s_stall_of_the_leaders_disk_spends_no_term_and_answers_every_publish`): the
+  same.
+- **Step 1's other two shapes that cost the lead:**
+  - stalls that end apart, at 585, 735 and 885 ms
+    (`judged_apart_flush_stalls_that_end_apart_spend_no_term`): no term is spent, and every publish
+    is answered on a majority's disks;
+  - the end of a stall every node shared (hyper-liveness `tests/sim.rs`,
+    `judged_apart_flushes_stalled_together_draw_no_suspicion`): no suspicion that the same run without
+    the stall doesn't show.
+- **A stalled disk**, in each of hyper-liveness's three worlds, macOS's, a busy machine's and
+  Linux's (`judged_apart_a_stalled_disk_is_not_suspected`): no suspicion of its node.
+- **kill -9** (hyper-durable's
+  `judged_apart_the_shell_elects_sleeps_and_fails_over_on_the_liveness_stream` and hyper-liveness's
+  `judged_apart_a_killed_peer_is_suspected_within_the_stated_bound`): a killed leader is suspected
+  within the bound its detector states, and the survivors elect and take a proposal, as in today's
+  group.
+
+Today's group still fails step 1's tests of the leader's flush alone and of stalls that end apart.
+They stay ignored, and now say that the step's group passes them.
+
+hyper-durable-e2e's 23 scenarios and 6 random ones run three members as real processes, each a
+replica on hyper-log over a real file. They pass in the step's group (`HYPER_DURABLE_E2E_DISK_APART`
+set) and in today's, on adas-mac-studio-3. In the step's group:
+- `stall-leader`'s leader hands the lead on after its 5 s patience;
+- no member suspects `stall-follower`'s stalled member;
+- `stalled-devices`' leader, its disk stopped for good, goes on taking writes through a 7 s hold of
+  its survivors' devices, and then hands the lead on;
+- the 12 kill -9 scenarios elect as they do in today's group.
+
+### The lab
+
+The build is Focal's member at bus-replicated 10fb5b9, with the branch's liveness and replica
+vendored and a switch, `FOCAL_BUS_DISK_APART`, that turns the three changes on. It's a local build
+and is never pushed. The setup:
+- three `focal start bus` nodes, each a user unit on fedora;
+- doc 34's client at 1,000 a second, 30 s after 10 s of warm-up;
+- the leader's disk held for 2 s, 25 s in;
+- each node's log on a btrfs subvolume of its own, without copy-on-write (`chattr +C`, so its
+  direct writes stay direct on a compressed volume).
+
+The leader's disk was held in two ways.
+
+**In its process** (series 5, 2026-10-25 09:11 to 09:18 PDT). The lab build's hold point
+(`FOCAL_BUS_LAB_HOLD`) holds each write and flush of the leader's files before it is made, for as
+long as a file exists. So the leader holds nothing of the kernel's while it waits, as on a disk of
+its own:
+
+| Group | Runs | Terms spent | Publishes offered in the hold | Their slowest acknowledgement |
+|---|---|---|---|---|
+| Today's | 3 | 3 of 3: both followers suspected the leader 329 to 531 ms into the hold, and another led 0.5 to 0.7 s in | 6,000, all acknowledged | 533 to 713 ms |
+| The step's | 6 | 0 of 6, and no suspicion in the hold | 12,000, all acknowledged | 30 to 33 ms |
+
+In the step's group the hold doesn't show. The publishes offered in the seconds just before and
+after it were acknowledged within 26 to 34 ms. Each run's slowest acknowledgement outside the hold,
+61 to 428 ms, matches its followers' longest commit (84 to 436 ms). In apart-h3, for example, both
+followers' longest commit was about 0.44 s, and its slowest acknowledgement came at second 14.
+
+**By its cgroup** (`io.max`, as in step 1; series 3 and 4, 08:05 to 08:15 PDT). The block layer
+holds the leader's writes:
+
+| Group | Runs | Terms spent | Publishes offered in the hold | Their slowest acknowledgement |
+|---|---|---|---|---|
+| Today's | 3 | 3 of 3: another led about 0.5 to 0.7 s in | 6,000, all acknowledged | 570 to 717 ms |
+| The step's | 9 | 0 of 9 | 18,000, all acknowledged | 33 to 68 ms in 7 runs; 889 and 2,047 ms in 2 |
+
+In those 2 runs the file system held the followers' flushes with the leader's. In apart8 every
+node's longest commit was over 2 s, though only the leader's cgroup was held. A process whose writes
+the block layer holds may hold btrfs's own locks or a transaction's commit while it waits. The
+processes on the same file system then wait with it. That is inferred, not measured. Either way it's
+the lab's one machine, not the group: Quiver's nodes are on machines of their own, and step 7's lab
+holds the leader's own disk with dm-delay.
+
+**kill -9 of the leader** (08:15 to 08:36 PDT). Five runs killed the client's leader 25 s in: two
+in the step's group, one in today's on the lab build, and two on pristine 10fb5b9:
+
+| Run | Group | Survivors' detection (ms) | Noticed late (ms) | Elected after the slower suspicion (ms) |
+|---|---|---|---|---|
+| k1 | the step's | 276, 886 | 0.2, 0.2 | 48 |
+| k3 | the step's | 158, 217 | 0.1, 0.2 | 61 |
+| k2 | today's | 264, 308 | 160, 171 | 39 |
+| p2 | today's, pristine | 297, 296 | 95, 135 | 22 |
+| p3 | today's, pristine | 399, 416 | 193, 346 | 46 |
+
+In the step's group each survivor suspected the killed leader within 0.2 ms of the point its
+detector stated, and the group elected within 61 ms after that. In today's group survivors noticed
+95 to 346 ms late. That is inferred to be 1ccd38d's rule, a judge with its own flush proof out
+judging no peer, and was not traced. In k1 the second survivor's detector held the killed leader to
+886 ms, so the first survivor's pre-vote waited for it, as pre-vote should, and the lead changed
+699 ms after the first suspicion.
+
+In none of these runs did doc 34's client follow the new leader. It kept the killed node as its
+leader to the end and failed its window of 4,096 publishes ("no acknowledgement for a serve
+period"). That is the client's failover, in Focal's tree, and Focal's agent has it. An earlier
+report to Focal's agent said the survivors didn't elect. That was wrong, and it has been corrected.
+
+### Where it is
+
+- **hyper-raft branch `cp/t2.2-disk-apart`**: one commit, 435908a, on step 1's ef5e98e on main
+  698c0da. It holds the three changes, the tests, hyper-durable-e2e's switch, and `docs/timing.md`
+  §2.8 and `docs/durable.md` §4.2 on what they do. It's local until Ada gives her word to push it to
+  hyper-light/hyper-raft. Its checks on adas-mac-studio-3:
+  - At 8443cac: hyper-raft's gate (`scripts/gates.sh`). The contracts, fmt and clippy on every
+    target are clean, and 1,745 of the workspace's 1,746 tests pass; CI's 10,000 seeds of
+    hyper-durable's sim pass too.
+  - The one failure is a flake that main has too: hyper-rt-transport's
+    `each_connection_receives_on_a_socket_of_its_own_and_lets_it_go_with_the_connection`. Run
+    interleaved 20 times each, it failed 2 times at 698c0da and 0 on the branch. hyper-rt-transport
+    depends on none of the crates the branch changes.
+  - At 435908a: the contracts, fmt and clippy are clean again. The changed crates' tests pass
+    (hyper-liveness 47, hyper-durable 83), and so do hyper-durable-e2e's scenarios in the step's
+    group.
+- **Focal's lab build** (`lab/disk-apart`: 0f1d68e, and 3549be9 for the hold point): local, and
+  never to be pushed. The fix goes to Focal as a branch of its own in step 10.
+- **The records:**
+  - the lab's scripts are `doc34-lab3.sh` (the cgroup hold), `doc34-lab4.sh` (the hold in the
+    process), and the series' scripts;
+  - the runs' reports, node logs and client logs are in fedora's `~/.cache/quiver-t2/doc34-lab/`;
+  - the 10,000 seeds' logs are in adas-mac-studio-3's `~/.cache/quiver-t2/10k-0740/` and
+    `final4-0912/`.
+
+What would falsify this: a seed, or a lab run with the leader's disk held apart from the
+followers', in which the step's group spends a term on a stall, or answers a publish before two
+disks hold it.
