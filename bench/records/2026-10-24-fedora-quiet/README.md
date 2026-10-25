@@ -174,31 +174,38 @@ a CPU that was neither the window's nor its containers', with the runs done so f
   from a different round, so the polling cells are judged round by round as well (`per-round.py`,
   each round's runs of a load from the same minutes): every polling cell meets the bar in each of
   its three rounds.
-- **Overlaps**: 138 of the 216 runs overlapped no one else's work, each run taken at its widest
-  (from the last snapshot that hadn't counted the run before it to the first that counted it). The rest overlapped Build
-  Caching's kiln build-time baseline (`w24-baseline`, until 18:08: runs 24 to 90) and its gate
-  (`w24-m0-gate`, runs 166 to 169), and processes of one to three CPUs in transient run scopes (runs 125
-  to 202). Judged over the clean runs alone, every cell's verdict is the same (`clean.md`,
-  `compare-clean2.py`), so none rests on an overlapped run, the first grid's five included.
+- **Overlaps**: 106 of the 216 runs overlapped no one else's work, each run taken at its widest
+  (from the last snapshot that hadn't counted the run before it to the first that counted it).
+  The watcher saw Build Caching's kiln build-time baseline (`w24-baseline`, until 18:08) and its
+  gate (`w24-m0-gate`), and processes of one to three CPUs in transient run scopes. Build Caching
+  said afterwards that those were its capped W24 builds, 17 of them from 18:31 to the grid's end,
+  so that whole hour counts as overlapped (`overlaps.tsv`), snapshots or not. Judged over the clean
+  runs alone (`clean.md`, `compare-clean2.py`), every cell's verdict is the same but one. Polling
+  at 100,000 a second to 1,000 has no clean run in either grid: here, round 1 overlapped the
+  baseline, and rounds 2 and 3 the builds. Its verdict (no competitor delivered every message) rests
+  on overlapped runs. In the same runs the floor over TCP carried all 100 million deliveries a second
+  while NATS and Redis carried almost none and Kafka 4.67 million, so the brokers' shortfall looks
+  their own. By Ada's rule it runs again alone, on a quiet machine.
 
 | subscribers' threads | rate /s | subscribers | the floor, p99 / p99.9 µs | the floor over TCP | Quiver | the best competitor | Quiver's lead, p99 / p99.9 | an order of magnitude | over clean runs alone |
 |---|---|---|---|---|---|---|---|---|---|
-| polling | 10,000 | 1 | 0.4 / 2.4 | 17.7 / 19.7 | 0.9 / 2.8 | Redis 62.5 / 196.6 | 67.4× / 70.6× | yes | the same |
+| polling | 10,000 | 1 | 0.4 / 2.4 | 17.7 / 19.7 | 0.9 / 2.8 | Redis 62.5 / 196.6 | 67.4× / 70.6× | yes | 69.0× / 71.4× |
 | polling | 10,000 | 100 | 0.5 / 2.7 | 180.2 / 3473.4 | 2.5 / 13.1 | NATS 811.0 / 1376.3 | 320.9× / 105.4× | yes | 298.3× / 100.5× |
 | polling | 10,000 | 1,000 | 0.5 / 3.1 | 27000.8 / 36700.2 | 13.4 / 157.7 | none delivered every message | ∞ | yes | ∞ |
 | polling | 100,000 | 1 | 0.2 / 2.3 | 23.0 / 29.7 | 0.8 / 6.8 | Redis 33.3 / 170.0 | 39.3× / 24.8× | yes | 22.9× / 23.1× |
 | polling | 100,000 | 100 | 0.6 / 2.6 | 1212.4 / 21495.8 | 6.0 / 15.6 | none delivered every message | ∞ | yes | ∞ |
-| polling | 100,000 | 1,000 | 0.6 / 3.5 | 55050.2 / 106954.8 | 139.3 / 221.2 | none delivered every message | ∞ | yes | ∞ |
+| polling | 100,000 | 1,000 | 0.6 / 3.5 | 55050.2 / 106954.8 | 139.3 / 221.2 | none delivered every message | ∞ | yes | no clean runs |
 | waiting | 10,000 | 1 | 21.2 / 86.0 | 54.8 / 101.4 | 21.5 / 73.7 | Redis 107.5 / 229.4 | 5.0× / 3.1× | **no** | the same |
-| waiting | 10,000 | 100 | 32.5 / 45.1 | 170.0 / 409.6 | 39.4 / 78.8 | NATS 622.6 / 1179.6 | 15.8× / 15.0× | yes | the same |
+| waiting | 10,000 | 100 | 32.5 / 45.1 | 170.0 / 409.6 | 39.4 / 78.8 | NATS 622.6 / 1179.6 | 15.8× / 15.0× | yes | 18.7× / 16.0× |
 | waiting | 10,000 | 1,000 | 32.8 / 52.2 | 2293.8 / 15990.8 | 48.6 / 137.2 | none delivered every message | ∞ | yes | ∞ |
 | waiting | 100,000 | 1 | 5.3 / 56.3 | 26.6 / 65.5 | 6.7 / 55.8 | Redis 41.5 / 184.3 | 6.2× / 3.3× | **no** | the same |
 | waiting | 100,000 | 100 | 562036.7 / 587202.6 | 274.4 / 450.6 | 77.8 / 131.1 | none delivered every message | ∞ | yes | ∞ |
 | waiting | 100,000 | 1,000 | 406847.5 / 415236.1 | 12976.1 / 15859.7 | 122.9 / 192.5 | none delivered every message | ∞ | yes | ∞ |
 
 - **Where subscribers poll** (the step's bar): every load at most a tenth of the best competitor's
-  at p99 and p99.9, in both grids, over every run and over the clean runs alone, and in this grid
-  in every round: **met**. The report's p99.9 lead is against the competitor's best run by p99;
+  at p99 and p99.9, in both grids, over every run and in this grid in every round: **met**; over
+  the clean runs alone, met in five cells, and the sixth (100,000 a second to 1,000) has no clean
+  run in either grid and runs again. The report's p99.9 lead is against the competitor's best run by p99;
   against the least p99.9 any competitor run of the cell reached, it is 34.2× at 10,000 a second
   to 1, 105.4× to 100 and 14.8× at 100,000 to 1.
 - **Where subscribers wait**: four of six met, as in the first grid; the same two cells missed, one

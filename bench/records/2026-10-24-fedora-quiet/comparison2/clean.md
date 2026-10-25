@@ -1,13 +1,13 @@
 | subscribers' threads | rate | subscribers | the floor | the floor over TCP | Quiver | the best competitor | Quiver's lead | an order of magnitude | over clean runs alone | rests on runs not known clean |
 |---|---|---|---|---|---|---|---|---|---|---|
-| busy | 10000 | 1 | 0.4 / 2.4 (clean) | 17.7 / 19.7 (clean) | 0.9 / 2.8 (clean) | redis 62.5 / 196.6 (clean) | 67.4× / 70.6× | yes | 67.4× / 70.6× vs redis | no |
+| busy | 10000 | 1 | 0.4 / 2.4 (clean) | 17.7 / 19.7 (overlapped) | 0.9 / 2.8 (clean) | redis 62.5 / 196.6 (overlapped) | 67.4× / 70.6× | yes | 69.0× / 71.4× vs redis | no |
 | busy | 10000 | 100 | 0.5 / 2.7 (clean) | 180.2 / 3473.4 (clean) | 2.5 / 13.1 (overlapped) | nats 811.0 / 1376.3 (clean) | 320.9× / 105.4× | yes | 298.3× / 100.5× vs nats | no |
 | busy | 10000 | 1000 | 0.5 / 3.1 (overlapped) | 27000.8 / 36700.2 (clean) | 13.4 / 157.7 (clean) | nats undelivered / undelivered (clean) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
-| busy | 100000 | 1 | 0.2 / 2.3 (overlapped) | 23.0 / 27.9 (clean) | 0.8 / 6.8 (overlapped) | redis 33.3 / 170.0 (clean) | 39.3× / 24.8× | yes | 22.9× / 23.1× vs redis | no |
-| busy | 100000 | 100 | 0.6 / 2.6 (clean) | 1212.4 / 21495.8 (overlapped) | 6.0 / 15.6 (clean) | nats undelivered / undelivered (clean) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
-| busy | 100000 | 1000 | 0.6 / 3.5 (clean) | 55050.2 / 106954.8 (clean) | 139.3 / 221.2 (clean) | nats undelivered / undelivered (overlapped) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
-| wait | 10000 | 1 | 21.2 / 86.0 (clean) | 54.8 / 101.4 (clean) | 21.5 / 73.7 (clean) | redis 107.5 / 229.4 (clean) | 5.0× / 3.1× | no | 5.0× / 3.1× vs redis | no |
-| wait | 10000 | 100 | 32.5 / 45.1 (clean) | 170.0 / 409.6 (clean) | 39.4 / 78.8 (clean) | nats 622.6 / 1179.6 (clean) | 15.8× / 15.0× | yes | 15.8× / 15.0× vs nats | no |
+| busy | 100000 | 1 | 0.2 / 2.3 (overlapped) | 23.0 / 27.9 (overlapped) | 0.8 / 6.8 (overlapped) | redis 33.3 / 170.0 (clean) | 39.3× / 24.8× | yes | 22.9× / 23.1× vs redis | no |
+| busy | 100000 | 100 | 0.6 / 2.6 (overlapped) | 1212.4 / 21495.8 (overlapped) | 6.0 / 15.6 (overlapped) | nats undelivered / undelivered (clean) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
+| busy | 100000 | 1000 | 0.6 / 3.5 (overlapped) | 55050.2 / 106954.8 (overlapped) | 139.3 / 221.2 (overlapped) | nats undelivered / undelivered (overlapped) | ∞ / ∞ | yes | no clean runs | **yes** |
+| wait | 10000 | 1 | 21.2 / 86.0 (overlapped) | 54.8 / 101.4 (clean) | 21.5 / 73.7 (clean) | redis 107.5 / 229.4 (clean) | 5.0× / 3.1× | no | 5.0× / 3.1× vs redis | no |
+| wait | 10000 | 100 | 32.5 / 45.1 (clean) | 170.0 / 409.6 (clean) | 39.4 / 78.8 (clean) | nats 622.6 / 1179.6 (overlapped) | 15.8× / 15.0× | yes | 18.7× / 16.0× vs nats | no |
 | wait | 10000 | 1000 | 32.8 / 52.2 (clean) | 2293.8 / 15990.8 (clean) | 48.6 / 137.2 (clean) | nats undelivered / undelivered (clean) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
 | wait | 100000 | 1 | 5.3 / 56.3 (clean) | 26.6 / 65.5 (overlapped) | 6.7 / 55.8 (clean) | redis 41.5 / 184.3 (clean) | 6.2× / 3.3× | no | 6.2× / 3.3× vs redis | no |
 | wait | 100000 | 100 | 562036.7 / 587202.6 (clean) | 274.4 / 450.6 (clean) | 77.8 / 131.1 (clean) | nats undelivered / undelivered (clean) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
@@ -30,7 +30,7 @@ The lead split at the floor over TCP (best of 3 over every run):
 | wait | 100000 | 100 | 3.5× / 3.4× | nats ∞ / ∞ |
 | wait | 100000 | 1000 | 105.6× / 82.4× | nats ∞ / ∞ |
 
-138 of 216 runs overlapped no one else's work.
+106 of 216 runs overlapped no one else's work.
 interleaving: 36 rounds of a load over 6 systems, each with every system once, back to back; the widest round took 0:06:02.
 
 Who overlapped which runs:
@@ -39,6 +39,7 @@ Who overlapped which runs:
 - 99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c use: runs 33-36 (4)
 - 97.1 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git un: runs 67-71 (5)
 - 172.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/: runs 89-91 (3)
+- W24, Build Caching's capped cargo builds (nice 19, -j 4, 17 builds), to the grid's end: runs 124-216 (93)
 - 98.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p593002-i42512409.scope /home/adalundhe/.rust: runs 125-128 (4)
 - 98.9 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p593002-i42512409.scope /home/adalundhe/.rust: runs 127-130 (4)
 - 84.2 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p602843-i42522154.scope /home/adalundhe/.rust: runs 128-131 (4)

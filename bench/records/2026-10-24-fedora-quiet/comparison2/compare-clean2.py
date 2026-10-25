@@ -5,12 +5,14 @@ they touched, rerun those whose verdict depends on them); the interleaving's che
 split at the floor over TCP (the deployment's part, the floor over Quiver; the broker's, the
 competitor over the floor).
 
-  compare-clean2.py RUNS.TSV BUSY.LOG [DAY]
+  compare-clean2.py RUNS.TSV BUSY.LOG [OVERLAPS.TSV] [DAY]
 
 BUSY.LOG is the window's own watcher (quiet-window4.sh): "== HH:MM:SS load a b c runs N", then a
 line "cpu cgroup command" for each process over 60% of a CPU that was neither the window's nor the
 comparison's containers', then "unit name" lines. The runs counts place each run in time, each at
 its widest: a snapshot near it marks it, whatever moment within those bounds it really ran.
+OVERLAPS.TSV adds intervals ("HH:MM:SS<TAB>HH:MM:SS<TAB>what") of work its owners reported, which the
+snapshots may have missed between them or under their 60% filter.
 """
 import csv
 import math
@@ -19,7 +21,8 @@ from collections import defaultdict
 from datetime import datetime, timedelta
 
 runs_path, busy_path = sys.argv[1:3]
-DAY = sys.argv[3] if len(sys.argv) > 3 else "2026-10-24"
+overlaps_path = sys.argv[3] if len(sys.argv) > 3 and sys.argv[3].endswith(".tsv") else None
+DAY = sys.argv[-1] if len(sys.argv) > 3 and not sys.argv[-1].endswith(".tsv") else "2026-10-24"
 t = lambda hms: datetime.fromisoformat(f"{DAY}T{hms}")
 num = lambda s: math.inf if s in ("undelivered", "") else int(s)
 
@@ -47,6 +50,10 @@ def span(i):
 
 spans = [span(i) for i in range(len(rows))]
 marks = [(at - timedelta(seconds=35), at + timedelta(seconds=35), procs[0][:110]) for at, _, procs in snaps if procs]
+if overlaps_path:
+    for r in csv.reader(open(overlaps_path), delimiter="\t"):
+        if r and not r[0].startswith("#"):
+            marks.append((t(r[0]), t(r[1]), r[2]))
 
 
 def touched(span):
