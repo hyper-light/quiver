@@ -1,0 +1,2141 @@
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:28:50 load 14.19 9.43 7.17 runs 0
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+98.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:29:50 load 6.77 8.17 6.88 runs 0
+344.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:30:50 load 11.05 8.92 7.21 runs 0
+283.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld -flavor gnu -plugin /us
+233.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld -flavor gnu -plugin /us
+98.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -D SQLITE_CORE -D SQLITE_DEFAULT_FOREIGN_KEYS=1 -D SQLITE_ENABLE_API_ARMOR -D SQLITE_ENAB
+95.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:31:51 load 9.49 8.99 7.35 runs 0
+113.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/deps/kiln-d51855f9f54fdc21 --test-threads=8
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:32:51 load 7.19 8.34 7.22 runs 0
+96.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpHuWKSs/cell/node-5804732603529608
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:33:51 load 5.81 7.80 7.11 runs 0
+133.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/kiln --config /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmpu2O6T6/kiln.toml server
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpp2ILIb/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:34:51 load 8.68 8.04 7.22 runs 0
+97.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name k8s_openapi --edition=2021 /home/adalundhe/.cargo/
+94.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln_cd --edition=2024 crates/kiln-cd/src/lib.rs -
+89.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name turso_core --edition=2021 vendor/turso/core/lib.rs
+86.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln_ci --edition=2024 crates/kiln-ci/src/lib.rs -
+72.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpJRq8z6/cell/node-6931962788255726
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:35:52 load 12.91 9.24 7.68 runs 0
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpJkfN2T/n1/serve.conf
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+99.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+61.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:36:52 load 9.57 8.96 7.68 runs 0
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpaIKYtS/cell/node-4890112283612076
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /usr/libexec/git-core/git pack-objects --revs --thin --stdout --delta-base-offset --include-tag
+99.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+94.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /usr/libexec/git-core/git pack-objects --revs --thin --stdout --delta-base-offset --include-tag
+63.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /usr/libexec/git-core/git unpack-objects -q --pack_header=2,6
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:37:52 load 10.01 9.18 7.84 runs 0
+291.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpPIyOqK/cell --node quic=127.0.0.1:
+91.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+72.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877314.service /usr/libexec/git-core/git --shallow-file /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmp3yLUud/work/w/26f087bb/bench/.git/shallow.lock unpack-o
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877314.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:38:53 load 9.21 9.19 7.93 runs 0
+233.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.cache/kiln-upgrade-fix-target/debug/deps/kiln-d51855f9f54fdc21
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fd41f3e7763b91e79af96defe3a /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpJPzbf6/cell --node quic=127.0.0.1:
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+97.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:39:53 load 10.05 9.62 8.16 runs 0
+257.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+143.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:40:53 load 18.58 12.05 9.08 runs 0
+276.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:41:53 load 12.60 11.65 9.14 runs 0
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:42:54 load 6.52 10.06 8.75 runs 0
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:43:54 load 9.05 9.88 8.75 runs 0
+128.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/kiln --config /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmpWGl5wd/kiln.toml server
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpafh2Ew/cell/node-1058305770208890
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:44:54 load 7.77 9.28 8.61 runs 0
+301.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.cache/kiln-gs/target/debug/deps/kiln-ea0b3de4c63cbbb1
+68.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpafh2Ew/cell/node-9195963146932916
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:45:55 load 9.88 9.55 8.75 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpU9X4Un/cell/node-1298419903647649
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:46:55 load 10.34 9.72 8.85 runs 0
+411.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fdb307a77b49e64ec71d420f21f /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpCqtebw/n1/serve.conf
+96.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git pack-objects --revs --thin --stdout --delta-base-offset --include-tag
+93.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git pack-objects --revs --thin --stdout --delta-base-offset --include-tag
+61.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git unpack-objects -q --pack_header=2,6
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:47:55 load 8.83 9.50 8.83 runs 0
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+92.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpGnNlbz/cell/node-5554008136877087
+65.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git --shallow-file /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmp9DHROk/work/w/b772c786/bench/.git/shallow.lock unpack-o
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:48:55 load 8.68 9.41 8.85 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:49:56 load 8.50 9.16 8.80 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpOMS1Uq/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:50:56 load 10.33 9.41 8.90 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git unpack-objects --pack_header=2,7 -q
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpOMS1Uq/quic-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:51:56 load 9.21 9.30 8.89 runs 0
+163.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/kiln --config /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmprAsH16/kiln.toml server
+72.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpDeIxLI/cell/node-1605494349293020
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:52:57 load 12.15 10.23 9.24 runs 0
+163.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/kiln --config /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmprAsH16/kiln.toml server
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:53:57 load 12.08 10.63 9.44 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fe7986e716bbe5f9837016ac308 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fe7986e716bbe5f9837016ac308 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:54:57 load 9.39 10.20 9.38 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpgYBTGr/n2/serve.conf
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fe7986e716bbe5f9837016ac308 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:55:57 load 12.41 10.85 9.65 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpV7W9Sw/cell/node-1774783042297150
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fe7986e716bbe5f9837016ac308 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fe7986e716bbe5f9837016ac308 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2787202-i40514364.scope /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -D SQLITE_CORE -D SQLITE_DEFAULT_FOREIGN_KEYS=1 -D SQLITE_ENABLE_API_ARMOR -D SQLITE_ENAB
+98.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:56:58 load 40.98 18.01 12.10 runs 0
+107.8 /system.slice/docker-eb00541312414358f368845bf90a73b35b8efb22c64e24220c86c6b950da1c09.scope /usr/local/rustup/toolchains/1.98.0-i686-unknown-linux-gnu/bin/rustc --crate-name slates_ipc --edition=2024 crates/ipc/src/lib.rs --error-fo
+99.7 /system.slice/docker-773d37efdb003b57b28e26848a326fcdb939112be387b857235b1896f6bfb966.scope /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_cluster --edition=2024 crates/cluster/src/lib.rs 
+89.2 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2787202-i40514364.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+86.8 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2787202-i40514364.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+81.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpV7W9Sw/cell/node-2432215217762604
+78.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/versions/8a57d789dc65/kiln --config=/home/adalundhe/.config/kiln/kiln.toml agent --server http://192
+75.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 crates/server/src/lib
+65.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_cluster --edition=2024 crates/cluster/src/l
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:57:58 load 27.40 18.73 12.75 runs 0
+195.6 /system.slice/docker-773d37efdb003b57b28e26848a326fcdb939112be387b857235b1896f6bfb966.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2787202-i40514364.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/work/w/fd82d368/target/debug/deps/explore-0cb1b6c4037e2af0
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2787202-i40514364.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+76.0 /system.slice/docker-773d37efdb003b57b28e26848a326fcdb939112be387b857235b1896f6bfb966.scope /build/target/debug/deps/virtiofs-ab5594dae24f4357 --nocapture
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:58:58 load 20.05 18.22 12.95 runs 0
+276.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+156.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.cache/kiln-gate-mc/target/debug/kiln --config /home/adalundhe/.cache/kiln-gate-mc/tmp/.tmprAsH16/kiln.toml server
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp3GoPB8/plane-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 14:59:59 load 18.93 18.15 13.25 runs 0
+148.4 /system.slice/docker-773d37efdb003b57b28e26848a326fcdb939112be387b857235b1896f6bfb966.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpcJL4lq/cell/node-7736089386579276
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2862519-i40589681.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2862519-i40589681.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+66.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/versions/8a57d789dc65/kiln --config=/home/adalundhe/.config/kiln/kiln.toml agent --server http://192
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:00:59 load 11.85 16.33 12.93 runs 0
+119.7 /system.slice/docker-773d37efdb003b57b28e26848a326fcdb939112be387b857235b1896f6bfb966.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+78.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/versions/8a57d789dc65/kiln --config=/home/adalundhe/.config/kiln/kiln.toml agent --server http://192
+60.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpcJL4lq/cell/node-4884180294007279
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:01:59 load 9.50 14.86 12.64 runs 0
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2948802-i40675962.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpTwTHs8/cell/node-1368890103480381
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:03:00 load 8.02 13.42 12.29 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2948802-i40675962.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:04:00 load 10.12 12.84 12.15 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmph9wzR0/n3/serve.conf
+60.4 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2948802-i40675962.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/main.rs --erro
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:05:00 load 9.57 12.12 11.94 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmphs7w18/cell/node-9052626526309455
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2948802-i40675962.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:06:01 load 10.63 11.82 11.84 runs 0
+141.8 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p2948802-i40675962.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpJ8xfxu/cell --node quic=127.0.0.1:
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /usr/libexec/git-core/git unpack-objects --pack_header=2,7 -q
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:07:01 load 11.60 11.85 11.85 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpKch0H9/foreign --node quic=127.0.0
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:08:01 load 14.35 12.50 12.07 runs 0
+97.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpKch0H9/quic-held/config
+97.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+96.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+92.8 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3006329-i40733489.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+60.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -I /home/adalundhe/.local/share/kiln/agent/work/w/4a7377f9/vendor/aws-lc-sys/generated-in
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:09:01 load 42.04 21.49 15.22 runs 0
+253.0 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3006329-i40733489.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+160.5 /system.slice/docker-878d72128d49efa38e9dba48cf083592efbabde92f55fccd3c15c43700dfeebe.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+152.2 /system.slice/docker-878d72128d49efa38e9dba48cf083592efbabde92f55fccd3c15c43700dfeebe.scope /build/target/debug/deps/virtiofs-ab5594dae24f4357 --nocapture
+98.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+95.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmptoE9dt/cell/node-1789241819012985
+67.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/work/w/4a7377f9/target/debug/slates profile --json
+65.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/work/w/4a7377f9/target/debug/slates --instance codec-derivation anchor --shards 2
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:10:02 load 26.36 20.97 15.45 runs 0
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3006329-i40733489.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:11:02 load 16.46 19.16 15.18 runs 0
+283.9 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3006329-i40733489.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+155.8 /system.slice/docker-878d72128d49efa38e9dba48cf083592efbabde92f55fccd3c15c43700dfeebe.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpFqGjkV/cell/node-1421744294913123
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-gate-mc-1792877892.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-gate-mc-1792877892.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:12:02 load 16.01 18.49 15.19 runs 0
+169.2 /system.slice/docker-878d72128d49efa38e9dba48cf083592efbabde92f55fccd3c15c43700dfeebe.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+154.7 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name amphora_engine --edition=2021 crates/engine/lib.rs
+97.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+96.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ff375327346a66d95eb3881f8b4 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:13:03 load 22.02 20.11 15.98 runs 0
+302.5 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/planner-20966191737834f6
+138.6 /system.slice/docker-878d72128d49efa38e9dba48cf083592efbabde92f55fccd3c15c43700dfeebe.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpqEsxgS/n2/serve.conf
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:14:03 load 18.91 19.39 15.97 runs 0
+267.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/01a16fb8238f74a789932d227415a3b5 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp6TNQx6/cell/node-1100679311465378
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3096898-i40824057.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:15:03 load 11.77 17.22 15.44 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpnOLNJj/cell --node quic=127.0.0.1:
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p3096898-i40824057.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+98.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ffb12d175de86a4c918ab6c51ac /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:16:04 load 35.97 24.53 18.15 runs 0
+164.9 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/amphora_engine-33bd47024d10f20f
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpVbmetR/cell --node quic=127.0.0.1:
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:17:04 load 18.50 21.59 17.54 runs 0
+277.5 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/reader_cache-22a32dee996ace8b
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-check-1792880166.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp7h7dJ1/plane-held/config
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:18:04 load 12.00 19.21 16.97 runs 0
+263.6 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-check-1792880166.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+200.0 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /home/adalundhe/.cache/claude-scratch/amphora-t1-fedora-target/debug/deps/skip_scan-3252821b23681a74
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpgeserP/cell/node-9917068887420270
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:19:04 load 42.91 26.73 19.69 runs 0
+145.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_cluster --edition=2024 crates/cluster/src/l
+99.0 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-check-1792880166.service /home/adalundhe/.cache/kiln-takeover/target/debug/deps/kiln-d51855f9f54fdc21 proto:: wire:: instances:: handovers:: handing:: registry:: ins
+92.7 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-gate2-1792879910.service /usr/libexec/gcc/x86_64-redhat-linux/16/cc1 -quiet -D SQLITE_SECURE_DELETE -D SQLITE_DIRECT_OVERFLOW_READ -D HAVE_ISNAN -D SQLITE_ENABLE_COL
+85.9 /system.slice/docker-ae592c9f222ae462aa97b5e67551699a75a7e1cfde184785029205524ad7f65f.scope /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_transport --edition=2024 crates/transport/src/lib
+85.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 crates/server/src/lib
+84.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpgeserP/cell/node-4310859954120708
+76.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 crates/server/src/lib
+73.6 /system.slice/docker-ae592c9f222ae462aa97b5e67551699a75a7e1cfde184785029205524ad7f65f.scope /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_bridge_nfs --edition=2024 crates/bridge-nfs/src/l
+71.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16ffee109727482694dcfd2c52798 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit amphora-t1-gate2-1792879910.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:20:05 load 32.14 27.36 20.43 runs 0
+184.6 /system.slice/docker-ae592c9f222ae462aa97b5e67551699a75a7e1cfde184785029205524ad7f65f.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpAZBaFB/cell/node-1358591469619496
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/work/w/2e6baada/target/debug/deps/explore-0cb1b6c4037e2af0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:21:05 load 21.62 25.29 20.15 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/observe-cd.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+65.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpAZBaFB/cell/node-6305851359324906
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:22:05 load 11.81 21.76 19.26 runs 0
+283.0 /user.slice/user-1000.slice/user@1000.service/app.slice/observe-cd.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+157.2 /system.slice/docker-ae592c9f222ae462aa97b5e67551699a75a7e1cfde184785029205524ad7f65f.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpMsKOOh/n3/serve.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:23:06 load 12.70 20.34 18.93 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmphZJqtb/cell/node-9766655051732869
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+89.6 /system.slice/docker-ae592c9f222ae462aa97b5e67551699a75a7e1cfde184785029205524ad7f65f.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:24:06 load 10.99 18.43 18.36 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpXQPtFL/cell --node quic=127.0.0.1:
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:25:06 load 11.47 17.32 17.99 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+97.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpEtEiYf/foreign --node quic=127.0.0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:26:07 load 8.84 15.45 17.30 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-replay-1792880738.service /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name turso_core --edition=2021 /home/adalundhe/.cargo/g
+99.2 /user.slice/user-1000.slice/user@1000.service/app.slice/amphora-t1-replay-1792880738.service /home/adalundhe/.rustup/toolchains/1.99.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name amphora_engine --edition=2021 /home/adalundhe/.kil
+70.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpzF4LeE/cell/node-1809889154578096
+unit amphora-t1-replay-1792880738.service
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:27:07 load 12.57 15.33 17.14 runs 0
+426.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpzF4LeE/cell/node-1269459484464133
+70.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17005aca172b88346ef0b17681085 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:28:07 load 9.28 13.86 16.52 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpmRWwfH/cell/node-1527740870394987
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17005aca172b88346ef0b17681085 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:29:08 load 9.24 12.92 16.02 runs 0
+300.0 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+470.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17005aca172b88346ef0b17681085 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:30:08 load 12.09 13.20 15.93 runs 0
+117.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/deps/kiln-ea0b3de4c63cbbb1
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17008c9c074c897529ed8ec5095fe /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17008c9c074c897529ed8ec5095fe /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+97.9 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881003.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+96.9 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881003.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+78.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpJ3axPR/n3/serve.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:31:08 load 13.91 13.32 15.79 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881003.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881003.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmprk40l9/cell/node-5460550607758277
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17008c9c074c897529ed8ec5095fe /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17008c9c074c897529ed8ec5095fe /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:32:08 load 8.35 11.90 15.15 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpv7Jogo/cell --node quic=127.0.0.1:
+96.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881128.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+95.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881128.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:33:09 load 7.99 11.22 14.72 runs 0
+99.9 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-clippy-1792881128.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a16fde539276919cbd6d04e878a217 /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpflU6hz/foreign --node quic=127.0.0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:34:09 load 5.82 10.07 14.10 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+62.0 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/target/tmp/.tmpzcSzI6/kiln.toml server
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:35:09 load 5.86 9.30 13.58 runs 0
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+65.8 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git pack-objects --revs --thin --stdout --delta-base-offset --include-tag
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:36:10 load 10.08 9.81 13.49 runs 0
+168.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name mantle_s3 --edition=2024 crates/s3/src/lib.rs --er
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+94.0 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:37:10 load 10.56 10.08 13.35 runs 0
+406.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpdF3wEb/cell/node-9739723831412878
+396.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle init /tmp/.tmpP9X56t/cell --node quic=127.0.0.1:
+379.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle init /tmp/.tmpdRN8Qc/cell --node quic=127.0.0.1:
+374.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmppkjzu2/cell/node-1764150789616230
+367.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpiic1XL/cell/node-1251647659466143
+330.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpZ3YU28/n1/serve.conf
+325.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle init /tmp/.tmpHmX5NW/cell --node quic=127.0.0.1:
+316.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle init /tmp/.tmpsJG1de/cell --node quic=127.0.0.1:
+239.0 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:38:10 load 29.31 16.76 15.51 runs 0
+536.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpHmX5NW/plane-held/config
+283.1 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-verify-1792881234.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+100.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpZ3YU28/n2/serve.conf
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpiic1XL/cell/node-1103814514637417
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpdF3wEb/cell/node-1429861309349908
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+88.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmppkjzu2/cell/node-1283160833684505
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:39:11 load 28.31 19.18 16.45 runs 0
+169.6 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpawZx4L/kiln.toml server
+137.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpHmX5NW/quic-held/config
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701124c876b885ec41e632c5480a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701124c876b885ec41e632c5480a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:40:11 load 24.66 19.71 16.79 runs 0
+175.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpawZx4L/kiln.toml server
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701124c876b885ec41e632c5480a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-cross-1792881571.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name turso_core --edition=2021 vendor/turso/core/lib.rs
+96.3 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-cross-1792881571.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name k8s_openapi --edition=2021 /home/adalundhe/.cargo/
+86.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/kill-51189fd034f08417
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:41:11 load 14.67 17.95 16.38 runs 0
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/mantle_engine-ff8c75c0f7a23f2a
+99.0 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-cross-1792881571.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701124c876b885ec41e632c5480a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:42:11 load 9.01 15.74 15.72 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/block_test-ce178e028213f274
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/takeover-cross-1792881571.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:43:12 load 5.74 13.55 14.96 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/engine_memory-dd80cb54afc4cdcd
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a170148d0e755bb46fb6c8303d6103 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a170148d0e755bb46fb6c8303d6103 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:44:12 load 4.50 11.78 14.26 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1700da8c9739c906df16d749c1e9f /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/p3_differential-3f327c5417cc3394
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a170148d0e755bb46fb6c8303d6103 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:45:12 load 7.75 11.26 13.92 runs 0
+100.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name mantle_engine --edition=2024 crates/engine/src/lib
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701696b975c8a2894bc9cce6520d /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+63.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name worker_attachment_lifecycle --edition=2024 crates/
+60.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.rustup/toolchains/1.98.1-x86_64-unknown-linux-gnu/bin/rustc --crate-name ranges_owning_cancel --edition=2024 crates/engine/
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:46:13 load 12.21 11.98 14.01 runs 0
+123.4 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpawZx4L/kiln.toml server
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701696b975c8a2894bc9cce6520d /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+64.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle node /tmp/.tmpQ4MawI/n1/node.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:47:13 load 33.86 18.43 16.11 runs 0
+380.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701696b975c8a2894bc9cce6520d /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+309.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmp8mgPPI/cell/node-1316643271812732
+283.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpvtBcmj/n2/serve.conf
+246.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpV190Fb/cell/node-1359185979541727
+239.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpmce5aD/cell/node-1091797633972054
+160.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle init /tmp/.tmpNVRVF7/foreign --node quic=127.0.0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:48:13 load 25.60 19.12 16.50 runs 0
+150.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/mantle serve /tmp/.tmpNVRVF7/quic-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:49:13 load 12.47 16.63 15.81 runs 0
+1608 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/kill-51189fd034f08417
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:50:14 load 6.48 14.30 15.07 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701b7a7974c8a5b8248f358975ea /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+97.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701b7a7974c8a5b8248f358975ea /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:51:14 load 16.11 15.04 15.25 runs 0
+151.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 crates/server/src/lib
+96.4 /system.slice/docker-7e3bbee41d35887509b130584ff0f75869d034971486ee226472001e3073be6f.scope /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_vfs --edition=2024 crates/vfs/src/lib.rs --error-
+91.4 /system.slice/docker-84939932245c0335e8c82f1e02e3e519cfd0bc218c079444a1f1eafc5cacb1d7.scope /usr/local/rustup/toolchains/1.98.0-i686-unknown-linux-gnu/bin/rustc --crate-name rustix --edition=2021 /usr/local/cargo/registry/src/index.
+87.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701b7a7974c8a5b8248f358975ea /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:52:14 load 20.17 16.76 15.85 runs 0
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/engine_memory-dd80cb54afc4cdcd
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service /home/adalundhe/.local/share/kiln/agent/work/w/300eda83/target/debug/deps/explore-0cb1b6c4037e2af0
+98.6 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpawZx4L/kiln.toml server
+98.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701b7a7974c8a5b8248f358975ea /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+70.1 /system.slice/docker-7e3bbee41d35887509b130584ff0f75869d034971486ee226472001e3073be6f.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:53:15 load 17.65 16.79 15.92 runs 0
+1178 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/inlineskiplist_test-8d18c780b37aa0d1
+98.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701b7a7974c8a5b8248f358975ea /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:54:15 load 9.18 14.61 15.23 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/p3_differential-3f327c5417cc3394
+96.9 /system.slice/docker-7e3bbee41d35887509b130584ff0f75869d034971486ee226472001e3073be6f.scope /usr/bin/qemu-system-x86_64 -accel kvm -virtfs local,path=/,mount_tag=hostroot,security_model=none,readonly=on -machine q35,memory-backend=m
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:55:15 load 7.00 12.86 14.58 runs 0
+741.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/skiplist_test-c2da6e5dc7c5d74d
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:56:16 load 6.47 11.67 14.06 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:57:16 load 9.17 11.89 14.01 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:58:16 load 5.34 10.27 13.32 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-bcf56e28fae9dfc5
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 15:59:16 load 4.29 9.05 12.71 runs 0
+99.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-bcf56e28fae9dfc5
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:00:17 load 7.59 9.02 12.46 runs 0
+146.2 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/deps/kiln-ea0b3de4c63cbbb1
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a1701627bd712795f8b0d25452674b /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/gate-fw-8ee2080387/target/debug/deps/transport_memory-bcf56e28fae9dfc5
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-cross-mc-1792882774.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-cross-mc-1792882774.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:01:17 load 5.58 8.28 11.99 runs 0
+98.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-cross-mc-1792882774.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit kiln-cross-mc-1792882774.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:02:17 load 8.18 8.31 11.75 runs 0
+293.9 /user.slice/user-1000.slice/user@1000.service/app.slice/observe-cd.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:03:17 load 52.11 19.87 15.45 runs 0
+251.4 /system.slice/docker-ead8eb24445736f64b6a5ce51e30d59f252a83a1555be7c03d2044783da95464.scope /usr/local/rustup/toolchains/1.98.0-x86_64-unknown-linux-gnu/bin/rustc --crate-name slates_server --edition=2024 crates/server/src/lib.rs --
+106.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpajFwLC/cell/node-3577456190546640
+97.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+95.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+83.9 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpqfcu7y/kiln.toml server
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:04:18 load 33.07 20.36 15.90 runs 0
+101.3 /user.slice/user-1000.slice/user@1000.service/app.slice/observe-cd.service /home/adalundhe/.cache/claude-scratch/observe-target/debug/kiln --config /var/tmp/kg-cd/.tmp99beAy/kiln.toml server
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:05:18 load 21.32 19.35 15.83 runs 0
+118.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpFJDz7o/cell/node-1257540605029374
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:06:18 load 17.64 18.52 15.76 runs 0
+93.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+76.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpOYXAJw/cell --node quic=127.0.0.1:
+68.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+67.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:07:19 load 17.05 18.26 15.85 runs 0
+99.9 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+98.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+97.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+90.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpz66uEY/foreign --node quic=127.0.0
+67.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de sh -c while :; do :; done
+63.6 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git --shallow-file /home/adalundhe/.cache/w24/bench/tmp/.tmpxvAjJJ/work/w/cc3bc910/bench/.git/shallow.lock unpack-obje
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:08:19 load 12.77 16.84 15.51 runs 0
+98.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+89.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpz66uEY/quic-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:09:19 load 10.36 15.39 15.09 runs 0
+125.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpPMHcRC/cell/node-1561493304386777
+98.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+98.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:10:20 load 12.77 15.11 15.01 runs 0
+421.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+98.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:11:20 load 16.07 15.73 15.23 runs 0
+212.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.cache/kiln-gs/target/debug/deps/kiln-ea0b3de4c63cbbb1
+151.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpuI41ei/n2/serve.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:12:20 load 11.45 14.48 14.83 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:13:20 load 13.53 14.32 14.74 runs 0
+77.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmp97fnhc/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:14:21 load 8.37 12.74 14.18 runs 0
+165.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpsG3M9p/plane-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:15:21 load 10.70 12.68 14.07 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:16:21 load 15.43 14.00 14.46 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17032aaae773a826beffdb8c2ba36 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17032aaae773a826beffdb8c2ba36 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+93.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /usr/libexec/git-core/git --shallow-file pack-objects --revs --thin --stdout --shallow --delta-base-offset
+66.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /usr/libexec/git-core/git --shallow-file /home/adalundhe/.cache/kiln-gs/tmp/.tmpZKHnV6/work/w/787786d2/bench/.git/shallow.lock unpack-object
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:17:22 load 15.36 14.10 14.45 runs 0
+146.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpBKbFe1/n1/serve.conf
+98.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17032aaae773a826beffdb8c2ba36 /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:18:22 load 39.66 21.14 16.84 runs 0
+200.0 /system.slice/docker-2c5976d47c82b5e165897d9891d9364f178b3877277a82a929dc020803e9e0e8.scope /src/target/debug/deps/slates_vfs-2f71a180e0f065ef
+103.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpz3NQXj/cell/node-2472247883491439
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:19:22 load 28.88 21.44 17.21 runs 0
+98.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+98.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpz3NQXj/cell/node-1625892711377140
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:20:23 load 21.52 20.72 17.23 runs 0
+99.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:21:23 load 15.41 18.96 16.83 runs 0
+164.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln_cd --edition=2024 crates/kiln-cd/src/lib.rs -
+137.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln_ci --edition=2024 crates/kiln-ci/src/lib.rs -
+118.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name k8s_openapi --edition=2021 /home/adalundhe/.cargo/
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name turso_core --edition=2021 vendor/turso/core/lib.rs
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpxrhb3B/plane-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:22:23 load 16.51 18.29 16.72 runs 0
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+75.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpmPuLJY/cell/node-7573697637546139
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:23:23 load 14.56 17.44 16.52 runs 0
+151.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpTucy5W/cell/node-1376375112500780
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:24:24 load 18.66 17.73 16.66 runs 0
+260.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.cache/kiln-gs/target-next/debug/deps/kiln-ea0b3de4c63cbbb1
+76.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp2O2TwV/n1/serve.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:25:24 load 15.49 16.87 16.42 runs 0
+99.3 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17034e8ce77aa87264a18d276e9dd /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+95.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp1s0Jyi/cell/node-9987332850683426
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:26:24 load 15.50 16.46 16.30 runs 0
+88.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpuxfCjY/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:27:25 load 10.46 14.96 15.80 runs 0
+132.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpGD9HUY/foreign --node quic=127.0.0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:28:25 load 8.61 13.65 15.30 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+76.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpGD9HUY/quic-held/config
+71.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de sh -c while :; do :; done
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:29:25 load 9.11 12.93 14.95 runs 0
+111.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmph0m9wK/cell/node-1279922881058606
+71.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp5dZeBQ/cell/node-1201864954961855
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:30:25 load 12.35 13.35 14.98 runs 0
+114.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmph0m9wK/cell/node-4594446263077408
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:31:26 load 10.96 12.77 14.67 runs 0
+65.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpcvfx92/cell/node-1381439066028584
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:32:26 load 15.48 13.42 14.75 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:33:26 load 13.44 13.19 14.59 runs 0
+60.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmp3dOZQZ/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:34:27 load 7.77 11.61 13.96 runs 0
+79.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de sh -c while :; do :; done
+65.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmp3dOZQZ/plane-held/config
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:35:27 load 9.62 11.28 13.68 runs 0
+64.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpC9NFbY/cell/node-4537678032194601
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:36:27 load 11.11 11.20 13.49 runs 0
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpC9NFbY/cell/node-1404777849985761
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:37:27 load 8.94 10.57 13.13 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:38:28 load 13.80 11.58 13.31 runs 0
+75.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle serve /tmp/.tmpzpgpyN/n3/serve.conf
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:39:28 load 12.32 11.56 13.20 runs 0
+144.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpDsID93/cell --node quic=127.0.0.1:
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:40:28 load 12.89 12.05 13.27 runs 0
+75.6 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de /home/adalundhe/.kiln/reach/adas-macbook-pro-2.local/diag-c1-d74d70c9eb/target/debug/mantle init /tmp/.tmpHVvAao/foreign --node quic=127.0.0
+73.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de sh -c while :; do :; done
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:41:28 load 10.24 11.31 12.93 runs 0
+97.2 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17025edd574978c5356834ef3b2de sh -c while :; do :; done
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:42:29 load 4.97 9.62 12.25 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:43:29 load 3.20 8.27 11.62 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:44:29 load 2.44 7.09 11.00 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:45:30 load 2.43 6.22 10.45 runs 0
+127.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/kiln --config /home/adalundhe/.cache/w24/bench/tmp/.tmpcjZp4L/kiln.toml server
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:46:30 load 2.35 5.47 9.93 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:47:30 load 2.72 4.97 9.47 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:48:30 load 2.53 4.51 9.03 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:49:31 load 1.78 3.96 8.56 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:50:31 load 12.21 5.93 8.89 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:51:31 load 16.38 8.79 9.71 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:52:32 load 6.71 7.37 9.17 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:53:32 load 2.91 6.15 8.63 runs 0
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:54:32 load 2.48 5.39 8.21 runs 0
+146.4 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a node /home/adalundhe/.cache/kiln-gs/linux/ui/node_modules/.bin/tsc -p tsconfig.app.json --noEmit
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:55:32 load 1.92 4.71 7.80 runs 0
+97.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:56:33 load 3.24 4.56 7.55 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:57:33 load 1.31 3.76 7.08 runs 0
+124.8 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.cache/kiln-gs/target/debug/kiln --config /home/adalundhe/.cache/kiln-gs/tmp/.tmptspISZ/kiln.toml server
+118.0 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.cache/kiln-gs/target/debug/kiln --config /home/adalundhe/.cache/kiln-gs/tmp/.tmpWMa5Ne/kiln.toml server
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:58:33 load 1.84 3.55 6.81 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 16:59:34 load 9.76 4.99 7.07 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:00:34 load 16.33 8.20 8.07 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:01:34 load 6.59 6.86 7.62 runs 0
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:02:35 load 4.06 6.03 7.28 runs 0
+398.1 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:03:35 load 3.87 5.64 7.06 runs 0
+96.7 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/main.rs --erro
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:04:35 load 4.08 5.35 6.87 runs 0
+1885 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/main.rs --erro
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:05:35 load 8.40 6.51 7.19 runs 0
+696.9 /user.slice/user-1000.slice/user@1000.service/app.slice/kiln-agent-01a14c4f-01a1576c-01a166a6.service/kiln-agents/run-01a17027401373c59049909d8fd1fe7a /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/main.rs --erro
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:06:36 load 5.70 6.14 7.02 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:07:36 load 2.46 5.13 6.61 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+/home/adalundhe/.cache/quiver-t2-scripts/quiet-window4.sh: line 41: /home/adalundhe/.cache/quiver-bench/quiet2-1024-1428/comparison/runs.tsv: No such file or directory
+== 17:08:36 load 1.59 4.31 6.23 runs 0
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:09:37 load 2.29 4.06 6.02 runs 1
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:10:37 load 2.75 3.92 5.85 runs 2
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:11:37 load 1.88 3.44 5.56 runs 4
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:12:37 load 2.48 3.36 5.40 runs 6
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:13:38 load 9.40 4.86 5.77 runs 7
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:14:38 load 8.80 5.41 5.90 runs 9
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:15:38 load 8.93 6.18 6.14 runs 11
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:16:39 load 5.53 5.80 6.02 runs 12
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:17:39 load 10.24 6.97 6.40 runs 14
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:18:39 load 11.83 7.88 6.74 runs 15
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:19:40 load 9.26 7.83 6.79 runs 17
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:20:40 load 12.37 8.93 7.24 runs 17
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:21:40 load 6.13 7.75 6.93 runs 19
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:22:41 load 3.72 6.78 6.65 runs 21
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:23:41 load 4.22 6.43 6.54 runs 22
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:24:41 load 4.43 6.14 6.44 runs 23
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:25:42 load 11.70 7.75 6.96 runs 25
+164.8 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/deps/kiln-ea0b3de4c63cbbb1
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:26:42 load 14.35 9.49 7.63 runs 26
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:27:42 load 12.18 10.00 7.93 runs 28
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:28:42 load 7.64 9.15 7.77 runs 29
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:29:43 load 9.81 9.25 7.88 runs 31
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:30:43 load 16.46 11.65 8.81 runs 32
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:31:44 load 14.87 12.18 9.18 runs 34
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:32:44 load 12.42 11.79 9.23 runs 35
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:33:44 load 8.05 10.86 9.08 runs 36
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:34:44 load 4.68 9.39 8.69 runs 38
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:35:45 load 3.04 8.06 8.27 runs 40
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:36:45 load 2.88 7.11 7.93 runs 41
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:37:45 load 17.51 10.34 8.98 runs 43
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:38:46 load 22.88 13.21 10.06 runs 45
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:39:46 load 24.86 15.63 11.09 runs 47
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:40:46 load 31.27 19.66 12.79 runs 48
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:41:47 load 28.82 21.19 13.78 runs 50
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:42:47 load 28.41 22.35 14.64 runs 51
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:43:47 load 30.00 23.68 15.57 runs 53
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:44:48 load 74.95 39.71 21.68 runs 54
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:45:48 load 29.23 32.97 20.49 runs 56
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:46:48 load 12.43 27.44 19.37 runs 57
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:47:49 load 6.95 23.09 18.37 runs 59
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:48:49 load 15.63 22.36 18.40 runs 61
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:49:49 load 22.38 23.22 18.95 runs 62
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:50:49 load 25.30 23.93 19.47 runs 64
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:51:50 load 27.86 24.90 20.08 runs 65
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:52:50 load 24.71 24.51 20.25 runs 66
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:53:50 load 27.09 25.32 20.80 runs 68
+97.1 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /usr/libexec/git-core/git unpack-objects --pack_header=2,7 -q
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:54:51 load 28.39 26.00 21.32 runs 70
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:55:51 load 30.17 26.71 21.85 runs 71
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:56:51 load 21.49 25.34 21.71 runs 72
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:57:52 load 8.74 20.99 20.44 runs 74
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:58:52 load 4.18 17.26 19.18 runs 75
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 17:59:52 load 2.71 14.47 18.10 runs 77
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:00:53 load 8.40 13.94 17.69 runs 79
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:01:53 load 9.15 12.92 17.09 runs 80
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:02:53 load 7.59 11.72 16.41 runs 82
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:03:53 load 4.32 10.11 15.57 runs 83
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:04:54 load 9.60 10.79 15.47 runs 85
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:05:54 load 12.27 11.24 15.33 runs 87
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:06:54 load 10.43 10.71 14.88 runs 88
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:07:55 load 8.96 10.37 14.50 runs 89
+172.7 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-baseline.service /home/adalundhe/.cache/w24/bench/target/debug/deps/kiln_ci-e0c0f1bf161fe74a
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:08:55 load 4.85 8.93 13.75 runs 90
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:09:55 load 3.13 7.66 13.01 runs 92
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:10:56 load 2.54 6.66 12.33 runs 94
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:11:56 load 1.84 5.73 11.65 runs 95
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:12:56 load 9.16 7.03 11.72 runs 97
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:13:56 load 12.68 8.41 11.90 runs 98
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:14:57 load 9.08 8.15 11.59 runs 100
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:15:57 load 7.49 7.81 11.24 runs 101
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:16:57 load 17.50 10.51 11.94 runs 103
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:17:58 load 16.29 11.45 12.18 runs 104
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:18:58 load 11.29 10.88 11.94 runs 106
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:19:58 load 10.07 10.67 11.80 runs 107
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:20:59 load 7.70 10.06 11.53 runs 109
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:21:59 load 4.36 8.66 10.96 runs 110
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:22:59 load 3.22 7.54 10.43 runs 112
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:23:59 load 2.91 6.69 9.95 runs 114
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:25:00 load 18.07 10.51 11.07 runs 115
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:26:00 load 24.40 13.72 12.14 runs 117
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:27:00 load 39.68 19.79 14.31 runs 118
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:28:01 load 30.49 20.67 14.95 runs 120
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:29:01 load 27.74 21.68 15.66 runs 122
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:30:01 load 27.06 22.72 16.41 runs 123
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:31:02 load 73.85 35.63 21.15 runs 124
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:32:02 load 41.05 33.29 21.26 runs 126
+98.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p593002-i42512409.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:33:02 load 16.13 27.47 20.06 runs 127
+98.9 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p593002-i42512409.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:34:03 load 9.32 23.42 19.13 runs 129
+84.2 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p602843-i42522154.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name turso_core --edition=2021 vendor/turso/core/lib.rs
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:35:03 load 6.84 20.17 18.28 runs 130
+99.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p602843-i42522154.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p602843-i42522154.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:36:03 load 13.15 19.06 17.99 runs 132
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:37:04 load 21.34 20.36 18.51 runs 134
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:38:04 load 23.96 21.42 19.00 runs 135
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:39:04 load 26.80 22.79 19.63 runs 136
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:40:05 load 25.92 23.17 19.96 runs 138
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:41:05 load 27.08 24.11 20.49 runs 140
+97.8 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p614207-i42533484.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:42:05 load 28.23 25.15 21.08 runs 141
+97.9 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p616641-i42535918.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:43:06 load 38.69 28.44 22.45 runs 142
+76.0 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p616641-i42535918.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:44:06 load 33.94 29.30 23.15 runs 143
+99.1 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p624625-i42543902.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:45:06 load 14.68 24.70 21.96 runs 145
+322.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p624625-i42543902.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:46:07 load 7.37 20.85 20.81 runs 147
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:47:07 load 3.57 17.32 19.60 runs 148
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:48:07 load 2.37 14.48 18.48 runs 150
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:49:07 load 7.13 13.63 17.91 runs 152
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:50:08 load 7.28 12.41 17.22 runs 153
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:51:08 load 6.62 11.08 16.45 runs 155
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p636701-i42555977.scope git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:52:08 load 9.38 11.25 16.18 runs 156
+128.3 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p639066-i42558342.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:53:09 load 10.79 11.57 16.00 runs 158
+79.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p641980-i42561256.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:54:09 load 11.70 11.52 15.69 runs 159
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:55:09 load 10.03 11.01 15.25 runs 160
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:56:10 load 11.72 11.19 15.04 runs 162
+63.0 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p653537-i42572808.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/lib/rustlib/x86_64-unknown-linux-gnu/bin/rust-lld -flavor gnu -plugin /us
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:57:10 load 5.90 9.57 14.23 runs 163
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:58:10 load 3.42 8.19 13.46 runs 165
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 18:59:11 load 3.26 7.28 12.82 runs 166
+97.5 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-m0-gate.service /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+unit w24-m0-gate.service
+== 19:00:11 load 4.07 6.82 12.32 runs 168
+99.8 /user.slice/user-1000.slice/user@1000.service/app.slice/w24-m0-gate.service git -c user.name=Test -c user.email=test@example.com -c init.defaultBranch=main -c credential.helper= add .
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+unit w24-m0-gate.service
+== 19:01:11 load 10.33 7.99 12.37 runs 169
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:02:12 load 8.92 8.13 12.15 runs 171
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:03:12 load 5.40 7.24 11.59 runs 172
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:04:12 load 12.70 8.80 11.84 runs 173
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p673324-i42592584.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:05:13 load 13.91 9.92 12.02 runs 175
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:06:13 load 9.31 9.44 11.73 runs 177
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:07:13 load 9.25 9.55 11.64 runs 177
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:08:14 load 16.00 11.14 12.04 runs 179
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p687902-i42607084.scope /home/adalundhe/.cache/w24/bench/target/debug/deps/kiln_ci-5b3668cb01e42d6f work::
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:09:14 load 9.29 10.34 11.72 runs 181
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:10:14 load 4.79 8.85 11.12 runs 183
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:11:15 load 3.41 7.75 10.60 runs 184
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:12:15 load 7.55 7.85 10.44 runs 186
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:13:15 load 19.86 11.31 11.47 runs 188
+98.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p696319-i42615496.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:14:15 load 31.54 15.72 12.94 runs 189
+99.4 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p699377-i42618490.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:15:16 load 29.40 18.08 13.94 runs 191
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p699377-i42618490.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:16:16 load 27.49 19.73 14.77 runs 193
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:17:17 load 27.58 21.28 15.63 runs 194
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p702818-i42621921.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:18:17 load 116.31 41.30 22.51 runs 195
+96.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p702818-i42621921.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:19:17 load 58.99 38.35 22.67 runs 197
+227.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p702818-i42621921.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/rustc --crate-name kiln --edition=2024 crates/kiln/src/lib.rs --error
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:20:18 load 28.93 34.09 22.30 runs 198
+98.1 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p713440-i42632542.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+97.7 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p713440-i42632542.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:21:18 load 13.35 28.68 21.17 runs 200
+99.5 /user.slice/user-1000.slice/user@1000.service/app.slice/run-p715770-i42634872.scope /home/adalundhe/.rustup/toolchains/stable-x86_64-unknown-linux-gnu/bin/clippy-driver /home/adalundhe/.rustup/toolchains/stable-x86_64-unknow
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:22:18 load 7.69 24.30 20.14 runs 202
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:23:19 load 4.64 20.38 19.05 runs 204
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:24:19 load 18.69 21.44 19.49 runs 205
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:25:19 load 26.85 23.08 20.16 runs 207
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:26:19 load 24.88 23.29 20.43 runs 208
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:27:20 load 27.05 24.07 20.87 runs 209
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:28:20 load 27.15 24.57 21.24 runs 211
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:29:20 load 25.85 24.77 21.53 runs 213
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:30:21 load 33.37 27.11 22.54 runs 213
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service
+== 19:31:21 load 27.85 26.44 22.58 runs 215
+unit kiln-agent-01a14c4f-01a1576c-01a166a6.service
+unit quiver-bench-window2.service
+unit run-p13961-i13962.service
+unit t7-memwatch.service

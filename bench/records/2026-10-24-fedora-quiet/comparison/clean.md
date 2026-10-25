@@ -13,13 +13,13 @@
 | wait | 100000 | 100 | undelivered / undelivered | 75.8 / 123.9 (clean) | nats undelivered / undelivered (-) | ∞ / ∞ | yes | ∞ / ∞ vs nats | no |
 | wait | 100000 | 1000 | undelivered / undelivered | 128.0 / 208.9 (overlapped) | nats undelivered / undelivered (-) | ∞ / ∞ | yes | no clean runs | **yes** |
 
-41 of 180 runs overlapped no one else's work; 8 fell in minutes the busy log couldn't see; the rest overlapped work named below.
+40 of 180 runs overlapped no one else's work; 8 fell in minutes the busy log couldn't see; the rest overlapped work named below.
 interleaving: 36 rounds of a load, each with every system once, back to back; the widest round took 0:03:58.500000.
 
 Who overlapped which runs:
 - busy: kiln CI ui checks (run 1138, fedora runner): runs 26-42 (17)
+- busy: Mantle (kiln run r70): a release build of mantle at 8 jobs, then mantle disk probes, three at once at the end: runs 54-64 (11)
 - busy: a kiln build in ~/.cache/kiln-gs (stable rustc): runs 55-94 (40)
-- busy: Mantle disk probe: runs 57-61 (5)
 - busy: rustfmt from a reach copy: runs 70-71 (2)
 - busy: Focal builds and cold-stream bench pinned to CPU 4: runs 71-140 (70)
 - busy: Mantle gate (gate-fw) and Amphora engine build: runs 74-94 (21)
