@@ -96,7 +96,7 @@ the stall itself, and all of them applied.
 
 The test of record is `a_flush_stall_every_node_shares_spends_no_term`: doc 34's stall costs no
 lead and no term, over 8 seeds and both log shapes. It fails at b5ea01ba in every seed and passes
-at 25cf889 and at hyper-raft main af01c51.
+at 25cf889 and at hyper-raft main (af01c51 and 698c0da).
 
 On a real disk, with doc 34's own member and client. Three `focal start bus` nodes ran as
 processes of one user unit on fedora (an Intel i9-14900HX with 32 threads and a Samsung 9100 PRO;
@@ -168,8 +168,9 @@ process from its disk.
 
 ## Where it is
 
-The tests are on hyper-raft branch `cp/t2.2-stall-survey`, on main af01c51. They are local until
-Ada's word to push it to hyper-light/hyper-raft. The b5ea01ba and 25cf889 simulation runs used the
+The tests are on hyper-raft branch `cp/t2.2-stall-survey` (ef5e98e), on main 698c0da (rebased from
+af01c51, checks clean again). It stays local until Ada gives her word to push it to
+hyper-light/hyper-raft. The b5ea01ba and 25cf889 simulation runs used the
 same tests on those commits, on adas-mac-studio-3, 2026-10-25 03:51 to 04:20 PDT. The simulation
 is deterministic: a seed's run is the same on any machine. The real-disk runs' script, the client's
 diagnostic patch and each run's report, node logs and client log are in fedora's
