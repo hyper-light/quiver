@@ -385,3 +385,90 @@ report to Focal's agent said the survivors didn't elect. That was wrong, and it 
 What would falsify this: a seed, or a lab run with the leader's disk held apart from the
 followers', in which the step's group spends a term on a stall, or answers a publish before two
 disks hold it.
+
+## Focal's conditions on the disk mode
+
+Focal's agent set six conditions on the disk mode before it goes anywhere. Where each stands on
+2026-10-25:
+
+1. **Mode agreement:** not yet begun.
+2. **A model of the Persisted acknowledgement:** met. hyper-check's model of the persisted class's
+   commits (`tests/models/unpersisted.rs`) found no fault at any of three scopes (192,592 to
+   4,133,285 classes). The rule taken out (the leader's memory counted) was refused in 7 steps. Both
+   searches run in hyper-raft CI's explore job (d69f309).
+3. **Images and compaction:** met (below).
+4. **Votes:** met (fb44834): a stalled disk gives no vote it doesn't hold.
+5. **The hand-over:** the flush tail, the disk verdicts and the heir rule are met. The patience's law
+   waits on Focal's agent.
+6. **All disks slow:** met (2060014). Meeting it took a fix to the patience: it counts from when a
+   voter could take the lead.
+
+### Condition 3: images and compaction
+
+Focal's agent asked for three things:
+
+- A part's image covers only committed entries.
+- It is durable before the log is compacted past the local durable index.
+- A crash is checked at every point between apply, image write and compaction.
+
+Under `apply_unpersisted` the window can let go of entries the leader applied but doesn't hold
+durably yet, so the image's point can pass the log's durable index.
+
+**The test.** It is `a_member_killed_between_apply_image_and_compaction_keeps_every_acknowledged_batch`
+in focal-bus's `tests/images.rs`, on Focal's lab branch.
+
+- Three members replicate one part over loopback in the disk mode.
+- Each segment holds one batch of the largest size (1 MiB), so the window lets go, and the part
+  makes an image and compacts, at about every batch.
+- The lab's hooks hold one member's log writes, or its image install at a chosen step, and then
+  kill it. Every later write and flush of its files fails and reaches no file, as after a kill -9.
+- The killed member is then opened again on its directory.
+
+**The points.** The leader's:
+
+- P1: it applied past its log's durable index.
+- P2: its window let go past that index.
+- P3a, P3b, P3c: it handed an image past that index, the install held at its create, at its rename
+  and at its directory's sync.
+- P4: that image is durable.
+- P5: a compaction's start is out, held.
+- P6: that start is durable.
+
+A follower applies only what its own disk holds, so its points are P3a to P6.
+
+**The results.** On adas-mac-studio-3, in release, 3 runs of each point, 42 runs in 100 s:
+
+- Every point was reached. The leader was killed up to 15 entries ahead of its own durable log.
+- In all 18 leader runs from P3a to P6, its durable image was past its log's durable end. So each
+  of its reopens took `docs/durable.md` §4.3's third case: the log starts at the image's point.
+- 2,261 batches were acknowledged, each once and at its offset. Every member's part, the reopened
+  one's among them, came to hold every batch.
+- At every step, each image a member had out or made durable was checked against the members'
+  durable logs: 510,681 checks, and none was past what two members' disks hold.
+
+**What it found.** Two faults, both in rejoining, not in images, both fixed on the lab branch:
+
+- **A node that restarted was never dialed again.** A node dials only the nodes above it, once, at
+  its start. Its peers' connections to the process that stopped stay open until the transport's
+  idle timeout, 120 s. The leader, killed and reopened as n3, sat at term 2 for 30 s while the
+  group was at term 4. Now a node opened on a run its data directory held before dials every node,
+  and a node whose connection closed or whose dial failed is dialed again (a82c1f7).
+- **A restarted follower's Raft traffic stayed queued for the old process.** A follower killed
+  while its log was held left its leader's outbox holding frames for the old connection's lane.
+  Every later Raft frame for it queued behind those, the leader's probe on seeing it restart among
+  them, waiting for lane room that no event would bring until the idle timeout. The leader's
+  progress for it stayed Probe paused, and it never caught up, in 3 runs of 10. Now a peer seen
+  restarting has its outbox let go, and a node's new connection flushes what waited (87eca91).
+  After it: 12 of 12, then the full 42.
+
+Both fixes are Focal's to take. One patch on Focal main 10fb5b9 (`rejoin-fixes.patch`, 7 hunks in
+`member.rs`) applies, is clean under clippy, and passes focal-bus's 56 tests.
+
+What would falsify this: a run that loses or moves an acknowledged batch, that opens on a log that
+doesn't fit its image, or that finds an image past what two members' disks hold.
+
+**Where it is:**
+
+- Focal's lab branch `lab/disk-apart`: 5f4510c to 87eca91 on 3549be9. Local, and never to be pushed.
+- The drop for Focal's agent: fedora's `~/quiver-review/focal-condition-3/`.
+- The runs' logs: adas-mac-studio-3's `~/.cache/quiver-t2/f3-143538/`.
