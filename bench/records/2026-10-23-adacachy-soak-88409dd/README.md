@@ -13,7 +13,7 @@ soak's. `soak.md` is the run as the bench printed it, its profile under it; `soa
   back, no publish refused), 359,979,959,000 deliveries of the window's messages measured, none
   undelivered, no frame lost, none doubled, no lag notice: all 1,000 subscribers kept up for the
   hour.
-- **Not a latency record**: the load average was 39.1 as it began and 57.9 as it ended. Its tail,
+- **Not a latency record**: the load average was 39.1 as it began and 61.1 as it ended (soak.md's row). Its tail,
   p50 33.8 µs, p99 19.4 ms, p99.9 241 ms, carries that.
 - **Step 2's changes held for the hour**: the subscribers' threads allocated nothing and
   reallocated nothing in 360 billion deliveries; a publish allocated 2.010 times (the boxed future

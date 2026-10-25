@@ -5,8 +5,11 @@
 //! written on to every subscriber of its topic, whole frames only, as many as one read took in one
 //! write each. No queue but the sockets', nothing parsed but the lengths, and no sleep while a topic
 //! is published: the publisher's thread polls its socket and the writers poll what it hands them, so
-//! the relay adds the kernel's sends and receives over loopback and no wake-up of its own. No broker
-//! a hop away costs less. Its CPU is its time, not its work: it polls its socket by reading it.
+//! the relay adds the kernel's sends and receives over loopback and no wake-up of its own. At one
+//! subscriber, one read and one write a frame, no broker a hop away costs less; at fan-out it writes a
+//! share of subscribers at a time, so a broker can beat it at the tail (NATS did at 100 polling
+//! subscribers, bench/records/2026-10-24-fedora-quiet), and there it bounds the hop from above. Its
+//! CPU is its time, not its work: it polls its socket by reading it.
 //!
 //! A connection says what it is in its first line: `P <topic>` (the publisher) or `S <topic>` (a
 //! subscriber). A topic's subscribers are shared out over `--threads` writers (by default the CPUs

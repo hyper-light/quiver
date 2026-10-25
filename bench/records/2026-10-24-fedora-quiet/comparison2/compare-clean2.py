@@ -9,7 +9,8 @@ competitor over the floor).
 
 BUSY.LOG is the window's own watcher (quiet-window4.sh): "== HH:MM:SS load a b c runs N", then a
 line "cpu cgroup command" for each process over 60% of a CPU that was neither the window's nor the
-comparison's containers', then "unit name" lines. The runs counts place each run in time.
+comparison's containers', then "unit name" lines. The runs counts place each run in time, each at
+its widest: a snapshot near it marks it, whatever moment within those bounds it really ran.
 """
 import csv
 import math
@@ -36,24 +37,15 @@ for line in open(busy_path):
         # "cpu cgroup command": a process's line (the watcher's own complaints and its unit lines aren't).
         snaps[-1][2].append(line)
 
-prog = []
-for at, done, _ in snaps:
-    if not prog or done != prog[-1][1]:
-        prog.append((at, done))
+# Each run's widest span: from the last snapshot that hadn't counted the run before it (the earliest
+# it could have begun) to the first that counted it (the latest it could have ended).
+def span(i):
+    begun = max((at for at, done, _ in snaps if done <= i - 1), default=snaps[0][0]) if i > 0 else max(at for at, done, _ in snaps if done == 0)
+    ended = min((at for at, done, _ in snaps if done >= i + 1), default=snaps[-1][0])
+    return begun, ended
 
 
-def when_done(i):
-    """When run i (0-based) ended: between the last snapshot that hadn't counted it and the first that had."""
-    n = i + 1
-    for (t0, n0), (t1, n1) in zip(prog, prog[1:]):
-        if n0 < n <= n1:
-            return t0 + (t1 - t0) * ((n - n0) / (n1 - n0))
-    return prog[-1][0]
-
-
-# The grid began after the last snapshot that had counted no run: the window waited for quiet before it.
-first = max((at for at, done, _ in snaps if done == 0), default=prog[0][0])
-spans = [(when_done(i - 1) if i > 0 else first, when_done(i)) for i in range(len(rows))]
+spans = [span(i) for i in range(len(rows))]
 marks = [(at - timedelta(seconds=35), at + timedelta(seconds=35), procs[0][:110]) for at, _, procs in snaps if procs]
 
 

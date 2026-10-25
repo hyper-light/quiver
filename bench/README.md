@@ -82,7 +82,9 @@ at both (Q-1.1, docs/requirements.toml).
   generator's threads as a broker's are. Every frame the publisher writes goes on whole to every
   subscriber of its topic, as many as one read took in one write, and the relay's threads poll
   rather than sleep while a topic is published: it adds the kernel's sends and receives and no
-  wake-up of its own. No broker a hop away costs less, so the report splits Quiver's lead there:
+  wake-up of its own. At one subscriber no broker a hop away costs less; at fan-out, writing a share
+  of subscribers at a time, it bounds the hop from above (a broker can beat its tail there). So the
+  report splits Quiver's lead there:
   the floor over TCP over Quiver is the deployment's part (a server over loopback against a library
   in the process), and the competitor over the floor over TCP the broker's own. The relay's CPU is
   its time, not its work (it polls its socket by reading it); its log (`OUT/tcp-relay.log`) says
@@ -149,8 +151,9 @@ others', load by load. A figure the machine won't give says why: never a zero in
 - **Its check.** `bench/plant.sh OUT` runs Quiver and the floor briefly from the bench as built and
   from a test build that plants one allocation in every delivery (`--features plant`): the profiles
   must differ by one allocation and one free a delivery, all on the subscribers' threads, so the
-  count sees every thread. Their subscribers poll (`--busy`): a waiting Quiver subscriber allocates
-  once a wait, and how often it waits moves with the machine's load between two runs.
+  count sees every thread. Their subscribers poll (`--busy`), as when a waiting Quiver subscriber
+  still allocated once a wait (before 88409dd; neither allocates now), so how often it waits, which a
+  loaded machine moves, never entered the count.
   `compare.sh` runs it before its brokers start (`OUT/plant.md`).
 
 ## The budgets

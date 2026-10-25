@@ -28,8 +28,8 @@ Methods of `Subscription`: `poll_ready`, `take`, `position`.
 
 A subscription's reader waits or polls, as it chooses: awaiting `ready` sleeps until a publish
 wakes it, and taking again without awaiting polls. A sleeping reader pays the kernel's wake-up,
-which on a CPU gone idle is its idle state's way out: tens of microseconds at a p99 on fedora, more
-than a tenth of what NATS and Redis take to deliver to one subscriber. Where latency matters, the
+measured alone beside the comparison at 5 to 30 µs at a p99 on fedora: more than a tenth of what
+NATS and Redis take to deliver to one subscriber. Where latency matters, the
 reader polls (Ada, 2026-10-24, on Q-1.1): polling, Quiver kept its order of magnitude over NATS,
 Redis and Kafka in every cell of the comparison (bench/records/2026-10-24-fedora-quiet).
 
