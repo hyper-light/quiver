@@ -37,7 +37,7 @@ use focal_bus::wire::{Ack, Bus, Durability, Role};
 use focal_memory::MemoryBudget;
 use hyper_rt_transport::Driver;
 use hyper_transport::tls::{CertificateDer, Credentials, PrivateKeyDer, PrivatePkcs8KeyDer, Tls};
-use hyper_transport::{Config, Endpoint, Event, Refusal as WireRefusal};
+use hyper_transport::{Config, Endpoint, Event, Refusal as WireRefusal, RestartKey};
 
 /// A node's endpoint, driven on its host's shard.
 pub(crate) type Drv = Driver<Bus, BusBudget, BusDirectory>;
@@ -97,17 +97,20 @@ fn said(error: impl std::fmt::Display) -> String {
 }
 
 /// An endpoint made now on the shard's clock (`hyper_rt_transport::shard_instant`, the host's off
-/// a simulated shard), its QUIC layer seeded with `seed` where one is given.
+/// a simulated shard), its QUIC layer seeded with `seed` where one is given, keyed by `restart`, the
+/// key it keeps across its restarts at its address, where one is given.
 fn made(
     config: Config<Role>,
     budget: BusBudget,
     directory: BusDirectory,
     seed: Option<[u8; 32]>,
+    restart: Option<&RestartKey>,
 ) -> Result<Endpoint<Bus, BusBudget, BusDirectory>, String> {
     let now = hyper_rt_transport::shard_instant();
-    match seed {
-        Some(seed) => Endpoint::new_seeded(config, budget, directory, now, seed),
-        None => Endpoint::new(config, budget, directory, now),
+    match (restart, seed) {
+        (Some(key), seed) => Endpoint::new_restartable(config, budget, directory, now, key, seed),
+        (None, Some(seed)) => Endpoint::new_seeded(config, budget, directory, now, seed),
+        (None, None) => Endpoint::new(config, budget, directory, now),
     }
     .map_err(|e| format!("{e:?}"))
 }
@@ -135,11 +138,13 @@ impl Identities {
 
     /// Node `id`'s endpoint for a member: it knows the other nodes and every node's publisher. Its
     /// QUIC layer is seeded with `seed` where one is given (the simulation's), from the system
-    /// otherwise.
+    /// otherwise, and it is keyed by the key it keeps across its restarts at `bound`, the address its
+    /// socket holds.
     pub(crate) fn member_endpoint(
         &self,
         id: u64,
         seed: Option<[u8; 32]>,
+        bound: SocketAddr,
     ) -> Result<Endpoint<Bus, BusBudget, BusDirectory>, String> {
         let peers = self.nodes.saturating_sub(1);
         let mut directory = BusDirectory::new(self.nodes.saturating_add(peers));
@@ -170,10 +175,17 @@ impl Identities {
             congestion: Default::default(),
         };
         let budget = BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?);
-        made(config, budget, directory, seed)
+        // Keyed as Focal's node keys its endpoint (`serve::restart_key`): a peer that sends on a
+        // connection the node's last run held at `bound` is answered with a reset and dials again,
+        // where it held the dead run's connection until its idle timeout and refused the new run's
+        // dials as Busy (hyper-raft docs/transport.md §4ah; Quiver's simulation, seed 3763).
+        let restart = focal_bus::serve::restart_key(&own.key, bound).map_err(said)?;
+        made(config, budget, directory, seed, Some(&restart))
     }
 
-    /// Node `id`'s endpoint for a publisher: it knows every node. Seeded as a member's is.
+    /// Node `id`'s endpoint for a publisher: it knows every node. Seeded as a member's is; never
+    /// keyed for restarts, as its port is the system's choice at each start, where no peer reaches
+    /// its last run.
     pub(crate) fn client_endpoint(
         &self,
         id: u64,
@@ -202,7 +214,7 @@ impl Identities {
             congestion: Default::default(),
         };
         let budget = BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?);
-        made(config, budget, directory, seed)
+        made(config, budget, directory, seed, None)
     }
 
     /// Each node, and the peer its publisher is to every member (`pki::Local::client_peer`).

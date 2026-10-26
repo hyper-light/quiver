@@ -214,7 +214,9 @@ fn producer(id: u64, run: u64) -> Result<u64, Fault> {
 }
 
 /// Node `id`'s member's endpoint, or its publisher's, bound at `address`, its QUIC layer seeded
-/// with `seed` where one is given (the simulation's).
+/// with `seed` where one is given (the simulation's). A member's socket is bound first, as Focal's
+/// node binds its own (`serve::node_socket`): its endpoint is keyed by the address it holds, which a
+/// port of the system's choosing gives only once bound.
 fn bind(
     ids: &Identities,
     id: u64,
@@ -222,13 +224,14 @@ fn bind(
     member: bool,
     seed: Option<[u8; 32]>,
 ) -> Result<Drv, Fault> {
-    let endpoint = if member {
-        ids.member_endpoint(id, seed)?
-    } else {
-        ids.client_endpoint(id, seed)?
-    };
-    Driver::bind(endpoint, address, focal_bus::limits::IO)
-        .map_err(|e| format!("{address} could not be bound: {e:?}"))
+    let refused = |e: &dyn std::fmt::Debug| format!("{address} could not be bound: {e:?}");
+    if member {
+        let (socket, bound) = focal_bus::serve::node_socket(address).map_err(|e| refused(&e))?;
+        let endpoint = ids.member_endpoint(id, seed, bound)?;
+        return Driver::new(endpoint, socket, focal_bus::limits::IO).map_err(|e| refused(&e));
+    }
+    let endpoint = ids.client_endpoint(id, seed)?;
+    Driver::bind(endpoint, address, focal_bus::limits::IO).map_err(|e| refused(&e))
 }
 
 fn local_port(driver: &Drv) -> Result<u16, Fault> {
