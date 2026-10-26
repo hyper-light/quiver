@@ -391,13 +391,19 @@ disks hold it.
 Focal's agent set six conditions on the disk mode before it goes anywhere. Where each stands on
 2026-10-25:
 
-1. **Mode agreement:** met (hyper-raft cp/t2.2-mode a10449e, on Mantle's degraded-suspicion-main
+1. **Mode agreement:** met (hyper-raft cp/t2.2-mode b6ea6b3, on Mantle's degraded-suspicion-main
    fbaaa6c).
    - The heartbeat states the mode in flags bit 2, after Mantle's stopping bit 1. A heartbeat of
      the other mode is refused for its disk, typed (`Refusal::OtherMode`).
    - As Focal's agent decided, the mode is a founding setting. Every owner states it from the
      group's definition (hyper-durable's `Settings::disk`), and a switch is a rolling restart,
      the leader last (hyper-raft's `docs/durable.md` §4.2).
+   - The build goes first, as Mantle's agent found. A build that doesn't know bits 2 and 3 refuses
+     a heartbeat that sets them as malformed. Today's mode sets neither, so the switch takes two
+     rolling restarts: every member onto the new build in its old mode, then the mode.
+   - Found on the way and fixed: a node set to today's mode stopped before a poll renewed its disk
+     verdict. Its stop announcement said a slow disk without the mode, which every peer refused as
+     malformed, so its orderly stop was lost. It now says no verdict, as a heartbeat doesn't.
    - Withdrawn: a route that put the mode in the group's replicated configuration, behind a fence
      (0854933). It was built from an earlier message of Focal's agent, which a later one
      superseded. It is kept on a local branch and not offered.
