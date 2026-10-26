@@ -139,6 +139,26 @@ Each of these runs again as its seed, and seeds 1 to 20 pass with all three fixe
     none, asked no wake, and so never measured its timer. Fixed here (hyper-raft's recorded change
     `0004`, its test failing without it, offered upstream): all 77 pass.
 
+- **A node back at its member's port was refused for two minutes.** The sweep's first pass at
+  `d4ad260` broke 8 of its first 1,982 seeds, none losing an acknowledged publish. A node killed
+  and started again at its member's port left its peers holding the dead run's connection (a
+  transport keeps a peer's connections until they have carried nothing for its serve period), and
+  they refused the new run's dials as Busy: in seed 3763 a catalog member dialed every 56 ms for
+  the rest of the run, each connection closed within 3 ms, and the two members suspected each other
+  for good. Focal's node keys its endpoint for restarts (hyper-raft's `RestartKey`,
+  `docs/transport.md` §4ah, through Focal's `serve::restart_key`); Quiver's members now do too, at
+  the address their socket holds (`Identities::member_endpoint`, its socket bound first): the new
+  run answers the dead run's connection with a reset its peer verifies, and the peer dials again.
+- **A node back within its peers' detection bound could not publish.** Killed and back in 33 or
+  44 ms (seeds 1293 and 2608), a node was never suspected, so no member closed its dead run's
+  publisher connections, which held both of its client identity's places: every member refused the
+  new run's publisher Busy (3,718 connections lost in a minute, no acknowledgement). A member told
+  the node restarted (its liveness stream's later run, `GroupEvent::Restarted`) now closes that
+  node's publisher's connections too (`Seat::turn`). A publisher's own endpoint takes a port of the
+  system's choosing at each start, where no peer reaches its last run, so it is not keyed.
+
+  With both, the eight seeds pass.
+
 ## What the simulation does
 
 Each seed draws a run (`tests/sim.rs`): 6 s of virtual time with a publish every 2 to 30 ms
