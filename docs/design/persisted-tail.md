@@ -429,6 +429,13 @@ Focal's agent set six conditions on the disk mode before it goes anywhere. Where
    commits (`tests/models/unpersisted.rs`) found no fault at any of three scopes (192,592 to
    4,133,285 classes). The rule taken out (the leader's memory counted) was refused in 7 steps. Both
    searches run in hyper-raft CI's explore job (d69f309).
+   - Focal's advisory, done (cp/t2.2-mode ec888d5): the model's acknowledgements acted as they were
+     given, so a stale one delivered late was never explored. Now a variant keeps up to two in
+     flight, delivered at any later step and taken only in their receiver's own term, as the core
+     drops an older term's message. At three terms and two indexes it found no fault in 10,833,425
+     classes, a stale acknowledgement delivered 10.2 million times. With the term check taken out
+     (`StaleAck`), it was refused in 12 steps: a term-2 leader counted a term-1 acknowledgement and
+     committed an entry the term-3 leader lacks. The four searches take 23 s, in the explore job.
 3. **Images and compaction:** met (below).
 4. **Votes:** met (fb44834): a stalled disk gives no vote it doesn't hold.
 5. **The hand-over:** met (hyper-raft cp/t2.2-mode e13e6ab). The flush tail, the disk verdicts and
