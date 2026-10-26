@@ -135,6 +135,143 @@ struct Report {
     digest: u64,
     /// Why the run's checks failed, if they did.
     broken: Vec<String>,
+    /// Acknowledged publishes some node's view lacks at their offset: AC-T2.2.5's measure.
+    lost: usize,
+    /// What the run's faults came to.
+    tally: Tally,
+}
+
+/// What a run's faults came to, for a sweep's record: its kills by where they fell, the states the
+/// killed nodes' devices were left in, its partitions and stalls, and the publishes sent again and
+/// recognised.
+#[derive(Debug, Default, Clone, Copy)]
+struct Tally {
+    /// Kills planned, and those that came: at an await of a host, and at a cut of a disk, before
+    /// it, during it or after it.
+    doomed: u64,
+    awaits: u64,
+    before: u64,
+    during: u64,
+    after: u64,
+    /// Kills of the topic's leader as last seen, and of the leader after a cut: between its flush
+    /// and its acknowledgement.
+    leader: u64,
+    leader_after: u64,
+    /// Starts that ended other than by the simulation's kill.
+    others: u64,
+    /// The killed nodes' devices: kept as a kill leaves them, or as a power cut does.
+    kept: u64,
+    random: u64,
+    lost_all: u64,
+    /// Partitions one way and both ways; stalls of one disk and of every disk at once.
+    one_way: u64,
+    both_ways: u64,
+    stalls: u64,
+    stalls_all: u64,
+    /// Publishes the nodes' publishers sent again, and those the leaders recognised as sent again.
+    resent: u64,
+    recognised: u64,
+}
+
+impl Tally {
+    /// A start that ended, `why` as its host said, `leader` if it led the topic as last seen.
+    fn ended(&mut self, why: &str, leader: bool) {
+        let Some(at) = why.strip_prefix("killed by the simulation at ") else {
+            self.others += 1;
+            return;
+        };
+        if at.starts_with("AtAwait") {
+            self.awaits += 1;
+        } else if at.contains("Before") {
+            self.before += 1;
+        } else if at.contains("During") {
+            self.during += 1;
+        } else {
+            self.after += 1;
+            self.leader_after += u64::from(leader);
+        }
+        self.leader += u64::from(leader);
+    }
+
+    fn crashed(&mut self, crash: Crash) {
+        match crash {
+            Crash::KeepAll => self.kept += 1,
+            Crash::Random => self.random += 1,
+            Crash::LoseAll => self.lost_all += 1,
+        }
+    }
+
+    /// A start's publisher's resends and its member's recognised resends, as last seen.
+    fn sent_again(&mut self, (resent, recognised): (u64, u64)) {
+        self.resent += resent;
+        self.recognised += recognised;
+    }
+
+    fn add(&mut self, other: &Self) {
+        self.doomed += other.doomed;
+        self.awaits += other.awaits;
+        self.before += other.before;
+        self.during += other.during;
+        self.after += other.after;
+        self.leader += other.leader;
+        self.leader_after += other.leader_after;
+        self.others += other.others;
+        self.kept += other.kept;
+        self.random += other.random;
+        self.lost_all += other.lost_all;
+        self.one_way += other.one_way;
+        self.both_ways += other.both_ways;
+        self.stalls += other.stalls;
+        self.stalls_all += other.stalls_all;
+        self.resent += other.resent;
+        self.recognised += other.recognised;
+    }
+}
+
+impl std::fmt::Display for Tally {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "kills {} of {} planned (await {}, before a cut {}, during {}, after {}; the leader {}, after its flush {}), other ends {}; devices kept {}, random {}, lost {}; partitions {} one way, {} both; stalls {} of a disk, {} of all; resent {}, recognised {}",
+            self.awaits + self.before + self.during + self.after,
+            self.doomed,
+            self.awaits,
+            self.before,
+            self.during,
+            self.after,
+            self.leader,
+            self.leader_after,
+            self.others,
+            self.kept,
+            self.random,
+            self.lost_all,
+            self.one_way,
+            self.both_ways,
+            self.stalls,
+            self.stalls_all,
+            self.resent,
+            self.recognised
+        )
+    }
+}
+
+/// The topic's leader among the running nodes (the newest term's), and each node's start's resends
+/// and recognised resends, as `world` stands.
+fn look(world: &World, leader: &mut Option<u64>, seen: &mut [(u64, u64); 3]) {
+    let mut newest = None;
+    for node in 1..=3_u64 {
+        if !world.alive(node) {
+            continue;
+        }
+        let Some(g) = world.stats(node).and_then(|s| s.topic(TOPIC).copied()) else {
+            continue;
+        };
+        seen[(node - 1) as usize] = (g.resent, g.duplicates);
+        if g.leads && newest.is_none_or(|(term, _)| g.term > term) {
+            newest = Some((g.term, node));
+        }
+    }
+    *leader = newest.map(|(_, node)| node);
 }
 
 /// FNV-1a over `bytes`, folded into `hash`.
@@ -167,6 +304,9 @@ fn run(name: &str, seed: u64) -> Report {
     assert!(created, "seed {seed}: the topic was never held everywhere");
 
     let mut publishes: Vec<Publish> = Vec::new();
+    let mut tally = Tally::default();
+    let mut leader = None;
+    let mut seen = [(0_u64, 0_u64); 3];
     let mut starts = [1_u64; 3];
     // Each node down: when it may start again.
     let mut down: [Option<u64>; 3] = [None; 3];
@@ -187,6 +327,8 @@ fn run(name: &str, seed: u64) -> Report {
                     _ => Crash::LoseAll,
                 };
                 let why = world.ended(node).unwrap_or_default();
+                tally.ended(&why, leader == Some(node));
+                tally.crashed(crash);
                 world.crash(node, crash).unwrap();
                 let back = now + rng.range(20 * MS, 2_500 * MS);
                 let _ = writeln!(
@@ -199,6 +341,8 @@ fn run(name: &str, seed: u64) -> Report {
                 && now >= back
             {
                 world.start(node, Kill::Never).unwrap();
+                tally.sent_again(seen[at]);
+                seen[at] = (0, 0);
                 starts[at] += 1;
                 down[at] = None;
                 let _ = writeln!(trace, "{now}: node {node} starts again");
@@ -211,6 +355,7 @@ fn run(name: &str, seed: u64) -> Report {
             }
         }
         mended_at.retain(|_, at| now < *at);
+        look(&world, &mut leader, &mut seen);
         if now >= next_publish {
             let node = rng.range(1, 4);
             if world.alive(node) && world.holds(node, TOPIC) {
@@ -228,7 +373,7 @@ fn run(name: &str, seed: u64) -> Report {
             next_publish = now + rng.range(2 * MS, 30 * MS);
         }
         if now >= next_fault {
-            fault(&mut world, &mut rng, &mut trace, &mut mended_at, now);
+            fault(&mut world, &mut rng, &mut trace, &mut mended_at, &mut tally, now);
             next_fault = now + rng.range(200 * MS, 2_000 * MS);
         }
         for p in &mut publishes {
@@ -245,11 +390,16 @@ fn run(name: &str, seed: u64) -> Report {
         world.mend(a, b).unwrap();
     }
     for node in 1..=3_u64 {
+        let at = (node - 1) as usize;
         if !world.alive(node) {
-            if down[(node - 1) as usize].is_none() {
+            if down[at].is_none() {
+                tally.ended(&world.ended(node).unwrap_or_default(), leader == Some(node));
+                tally.crashed(Crash::KeepAll);
                 world.crash(node, Crash::KeepAll).unwrap();
             }
             world.start(node, Kill::Never).unwrap();
+            tally.sent_again(seen[at]);
+            seen[at] = (0, 0);
         }
         let _ = world.doom(node, Doom::Awaits(u64::MAX));
     }
@@ -260,6 +410,7 @@ fn run(name: &str, seed: u64) -> Report {
                 p.outcome = p.answer.take().map(|a| a.map_err(|e| e.to_string()));
             }
         }
+        look(w, &mut leader, &mut seen);
         let applied: Vec<u64> = (1..=3)
             .map(|n| {
                 w.stats(n)
@@ -304,6 +455,9 @@ fn run(name: &str, seed: u64) -> Report {
     }
     let fabric = format!("{:?}", world.fabric());
     digest = fold(digest, fabric.as_bytes());
+    for at in seen {
+        tally.sent_again(at);
+    }
     world.stop();
     let publishes: Vec<Outcome> = publishes
         .into_iter()
@@ -323,7 +477,7 @@ fn run(name: &str, seed: u64) -> Report {
             digest = fold(digest, payload);
         }
     }
-    let mut broken = check(&publishes, &views);
+    let (mut broken, lost) = check(&publishes, &views);
     if !settled {
         broken.push("the nodes never caught up once mended".to_owned());
     }
@@ -335,6 +489,8 @@ fn run(name: &str, seed: u64) -> Report {
         views,
         digest,
         broken,
+        lost,
+        tally,
     }
 }
 
@@ -344,6 +500,7 @@ fn fault(
     rng: &mut Rng,
     trace: &mut String,
     mended_at: &mut BTreeMap<(u64, u64), u64>,
+    tally: &mut Tally,
     now: u64,
 ) {
     match rng.below(100) {
@@ -376,6 +533,7 @@ fn fault(
                 }
             };
             world.doom(node, doom).unwrap();
+            tally.doomed += 1;
             let _ = writeln!(trace, "{now}: node {node} doomed {doom:?}");
         }
         40..=64 => {
@@ -384,6 +542,11 @@ fn fault(
             let both = rng.chance(700);
             let until = now + rng.range(50 * MS, 2_000 * MS);
             world.cut(a, b, both).unwrap();
+            if both {
+                tally.both_ways += 1;
+            } else {
+                tally.one_way += 1;
+            }
             mended_at.insert((a.min(b), a.max(b)), until);
             let _ = writeln!(trace, "{now}: {a}-{b} cut (both {both}) until {until}");
         }
@@ -393,10 +556,12 @@ fn fault(
                 for node in 1..=3 {
                     world.stall(node, now, until).unwrap();
                 }
+                tally.stalls_all += 1;
                 let _ = writeln!(trace, "{now}: every disk stalled until {until}");
             } else {
                 let node = rng.range(1, 4);
                 world.stall(node, now, until).unwrap();
+                tally.stalls += 1;
                 let _ = writeln!(trace, "{now}: node {node}'s disk stalled until {until}");
             }
         }
@@ -405,15 +570,18 @@ fn fault(
 }
 
 /// What a run broke: an acknowledged publish missing from a node's view or at another offset, a
-/// producer's acknowledged publishes out of its order, a payload twice in a view, two views apart.
-fn check(publishes: &[Outcome], views: &[Vec<(Offset, Vec<u8>)>]) -> Vec<String> {
+/// producer's acknowledged publishes out of its order, a payload twice in a view, two views apart;
+/// and how many acknowledged publishes some node's view lacks at their offset.
+fn check(publishes: &[Outcome], views: &[Vec<(Offset, Vec<u8>)>]) -> (Vec<String>, usize) {
     let mut broken = Vec::new();
+    let mut lost = 0;
     let at: Vec<BTreeMap<Offset, &Vec<u8>>> = views
         .iter()
         .map(|v| v.iter().map(|(o, p)| (*o, p)).collect())
         .collect();
     for (payload, node, start, outcome) in publishes {
         let Ok(offset) = outcome else { continue };
+        lost += usize::from(at.iter().any(|view| view.get(offset) != Some(&payload)));
         for (n, view) in at.iter().enumerate() {
             if view.get(offset) != Some(&payload) {
                 broken.push(format!(
@@ -460,7 +628,7 @@ fn check(publishes: &[Outcome], views: &[Vec<(Offset, Vec<u8>)>]) -> Vec<String>
             }
         }
     }
-    broken
+    (broken, lost)
 }
 
 /// The seeds `QUIVER_SIM_SEEDS` names (`first..end`), or the gate's few.
@@ -555,12 +723,16 @@ fn a_kept_trace_replays() {
 #[test]
 fn faults_over_many_seeds() {
     let mut failed = Vec::new();
+    let (mut publishes, mut acknowledged, mut lost) = (0, 0, 0);
+    let mut tally = Tally::default();
     for seed in seeds() {
         let report = run("run", seed);
         let acked = report.publishes.iter().filter(|p| p.3.is_ok()).count();
         eprintln!(
-            "seed {seed}: {} publishes, {acked} acknowledged, digest {:016x}, {}",
+            "seed {seed}: {} publishes, {acked} acknowledged, {} lost; {}; digest {:016x}, {}",
             report.publishes.len(),
+            report.lost,
+            report.tally,
             report.digest,
             if report.broken.is_empty() {
                 "ok"
@@ -568,6 +740,10 @@ fn faults_over_many_seeds() {
                 "BROKEN"
             }
         );
+        publishes += report.publishes.len();
+        acknowledged += acked;
+        lost += report.lost;
+        tally.add(&report.tally);
         if !report.broken.is_empty() {
             let path = keep_trace(&report);
             let again = run("run", seed);
@@ -585,6 +761,13 @@ fn faults_over_many_seeds() {
             let _ = std::fs::remove_dir_all(root().join(format!("run-{seed}")));
         }
     }
+    let seeds = seeds();
+    eprintln!(
+        "seeds {}..{}: {publishes} publishes, {acknowledged} acknowledged, {lost} lost, {} failed; {tally}",
+        seeds.start,
+        seeds.end,
+        failed.len()
+    );
     assert!(failed.is_empty(), "{failed:#?}");
 }
 

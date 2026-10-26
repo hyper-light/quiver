@@ -224,6 +224,11 @@ impl Start {
         }
     }
 
+    /// The kill planned for the start.
+    pub(crate) fn kill(&self) -> Kill {
+        lock(&self.machine.course).kill
+    }
+
     /// Power cut after `ops` more operations on every device of the node.
     pub(crate) fn arm(&self, ops: u64) {
         self.machine.arm(ops);

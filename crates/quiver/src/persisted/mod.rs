@@ -169,6 +169,9 @@ pub struct GroupFigures {
     pub frames: u64,
     /// The offset after the last its part applied.
     pub applied: u64,
+    /// Publishes this node's member, leading, recognised as sent again (one in flight or applied):
+    /// answered, never proposed twice.
+    pub duplicates: u64,
     /// What this node's publisher to the group did.
     pub sent: u64,
     pub resent: u64,
@@ -196,6 +199,7 @@ impl GroupFigures {
             leader: leader.node,
             frames: stats.log.frames,
             applied: seat.part().bounds(group::STREAM).map_or(0, |(_, end)| end),
+            duplicates: stats.duplicates,
             sent: publisher.stats.sent,
             resent: publisher.stats.resent,
             redirects: publisher.stats.redirects,

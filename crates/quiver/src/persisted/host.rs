@@ -1109,13 +1109,14 @@ impl Host {
     }
 
     /// The start's kill: power cut on every device at once, so nothing the dying node's logs
-    /// would write as they close lands, and the host ends; why.
+    /// would write as they close lands, and the host ends; why, and at which await or cut.
     #[cfg(feature = "sim")]
     fn die(&self) -> Fault {
-        if let Some(sim) = &self.sim {
-            sim.arm(0);
-        }
-        "killed by the simulation".to_owned()
+        let Some(sim) = &self.sim else {
+            return "killed by the simulation".to_owned();
+        };
+        sim.arm(0);
+        format!("killed by the simulation at {:?}", sim.kill())
     }
 }
 
