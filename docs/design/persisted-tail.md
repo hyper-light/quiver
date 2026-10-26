@@ -199,11 +199,12 @@ so today's groups run as they did:
   an entry before it has been written to its own disk, if a majority of followers have written it
   to their disks; this is still safe." TiKV's RFC 0112 and raft-rs's
   `max_apply_unpersisted_log_limit` apply entries the same way.
-- **A leader's patience with its own disk** (hyper-durable, `Replica::set_disk_patience`). A
-  leader whose oldest write has been out longer than its patience hands the lead to the voter its
-  detectors trust that holds most of its log. It does so by `TimeoutNow`, which leaves without a
-  write of its own. A disk that stops for good costs one hand-over, rather than a lead kept with no
-  disk under it.
+- **A leader's patience with its own disk** (hyper-durable's law, Focal's condition 5, below). A
+  leader hands the lead on once the backlog its disk doesn't hold would fill the room its budget has
+  left within a hand-over, no time stated: to the voter its detectors trust whose disk isn't slow
+  and that holds most of its log, by `TimeoutNow`, which leaves without a write of its own. A disk
+  that stops for good costs one hand-over once its backlog nears its room, rather than a lead kept
+  with no disk under it; a stall that ends sooner costs nothing.
 
 The step names two more things, and each already holds:
 - **The leader's lease kept while its own fsync is slow.** Focal's member elects by suspicion
@@ -233,14 +234,14 @@ apart, nobody suspects the leader and the group applies every publish within 5.3
 answers only what its own disk holds: the stall's publishes wait for its end. With commits on the
 followers' disks too, the leader answers them as they come.
 
-The patience, on its own: the leader's disk stops for 6 s, with a patience of 1 s
-(`judged_apart_a_leaders_disk_that_stops_costs_one_hand_over`). The leader answers its first
-second's publishes, about 1,000, within 4.2 ms each, then hands over. Over the 8 seeds that's 1 or
-2 hand-overs and 1 or 2 terms, at most 7 ms without a leader, and every publish applied, the slowest
-in 15.7 ms. A second hand-over is the first one given up by the core (its transfer's timeout) and
-begun again. A second term is the heir's. It campaigns without pre-vote on the core's word, and its
-ballot's round (the quorum's round trip and one flush, `hyper_timing::Ballot`) can end before a vote
-that waited on its voter's flush comes (seed 1: the vote came 0.2 ms after the round ended).
+The patience, on its own: the leader's disk stops for 6 s at a budget its load fills in about a
+second, 128 KiB (`judged_apart_a_leaders_disk_that_stops_hands_over_before_its_room_fills`). It
+reads its room's fill at the stop as 0.87 to 1.0 s and orders the hand-over 1,006 to 1,009 ms in,
+before any proposal is refused for room; none is refused in the run, and every publish is applied.
+Over the 8 seeds that's 1 or 2 orders and 1 or 2 terms. A second order is the first given up by
+the core (its transfer's timeout) and ordered again. A second term is the heir's. It campaigns
+without pre-vote on the core's word, and its ballot's round (the quorum's round trip and one flush,
+`hyper_timing::Ballot`) can end before a vote that waited on its voter's flush comes.
 
 ### The bar: 10,000 seeds
 
@@ -285,10 +286,12 @@ They stay ignored, and now say that the step's group passes them.
 hyper-durable-e2e's 23 scenarios and 6 random ones run three members as real processes, each a
 replica on hyper-log over a real file. They pass in the step's group (`HYPER_DURABLE_E2E_DISK_APART`
 set) and in today's, on adas-mac-studio-3. In the step's group:
-- `stall-leader`'s leader hands the lead on after its 5 s patience;
+- `stall-leader`'s leader, its disk stopped, leads on by the patience's law, its backlog of the
+  scenario's few writes far from the room its budget has left (the memory it states, 16 MiB), its
+  writes committing on its followers' disks;
 - no member suspects `stall-follower`'s stalled member;
 - `stalled-devices`' leader, its disk stopped for good, goes on taking writes through a 7 s hold of
-  its survivors' devices, and then hands the lead on;
+  its survivors' devices, and leads on by the law likewise;
 - the 12 kill -9 scenarios elect as they do in today's group.
 
 ### The lab
@@ -428,10 +431,29 @@ Focal's agent set six conditions on the disk mode before it goes anywhere. Where
    searches run in hyper-raft CI's explore job (d69f309).
 3. **Images and compaction:** met (below).
 4. **Votes:** met (fb44834): a stalled disk gives no vote it doesn't hold.
-5. **The hand-over:** the flush tail, the disk verdicts and the heir rule are met. For the
-   patience, Focal's agent asks for a stated cap and its source. The cap proposed is the counted
-   budget: the bytes the owner states a stalled leader may hold, filled at the measured growth
-   rate. Under it the doubling has no room left, and building that is next.
+5. **The hand-over:** met (hyper-raft cp/t2.2-mode e13e6ab). The flush tail, the disk verdicts and
+   the heir rule stand as before. The patience is the law Focal's agent set: a leader hands the lead
+   on once its backlog would fill its budget's room within a hand-over, and no time is stated.
+   - The room comes from the budget itself (`Budget::room`, the group's own allowance; none for a
+     budget that refuses nothing), and the core's bound on entries not yet durable.
+   - The backlog is reckoned as the core holds it: each entry's payload and its slot, the slots
+     doubling when full and charged at once. Reserving the next doubling at all times instead
+     handed over a doubling early.
+   - The growth is entries a second at RFC 6298's tail, or the wait under way's rate where faster.
+     Zero growth sets no deadline, and every product and quotient is checked.
+   - From the fill it takes the measured hand-over time, from the order to the first commit of a
+     later term, its prior the timing law's election and round. Nothing doubles.
+   - 5a: no idle probe flush. A node judges its own disk by its oldest write not yet durable (zero
+     when none); its floor counts only flushes within their tail.
+   - 5b: verdicts are kept for the members the configuration names, and let go as one leaves.
+   - 5c: hyper-durable-e2e states no patience; its members' budgets are the memory they state.
+   - Found on the way and fixed: a full budget never drained. A refused reservation now asks again
+     once the core gives back its spare room, and an answer to what the member asked is taken
+     whatever the room.
+   - Measured: 0 elections over 10,000 seeds of a 2 s stall (the bar kept); the fill test above; at
+     most one hand-over a fill time less a hand-over over 60 s of each leader's disk stalling as it
+     leads (7 a seed, about 8.1 s apart at 1 MiB, none refused for room); condition 6's shapes under
+     the law, no term.
 6. **All disks slow:** met (2060014). Meeting it took a fix to the patience: it counts from when a
    voter could take the lead.
 
