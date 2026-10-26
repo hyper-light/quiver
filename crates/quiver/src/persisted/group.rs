@@ -535,7 +535,7 @@ impl Seat {
             })
             .collect();
         format!(
-            "member of node {} at {}: leads {}, leader {:?} in term {}, in flight {:?}, fenced {}\n  {:?}\n  endpoint {:?}\n  dials {:?}\n  established {paths:?}\n  heard {:?}\n  redial {:?}",
+            "member of node {} at {}: leads {}, leader {:?} in term {}, in flight {:?}, fenced {}\n  core {}\n  {:?}\n  endpoint {:?}\n  dials {:?}\n  established {paths:?}\n  heard {:?}\n  redial {:?}",
             self.plan.id,
             self.plan.data.display(),
             self.member.is_leader(),
@@ -543,6 +543,7 @@ impl Seat {
             leader.term,
             self.member.in_flight(),
             self.member.fenced(),
+            self.member.core_state(),
             self.member.stats(),
             self.driver.endpoint().stats(),
             self.plan.peers,
