@@ -99,6 +99,23 @@ publish's outcome, every node's view, the fabric's counts and every device's wri
   (`Seat::peers_changed`, `Publisher::set_addresses`). A real network moves ports rarely, as an
   OS's ephemeral ports rarely collide. The simulation's ports collide often, so it found this.
 
+- **A node back from a kill could not publish for two minutes.** A transport keeps a peer's
+  connections until they have carried nothing for its serve period, two minutes. A process back
+  from a kill dials with the same identity, and the dead process's connections hold both of its
+  places, so it is refused Busy. Quiver's members closed a suspected peer's connections for this
+  (step 4's kill drills), but only its member's. The node's publisher, a client identity of its
+  own, was refused by every member until the old connections aged out: in seed 8, 4,576 times in
+  a minute. Now a member that suspects a node closes that node's publisher's connections too
+  (`Seat::turn`, `Plan::publishers`).
+- **A node's own publisher kept its own node's old port.** A topic's publisher took the catalog's
+  new addresses only when its member's peers changed, and a member's peers leave its own node
+  out. When only this node's member moved, its publisher went on dialing the old port, and a node
+  that led never reached itself: in seeds 9, 13 and 14 the leader's own publishes were redirected
+  thousands of times, never sent to the leader. Now the publisher takes every address the catalog
+  changes, its own node's included (`Host::reconcile`).
+
+Each of these runs again as its seed, and seeds 1 to 20 pass with all three fixed.
+
 ## What the simulation does
 
 - **kill -9 of a node**, the moment drawn from the seed: at its host's n-th await; before a cut

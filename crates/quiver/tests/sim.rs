@@ -3,10 +3,12 @@
 //! runtime, every member's log on hyper-sim's block device. A seed draws a run: publishes through
 //! every node; kill -9 of any node at an await of its host or at a cut of its disk (before it, in
 //! it, after it), its devices then kept as a kill leaves them or as a power cut does; the network
-//! between two nodes cut one way or both; disks stalled, one or all at once; datagrams lost,
-//! jittered and reordered. Then the network mends, every node starts again and catches up, and
-//! every acknowledged publish is checked at its offset in every node's view, each producer's in its
-//! order, none twice, the views alike.
+//! between two nodes cut one way or both; disks stalled, one or all at once; datagrams lost (alone
+//! or in bursts), duplicated, jittered and, on half the seeds, reordered. Every 100 ms of virtual
+//! time each running node's view is checked against every view before it and every publish
+//! acknowledged so far, so each recovery is checked as it catches up. Then the network mends, every
+//! node starts again and catches up, and every acknowledged publish is checked at its offset in
+//! every node's view, each producer's in its order, none twice, the views alike.
 //!
 //! `QUIVER_SIM_SEEDS` names the seeds `faults_over_many_seeds` runs (`first..end`, by default a few
 //! for the gate's time); a failing seed's trace is written under the test's directory, and
@@ -41,6 +43,19 @@ const MS: u64 = 1_000_000;
 const RUN_NS: u64 = 6_000 * MS;
 /// Bound: what a run waits, once mended, for every node to catch up: past it, it's said stuck.
 const SETTLE_NS: u64 = 60_000 * MS;
+/// Shape: how often the running nodes' views are checked while the run goes on.
+const CHECK_NS: u64 = 100 * MS;
+/// Bound: the breaks a run's running checks keep word for word; the rest are counted.
+const BREAKS_KEPT: usize = 20;
+
+/// How often a run marks where it stands: `QUIVER_SIM_MARKS_NS`, else as often as it checks.
+fn marks_ns() -> u64 {
+    std::env::var("QUIVER_SIM_MARKS_NS")
+        .ok()
+        .and_then(|s| s.parse().ok())
+        .filter(|ns| *ns > 0)
+        .unwrap_or(CHECK_NS)
+}
 
 /// The test's directory: each run's under it, and the cluster's identities, made once.
 fn root() -> PathBuf {
@@ -137,6 +152,8 @@ struct Report {
     broken: Vec<String>,
     /// Acknowledged publishes some node's view lacks at their offset: AC-T2.2.5's measure.
     lost: usize,
+    /// Where the run stood at each running check, for a replay to say where it ran apart.
+    marks: Vec<(u64, String)>,
     /// What the run's faults came to.
     tally: Tally,
 }
@@ -171,6 +188,14 @@ struct Tally {
     /// Publishes the nodes' publishers sent again, and those the leaders recognised as sent again.
     resent: u64,
     recognised: u64,
+    /// Running nodes' views checked while the run went on.
+    checks: u64,
+    /// Seeds whose paths reorder, and whose loss comes in bursts; datagrams the fabric delivered
+    /// twice, and lost (a partition's included).
+    reordering: u64,
+    bursty: u64,
+    duplicated: u64,
+    dropped: u64,
 }
 
 impl Tally {
@@ -225,6 +250,11 @@ impl Tally {
         self.stalls_all += other.stalls_all;
         self.resent += other.resent;
         self.recognised += other.recognised;
+        self.checks += other.checks;
+        self.reordering += other.reordering;
+        self.bursty += other.bursty;
+        self.duplicated += other.duplicated;
+        self.dropped += other.dropped;
     }
 }
 
@@ -232,7 +262,7 @@ impl std::fmt::Display for Tally {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "kills {} of {} planned (await {}, before a cut {}, during {}, after {}; the leader {}, after its flush {}), other ends {}; devices kept {}, random {}, lost {}; partitions {} one way, {} both; stalls {} of a disk, {} of all; resent {}, recognised {}",
+            "kills {} of {} planned (await {}, before a cut {}, during {}, after {}; the leader {}, after its flush {}), other ends {}; devices kept {}, random {}, lost {}; partitions {} one way, {} both; stalls {} of a disk, {} of all; resent {}, recognised {}; views checked {}; reordering {}, bursty {}; datagrams twice {}, lost {}",
             self.awaits + self.before + self.during + self.after,
             self.doomed,
             self.awaits,
@@ -250,7 +280,12 @@ impl std::fmt::Display for Tally {
             self.stalls,
             self.stalls_all,
             self.resent,
-            self.recognised
+            self.recognised,
+            self.checks,
+            self.reordering,
+            self.bursty,
+            self.duplicated,
+            self.dropped
         )
     }
 }
@@ -285,8 +320,29 @@ fn fold(hash: u64, bytes: &[u8]) -> u64 {
 fn run(name: &str, seed: u64) -> Report {
     let mut rng = Rng(seed ^ 0x5157_4552_5349_4d00);
     let mut trace = String::new();
-    let path = SimPath::in_order(rng.range(100_000, 2_000_000), rng.range(0, 400_000))
-        .with_loss(SimLoss::random(rng.below(20_000) as u32));
+    // One way 0.1 to 2 ms, up to 0.4 ms either side; each flow kept in order or, on half the seeds,
+    // reordered by its jitter; up to 2% lost alone or, on half, in bursts of 2 to 10 on average
+    // that lose most of what they hold; up to 2% delivered twice.
+    let (one_way, jitter) = (rng.range(100_000, 2_000_000), rng.range(0, 400_000));
+    let reordering = rng.chance(500);
+    let path = if reordering {
+        SimPath::reordering(one_way, jitter)
+    } else {
+        SimPath::in_order(one_way, jitter)
+    };
+    let bursty = rng.chance(500);
+    let loss = if bursty {
+        SimLoss::bursty(
+            rng.below(10_000) as u32,
+            rng.range(100_000, 500_000) as u32,
+            rng.range(300_000, 1_000_000) as u32,
+        )
+    } else {
+        SimLoss::random(rng.below(20_000) as u32)
+    };
+    let path = path
+        .with_loss(loss)
+        .with_duplicates(rng.below(20_000) as u32);
     let _ = writeln!(trace, "seed {seed}: path {path:?}");
     let mut world = World::new(settings(name, seed, path)).unwrap();
     for node in 1..=3 {
@@ -304,9 +360,17 @@ fn run(name: &str, seed: u64) -> Report {
     assert!(created, "seed {seed}: the topic was never held everywhere");
 
     let mut publishes: Vec<Publish> = Vec::new();
-    let mut tally = Tally::default();
+    let mut tally = Tally {
+        reordering: u64::from(reordering),
+        bursty: u64::from(bursty),
+        ..Tally::default()
+    };
     let mut leader = None;
     let mut seen = [(0_u64, 0_u64); 3];
+    // What the views showed at each offset, and what the running checks found broken.
+    let mut shown: BTreeMap<Offset, Vec<u8>> = BTreeMap::new();
+    let mut breaks = Breaks::default();
+    let mut marks = Vec::new();
     let mut starts = [1_u64; 3];
     // Each node down: when it may start again.
     let mut down: [Option<u64>; 3] = [None; 3];
@@ -315,6 +379,9 @@ fn run(name: &str, seed: u64) -> Report {
     let end = t0 + RUN_NS;
     let mut next_publish = t0;
     let mut next_fault = t0 + rng.range(100 * MS, 1_500 * MS);
+    let mut next_check = t0 + CHECK_NS;
+    let every = marks_ns();
+    let mut next_mark = t0 + every;
     let mut sequence = 0_u64;
     while world.now_ns() < end {
         let now = world.now_ns();
@@ -373,13 +440,28 @@ fn run(name: &str, seed: u64) -> Report {
             next_publish = now + rng.range(2 * MS, 30 * MS);
         }
         if now >= next_fault {
-            fault(&mut world, &mut rng, &mut trace, &mut mended_at, &mut tally, now);
+            fault(
+                &mut world,
+                &mut rng,
+                &mut trace,
+                &mut mended_at,
+                &mut tally,
+                now,
+            );
             next_fault = now + rng.range(200 * MS, 2_000 * MS);
         }
         for p in &mut publishes {
             if p.outcome.is_none() {
                 p.outcome = p.answer.take().map(|a| a.map_err(|e| e.to_string()));
             }
+        }
+        if now >= next_check {
+            tally.checks += check_running(&world, &publishes, &mut shown, &mut breaks, now);
+            next_check = now + CHECK_NS;
+        }
+        if now >= next_mark {
+            marks.push((now, mark(&world)));
+            next_mark = now + every;
         }
         world.run_until(now + MS);
     }
@@ -410,6 +492,15 @@ fn run(name: &str, seed: u64) -> Report {
                 p.outcome = p.answer.take().map(|a| a.map_err(|e| e.to_string()));
             }
         }
+        let now = w.now_ns();
+        if now >= next_check {
+            tally.checks += check_running(w, &publishes, &mut shown, &mut breaks, now);
+            next_check = now + CHECK_NS;
+        }
+        if now >= next_mark {
+            marks.push((now, mark(w)));
+            next_mark = now + every;
+        }
         look(w, &mut leader, &mut seen);
         let applied: Vec<u64> = (1..=3)
             .map(|n| {
@@ -420,9 +511,10 @@ fn run(name: &str, seed: u64) -> Report {
             .collect();
         publishes.iter().all(|p| p.outcome.is_some()) && applied.iter().all(|a| *a == applied[0])
     });
-    // A little longer, for the views to take what was applied.
+    // A little longer, for the views to take what was applied; then the running check once more.
     let next = world.now_ns() + 500 * MS;
     world.run_until(next);
+    tally.checks += check_running(&world, &publishes, &mut shown, &mut breaks, next);
     // What each node says of itself, for a run that never settled: kept apart from the trace, as
     // it holds real-time measures (each log's flush times) no run repeats.
     let mut diagnosis = String::new();
@@ -453,8 +545,10 @@ fn run(name: &str, seed: u64) -> Report {
         digest = fold(digest, &writes.to_le_bytes());
         digest = fold(digest, &flushes.to_le_bytes());
     }
-    let fabric = format!("{:?}", world.fabric());
-    digest = fold(digest, fabric.as_bytes());
+    let fabric = world.fabric();
+    tally.duplicated = fabric.duplicated;
+    tally.dropped = fabric.dropped_loss;
+    digest = fold(digest, format!("{fabric:?}").as_bytes());
     for at in seen {
         tally.sent_again(at);
     }
@@ -478,6 +572,13 @@ fn run(name: &str, seed: u64) -> Report {
         }
     }
     let (mut broken, lost) = check(&publishes, &views);
+    broken.extend(breaks.said);
+    if breaks.more > 0 {
+        broken.push(format!(
+            "and {} more breaks while the run went on",
+            breaks.more
+        ));
+    }
     if !settled {
         broken.push("the nodes never caught up once mended".to_owned());
     }
@@ -490,8 +591,56 @@ fn run(name: &str, seed: u64) -> Report {
         digest,
         broken,
         lost,
+        marks,
         tally,
     }
+}
+
+/// Where `world` stands: each node's host's awaits and cuts in its start, its devices' writes and
+/// flushes, what its groups' members and publishers did, and what the fabric carried.
+fn mark(world: &World) -> String {
+    let mut mark = String::new();
+    for node in 1..=3 {
+        let _ = write!(
+            mark,
+            "node {node} {:?} {:?}",
+            world.course(node).ok(),
+            world.operations(node).ok()
+        );
+        if let Some(stats) = world.stats(node) {
+            let _ = write!(mark, " catalog {:?}", stats.catalog);
+            for (name, group) in &stats.topics {
+                let _ = write!(mark, " {name} {group:?}");
+            }
+        }
+        mark.push_str("; ");
+    }
+    let fabric = world.fabric();
+    let _ = write!(
+        mark,
+        "fabric {} delivered, {} lost, {} twice",
+        fabric.delivered, fabric.dropped_loss, fabric.duplicated
+    );
+    mark
+}
+
+/// The first running check two runs of one seed stood apart at: when, and where each stood.
+fn apart(first: &Report, again: &Report) -> String {
+    first
+        .marks
+        .iter()
+        .zip(&again.marks)
+        .find(|(a, b)| a != b)
+        .map_or_else(
+            || {
+                format!(
+                    "no check apart ({} and {} checks)",
+                    first.marks.len(),
+                    again.marks.len()
+                )
+            },
+            |((at, a), (_, b))| format!("apart by {at}: {a} / {b}"),
+        )
 }
 
 /// One fault the run draws at `now`.
@@ -524,7 +673,7 @@ fn fault(
             } else {
                 let when = match rng.below(3) {
                     0 => When::Before,
-                    1 => When::During { ops: rng.below(4) },
+                    1 => When::During { ops: rng.below(8) },
                     _ => When::After,
                 };
                 Doom::Cuts {
@@ -567,6 +716,124 @@ fn fault(
         }
         _ => {}
     }
+}
+
+/// A probe for a run that differs from itself: `QUIVER_SIM_REPEAT` (`<seed>x<runs>`) runs one seed
+/// again and again in one process, each against the first, and says where any ran apart.
+#[test]
+#[ignore = "a probe, run by name with QUIVER_SIM_REPEAT"]
+fn a_seed_run_again_and_again() {
+    let Some((seed, runs)) = std::env::var("QUIVER_SIM_REPEAT").ok().and_then(|s| {
+        let (seed, runs) = s.split_once('x')?;
+        Some((seed.parse::<u64>().ok()?, runs.parse::<u64>().ok()?))
+    }) else {
+        return;
+    };
+    let first = run("repeat", seed);
+    eprintln!(
+        "run 0: digest {:016x}, {} broken, {} lost",
+        first.digest,
+        first.broken.len(),
+        first.lost
+    );
+    keep_trace(&first);
+    for n in 1..runs {
+        let again = run("repeat", seed);
+        eprintln!(
+            "run {n}: digest {:016x}, {} broken, {} lost, {}",
+            again.digest,
+            again.broken.len(),
+            again.lost,
+            if again.digest == first.digest {
+                "alike".to_owned()
+            } else {
+                apart(&first, &again)
+            }
+        );
+    }
+}
+
+/// What a run's running checks found broken: the first few word for word, the rest counted.
+#[derive(Default)]
+struct Breaks {
+    said: Vec<String>,
+    more: usize,
+}
+
+impl Breaks {
+    fn push(&mut self, broke: String) {
+        if self.said.len() < BREAKS_KEPT {
+            self.said.push(broke);
+        } else {
+            self.more += 1;
+        }
+    }
+}
+
+/// Checks each running node's view at `now`: what it holds at each offset is what every view
+/// before showed there (an applied publish never changes, across nodes, kills and recoveries) and
+/// the publish acknowledged there, if one was; each publish acknowledged so far within the offsets
+/// it holds is there; no payload is there twice. How many views it checked.
+fn check_running(
+    world: &World,
+    publishes: &[Publish],
+    shown: &mut BTreeMap<Offset, Vec<u8>>,
+    breaks: &mut Breaks,
+    now: u64,
+) -> u64 {
+    let acknowledged: BTreeMap<Offset, &Vec<u8>> = publishes
+        .iter()
+        .filter_map(|p| match &p.outcome {
+            Some(Ok(offset)) => Some((*offset, &p.payload)),
+            _ => None,
+        })
+        .collect();
+    let lossy = |p: &[u8]| String::from_utf8_lossy(p).into_owned();
+    let mut checked = 0;
+    for node in 1..=3_u64 {
+        if !world.alive(node) {
+            continue;
+        }
+        let Some(view) = world.read(node, TOPIC) else {
+            continue;
+        };
+        checked += 1;
+        let at: BTreeMap<Offset, &Vec<u8>> = view.iter().map(|m| (m.offset, &m.payload)).collect();
+        let mut payloads = BTreeSet::new();
+        for (&offset, &payload) in &at {
+            if !payloads.insert(payload) {
+                breaks.push(format!(
+                    "{now}: node {node} holds {:?} twice, again at {offset}",
+                    lossy(payload)
+                ));
+            }
+            match shown.get(&offset) {
+                Some(before) if before != payload => breaks.push(format!(
+                    "{now}: node {node} holds {:?} at {offset}, where {:?} was shown",
+                    lossy(payload),
+                    lossy(before)
+                )),
+                Some(_) => {}
+                None => {
+                    shown.insert(offset, payload.clone());
+                }
+            }
+        }
+        let (Some((&first, _)), Some((&last, _))) = (at.first_key_value(), at.last_key_value())
+        else {
+            continue;
+        };
+        for (offset, payload) in acknowledged.range(first..=last) {
+            if at.get(offset) != Some(payload) {
+                breaks.push(format!(
+                    "{now}: node {node} holds {:?} at {offset}, where {:?} was acknowledged",
+                    at.get(offset).map(|p| lossy(p)),
+                    lossy(payload)
+                ));
+            }
+        }
+    }
+    checked
 }
 
 /// What a run broke: an acknowledged publish missing from a node's view or at another offset, a
@@ -658,6 +925,10 @@ fn keep_trace(report: &Report) -> PathBuf {
         let _ = writeln!(text, "  {b}");
     }
     text.push_str(&report.diagnosis);
+    text.push_str("marks:\n");
+    for (at, mark) in &report.marks {
+        let _ = writeln!(text, "  {at}: {mark}");
+    }
     let _ = std::fs::write(&path, text);
     path
 }
@@ -752,9 +1023,9 @@ fn faults_over_many_seeds() {
                 report.broken.len(),
                 path.display(),
                 if again.digest == report.digest {
-                    "the same"
+                    "the same".to_owned()
                 } else {
-                    "DIFFERENT"
+                    format!("DIFFERENT, {}", apart(&report, &again))
                 }
             ));
         } else {
@@ -783,31 +1054,28 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
         .unwrap_or(1_u64);
     for seed in first..first + 200 {
         let report = run("plant", seed);
-        let lost: Vec<&String> = report
-            .broken
-            .iter()
-            .filter(|b| b.starts_with("acknowledged"))
-            .collect();
         eprintln!(
-            "seed {seed}: {} broken, {} of them acknowledged publishes lost",
+            "seed {seed}: {} broken, {} acknowledged publishes lost",
             report.broken.len(),
-            lost.len()
+            report.lost
         );
-        if lost.is_empty() {
+        if report.lost == 0 {
             let _ = std::fs::remove_dir_all(root().join(format!("plant-{seed}")));
             continue;
         }
         let path = keep_trace(&report);
         let again = run("plant", seed);
         assert_eq!(
-            again.digest, report.digest,
-            "seed {seed} ran apart on its replay"
+            again.digest,
+            report.digest,
+            "seed {seed} ran apart on its replay, {}",
+            apart(&report, &again)
         );
         assert_eq!(again.broken, report.broken);
         eprintln!(
             "found at seed {seed}, replayed alike (trace {}): {}",
             path.display(),
-            lost[0]
+            report.broken.join("; ")
         );
         return;
     }
