@@ -300,6 +300,14 @@ fixes.
 
 ## Runs
 
-Each seed takes three nodes through a few seconds of virtual time. The 10,000 seeds are spread over
-the Mac Studio (adas-mac-studio-3) and fedora, never production's adacachy, and their record goes
-in `bench/records/`.
+Each seed takes three nodes through 6 s of faults and up to a minute of catching up, in virtual
+time, in a few seconds of a core. The sweep (`bench/sim-sweep.sh`) runs the 10,000 seeds twice, in
+two partitions over processes, each pass in a directory of its own holding one copy of the
+cluster's identities. Its record is `bench/records/2026-10-26-adacachy-sim-sweep/`: at `a52fb28`,
+on adacachy under production's caps (fedora had stopped answering), 0 of 3,181,568 acknowledged
+publishes lost in each pass, no seed broken, and every seed's digest alike in both passes.
+
+The sweeps before it, and what each found, are above: at the older pins 77 runs left a node behind
+(the bus's outbox, hyper-raft's liveness); at `d4ad260` eight nodes back from kills were refused
+Busy; at `bf54d1e` three handshakes met a burst that never ended, and 1,067 seeds ran apart from one
+process to another. None lost an acknowledged publish.

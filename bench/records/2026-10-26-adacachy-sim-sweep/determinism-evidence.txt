@@ -1,0 +1,61 @@
+seed 8, 12 runs in one process, ECDSA identities (sim-logs/flow8b.log):
+  run 1: flows part at entry 31 of 131 and 131
+  run 1: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 2: flows part at entry 46 of 131 and 131
+  run 2: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 3: flows part at entry 31 of 131 and 131
+  run 3: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 4: flows part at entry 46 of 131 and 131
+  run 4: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 5: flows part at entry 31 of 131 and 131
+  run 5: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 6: flows part at entry 31 of 131 and 131
+  run 6: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 7: flows part at entry 31 of 131 and 131
+  run 7: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 8: flows part at entry 35 of 131 and 131
+  run 8: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 9: flows part at entry 41 of 131 and 131
+  run 9: digest a67786785c03d1d4, 0 broken, 0 lost, apart by 555000000: node 1 Some((1841, 201)) Some((688, 231)) catalog 
+  run 10: flows part at entry 31 of 131 and 131
+  run 10: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 11: flows part at entry 35 of 131 and 131
+  run 11: digest ae94481429614c57, 0 broken, 0 lost, apart by 1155000000: node 1 Some((3351, 378)) Some((1334, 447)) catal
+
+seed 8, 12 runs in one process, Ed25519 identities (sim-logs/flow8ed.log):
+  run 1: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 2: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 3: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 4: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 5: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 6: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 7: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 8: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 9: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 10: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+  run 11: digest 054f15dbd3bb1add, 0 broken, 0 lost, alike
+
+seed 19, the token checks of mini-run-f7 (pass A then pass B):
+  pass A
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039166, tv_nsec: 0 }, nonce 2479a1e5…
+    TOKEN from 127.0.0.1:65: validated, issued SystemTime { tv_sec: 1793039166, tv_nsec: 0 }, nonce 126b7c6d…
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039167, tv_nsec: 0 }, nonce 7f4e0b82…
+    TOKEN from 127.0.0.1:65: refused by the log, issued SystemTime { tv_sec: 1793039166, tv_nsec: 0 }, nonce fd536564…
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039167, tv_nsec: 0 }, nonce 3cfbc683…
+    TOKEN from 127.0.0.1:65: validated, issued SystemTime { tv_sec: 1793039167, tv_nsec: 0 }, nonce 5ab57c74…
+  pass B
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce 2479a1e5…
+    TOKEN from 127.0.0.1:65: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce 126b7c6d…
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce 7f4e0b82…
+    TOKEN from 127.0.0.1:65: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce fd536564…
+    TOKEN from 127.0.0.1:66: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce 3cfbc683…
+    TOKEN from 127.0.0.1:65: validated, issued SystemTime { tv_sec: 1793039163, tv_nsec: 0 }, nonce 27f2b9e6…
+
+mini A/B sweeps, seeds 1..400, pass A in 4 processes, pass B in 5 shifted:
+  ECDSA,   log waker as is, token log as was: digests: 400 seeds in both passes, 372 alike, 28 apart: [9, 32, 33, 43, 67, 75, 90, 94, 117, 118, 164, 166, 174, 178, 21
+  ECDSA,   no-op log waker, token log as was: digests: 400 seeds in both passes, 366 alike, 34 apart: [8, 14, 26, 31, 49, 50, 56, 57, 84, 88, 104, 107, 128, 159, 160,
+  Ed25519, no-op log waker, token log as was: digests: 400 seeds in both passes, 359 alike, 41 apart: [17, 33, 44, 56, 58, 82, 84, 88, 113, 117, 125, 132, 136, 139, 1
+  Ed25519, log waker as is, token log as was: digests: 400 seeds in both passes, 365 alike, 35 apart: [13, 32, 56, 57, 61, 75, 81, 90, 101, 106, 113, 119, 136, 139, 1
+  Ed25519, no-op log waker, token log fixed: digests: 400 seeds in both passes, 400 alike, 0 apart: []
+  ECDSA,   no-op log waker, token log fixed: digests: 400 seeds in both passes, 399 alike, 1 apart: [317]
+  Ed25519, log waker as is, token log fixed (a52fb28): digests: 400 seeds in both passes, 400 alike, 0 apart: []

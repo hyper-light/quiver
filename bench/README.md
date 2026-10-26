@@ -125,6 +125,10 @@ bench/sim-sweep.sh OUT        # seeds 1 to 10,000 twice, then bench/sim-collect.
 - **Twice.** Every seed runs in two partitions of the seeds over processes (pass A: eight of 1,250;
   pass B: nine, shifted by 625), so each runs after other seeds in another process, and its digest
   must be alike in both: a run is its seed's, whatever ran before it.
+- **Its own directory.** The runs and the cluster's identities are under `OUT/root`
+  (`QUIVER_SIM_ROOT`), the identities made there once, by one process, before the passes start, as
+  Ed25519: never a directory an older binary made, whose ECDSA signatures change a handshake's size
+  from run to run.
 - **What it writes.** `OUT/seeds-A.tsv` and `OUT/seeds-B.tsv`, a seed a line; the totals, the seeds
   that broke and the digests that differ, printed. A failing seed's trace is kept under the test's
   directory and the seed runs again in its process (`run again: digest the same`).
