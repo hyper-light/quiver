@@ -45,6 +45,11 @@ const RUN_NS: u64 = 6_000 * MS;
 const SETTLE_NS: u64 = 60_000 * MS;
 /// Shape: how often the running nodes' views are checked while the run goes on.
 const CHECK_NS: u64 = 100 * MS;
+/// Shape: the time a step of a bursty path's loss chain stands for on a quiet flow
+/// (`SimLoss::in_time`, hyper-raft patch 0005): a burst on a flow that sends rarely ends within
+/// milliseconds, as on a real path. Stepped per datagram alone, a restarted publisher's handshake to
+/// its leader, its probes backing off, met one burst for 30 s (seeds 6302 and 7452).
+const BURST_SLOT_NS: u64 = MS;
 /// Bound: the breaks a run's running checks keep word for word; the rest are counted.
 const BREAKS_KEPT: usize = 20;
 
@@ -57,9 +62,14 @@ fn marks_ns() -> u64 {
         .unwrap_or(CHECK_NS)
 }
 
-/// The test's directory: each run's under it, and the cluster's identities, made once.
+/// The test's directory: each run's under it, and the cluster's identities, made once. It is
+/// `QUIVER_SIM_ROOT` where that is set, so that processes sweeping the same seeds at once keep
+/// apart and a sweep makes its own identities (bench/sim-sweep.sh), else the target's.
 fn root() -> PathBuf {
-    PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("sim")
+    std::env::var_os("QUIVER_SIM_ROOT").map_or_else(
+        || PathBuf::from(env!("CARGO_TARGET_TMPDIR")).join("sim"),
+        PathBuf::from,
+    )
 }
 
 fn settings(name: &str, seed: u64, path: SimPath) -> Settings {
@@ -69,7 +79,9 @@ fn settings(name: &str, seed: u64, path: SimPath) -> Settings {
         seed,
         nodes: 3,
         dir,
-        identities: root().join("identities-3"),
+        // Made as Ed25519 by the first run (`Host::open`); named apart from the ECDSA directories
+        // earlier binaries made here, which would replay apart.
+        identities: root().join("identities-ed25519-3"),
         path,
         quorum_wait: Duration::from_secs(3),
     }
@@ -322,7 +334,8 @@ fn run(name: &str, seed: u64) -> Report {
     let mut trace = String::new();
     // One way 0.1 to 2 ms, up to 0.4 ms either side; each flow kept in order or, on half the seeds,
     // reordered by its jitter; up to 2% lost alone or, on half, in bursts of 2 to 10 on average
-    // that lose most of what they hold; up to 2% delivered twice.
+    // that lose most of what they hold, a burst ending in time on a quiet flow ([`BURST_SLOT_NS`]);
+    // up to 2% delivered twice.
     let (one_way, jitter) = (rng.range(100_000, 2_000_000), rng.range(0, 400_000));
     let reordering = rng.chance(500);
     let path = if reordering {
@@ -337,6 +350,7 @@ fn run(name: &str, seed: u64) -> Report {
             rng.range(100_000, 500_000) as u32,
             rng.range(300_000, 1_000_000) as u32,
         )
+        .in_time(BURST_SLOT_NS)
     } else {
         SimLoss::random(rng.below(20_000) as u32)
     };

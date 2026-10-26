@@ -41,7 +41,7 @@ devices, so a seed decides every event and a failing seed runs again the same.
 
 ## Determinism
 
-A seed must decide every event. Five sources of variation are closed:
+A seed must decide every event. Six sources of variation are closed:
 
 1. **Time.** Every `Instant` in a node comes from one process-wide anchor
    (`hyper_rt::sim::anchor`) and the shard's virtual clock. On a simulated shard
@@ -52,9 +52,12 @@ A seed must decide every event. Five sources of variation are closed:
    time between their making.
 2. **Randomness.** Each endpoint's QUIC layer is seeded (`Endpoint::new_seeded`) from the world's
    seed, the node, its start and the endpoint's place in the start's order. TLS draws its own bytes
-   from AWS-LC, but their sizes, and so the flow, are fixed while the certificates are the same
-   (hyper-rt-transport `tests/simulation.rs`). The cluster's identities are made once and kept, so
-   a run replays across processes that share them. hyper-durable's member incarnation is drawn
+   from AWS-LC, so a handshake's contents differ from run to run, to the order of a ClientHello's
+   extensions; their sizes, and so the flow, are fixed only where every signature is one length.
+   An ECDSA certificate verify is a DER document of 70 to 72 bytes, as random as its nonce, so the
+   simulation's identities are Ed25519, each signature 64 bytes (focal-bus's `pki::KeyKind`, its
+   recorded change 0005, asked for by `Host::open` under the simulation). The cluster's identities
+   are made once and kept, so a run replays across processes that share them. hyper-durable's member incarnation is drawn
    from the system, but it is fixed-width on the wire and only ever compared for equality.
 3. **Threads.** hyper-log runs an owner thread and an I/O thread, and the simulated device a
    thread of its own. When a log answers depends on them, not on the seed, and so does what one
@@ -81,11 +84,42 @@ A seed must decide every event. Five sources of variation are closed:
    stack. A node started again took its sockets back in another order, so its catalog's member
    listened where its peers never dial. Now a port of the shard's own range asked for by number is
    taken if free and refused if bound, as an OS binds one.
+6. **The wall clock.** QUIC's address-validation tokens carry their issue time in whole seconds of
+   the wall clock, and a server's token log refused a valid token issued before the first one it
+   checked: its first period began at that token's expiry. Whether a run's tokens straddled a
+   second decided whether a server refused one, and a client refused went on unvalidated. Now the
+   first period begins where that token's own began (hyper-quic's `BloomTokenLog`, hyper-raft's
+   recorded change 0006, a fix offered upstream), so a valid token is taken once whatever order
+   the clock issued it in. Its expiry is read on the wall clock too, but no run comes near it (two
+   weeks; a Retry's, 15 s).
 
 **What would falsify it:** a seed whose run differs from itself. Each failing seed is run again,
 and its digest must match. `a_seeds_run_is_the_same_run_twice` compares two runs' traces,
 outcomes, views and digests. The digest covers the trace (every fault and kill, with when), every
 publish's outcome, every node's view, the fabric's counts and every device's writes and flushes.
+The sweep runs every seed twice, in two partitions of the seeds over processes, and compares the
+digests. A probe runs one seed again and again in one process and names the first mark two runs
+part at (`a_seed_run_again_and_again`, `QUIVER_SIM_REPEAT`, `QUIVER_SIM_MARKS_NS`).
+
+What it showed (2026-10-26): seeds 2 and 3, each run five times in a process, ran alike on
+adacachy and on fedora, to the same digests on both, fedora having made its identities afresh. One
+first run differed: the first at the bus's `b6cf8e3` against an identities directory the older
+binary had left in the clear, which the newer seals as it loads it (a run once, then never). At the
+older pins a run in a resend storm ran apart once, late (the planted build's seed 6 at 63.7 s, one
+run of four), and one seed had two outcomes in separate processes; neither came again at the newer
+pins. The identities are made once, by one process, before a sweep's processes start: made by
+several at once, they raced, and each one's first seed found no topic held everywhere.
+
+The first full sweep (both passes of the 10,000 seeds at `bf54d1e`) ran 1,067 seeds apart, 10.7%:
+every acknowledged publish present in both, but not alike. A log of every datagram the fabric
+carried and every packet the QUIC layers built (a diagnosis kept out of the tree) traced each one
+it was asked about to the two causes above: a certificate verify a byte longer in one run than in
+the other, and a token one run's server refused and the other's took. Seed 8 ran its first
+handshakes apart in all twelve runs of a process with ECDSA identities, and alike in twelve with
+Ed25519. With both closed, seeds 1 to 400 ran alike in the sweep's two partitions, 400 of 400;
+with ECDSA identities and the token log fixed, one ran apart (seed 317). The logs' own threads wake
+the host as they answer, a turn more at an instant real time chose: with the logs given a waker
+that wakes nothing, 400 of 400 ran alike, as with it, so it stays as it was.
 
 ## What the simulation found
 
@@ -159,6 +193,25 @@ Each of these runs again as its seed, and seeds 1 to 20 pass with all three fixe
 
   With both, the eight seeds pass.
 
+- **A handshake met one loss burst for 30 seconds (the simulation's own model).** The sweep's two
+  passes at `bf54d1e` broke the same 3 of their 10,000 seeds, none losing an acknowledged publish:
+  in seeds 3053, 6302 and 7452 the nodes never caught up once mended. In each a publisher's dial
+  to the node that led its group met a burst on the path that lost most of what it carried, and
+  the burst never ended: hyper-rt's Gilbert–Elliott chain stepped once per datagram, and the
+  dial's probes, backing off to 16 s apart, sent a datagram a few seconds. In 6302 node 3, back
+  from a kill, dialed node 1: 16 datagrams in 31 s, every one in the burst, the ClientHello's
+  second half alone ever arriving, held by node 1 and let go. In 7452 node 1's answers to node 2's
+  publisher were lost the same way, then the publisher's own datagrams; in 3053, with no kill,
+  node 1's catalog publisher redialed node 2 after a suspicion, 12 datagrams in 15 s. A real
+  path's burst ends in time whether anything is sent or not, so a bursty path's chain now steps
+  once per millisecond its flow is quiet as well (`SimLoss::in_time`, hyper-raft's recorded change
+  0005), and the three seeds pass. Quiver's publisher waits out the probes' backoff as a TCP client
+  waits out its SYN's: a dial that heard nothing is held until the transport's idle timeout, two
+  minutes, and the next waits for it. A setup timeout, as Kafka's producer has
+  (`socket.connection.setup.timeout.ms`, 10 s), would bound the wait after a path heals, at the
+  cost of a pending place at the server for each dial given up until its own idle timeout; it is
+  not made here.
+
 ## What the simulation does
 
 Each seed draws a run (`tests/sim.rs`): 6 s of virtual time with a publish every 2 to 30 ms
@@ -178,7 +231,8 @@ through a node drawn at random, and a fault every 0.2 to 2 s, a kill 40% of the 
 - **The network**, drawn for the seed: one way 0.1 to 2 ms, up to 0.4 ms either side; each flow in
   order or, on half the seeds, reordered by its jitter; up to 2% of datagrams lost one by one or,
   on half the seeds, in bursts (entered by up to 1% of datagrams, 2 to 10 long on average, losing
-  30 to 100% of what they hold); up to 2% delivered twice, each copy after a delay of its own
+  30 to 100% of what they hold, the chain stepping once per datagram and once per millisecond a
+  flow is quiet, hyper-rt's `SimLoss::in_time`, so a burst ends in time); up to 2% delivered twice, each copy after a delay of its own
   (hyper-rt's `SimPath::with_duplicates`). QUIC discards a packet it already processed (RFC 9000
   §12.3), so the duplicates Quiver's code meets are resends: a publisher's after a redirect, a
   silent leader or a lost connection, and Raft's own. The leaders must recognise each, and a seed
@@ -229,17 +283,20 @@ the same digest. hyper-raft's own oracles catch it too (`tests/check.rs`, seed 0
 ## The changes to vendored code
 
 Each is recorded in its project's `UPSTREAM.md` and offered upstream (hyper-raft's seams on the
-local branch `cp/t2.2-told`, its liveness fix on `cp/t2.2-liveness` at `a91f1e0`). The seams change
-nothing a production build does: the told and serve paths need `Waits::Told`, the anchor and binds
-a simulated shard, and the rest a feature. The liveness fix does: it is a fix.
+local branch `cp/t2.2-told`, its fixes on `cp/t2.2-liveness` at `a91f1e0` and
+`cp/t2.2-token-log` at `20cdaf9`). The seams change nothing a production build does: the told and
+serve paths need `Waits::Told`, the anchor and binds a simulated shard, Ed25519 identities and
+bursts stepped in time to be asked for, and the rest a feature. The liveness and token-log fixes do: they are
+fixes.
 
 | Project | Change |
 |---|---|
 | hyper-raft `hyper-log` | `Waits::Told` and `Log::cut`: a frame only when told, its confirmation made one way. `Log::serve` for waking fetches. A restore at open, and a caller that waits on its write or fetch, tell the log by waiting |
-| hyper-raft `hyper-rt`, `hyper-rt-transport` | `sim::anchor` and `shard_instant`: one clock for every driver on a simulated shard. A simulated bind takes the port asked for in its shard. A simulated path may duplicate datagrams (`SimPath::with_duplicates`) |
+| hyper-raft `hyper-rt`, `hyper-rt-transport` | `sim::anchor` and `shard_instant`: one clock for every driver on a simulated shard. A simulated bind takes the port asked for in its shard. A simulated path may duplicate datagrams (`SimPath::with_duplicates`). A loss burst ends in time on a quiet flow (`SimLoss::in_time`) |
 | hyper-raft `hyper-raft`, `hyper-durable` | `Mutant::OwnLogCommit`, and `Replica::plant` to reach it (`mutants` features) |
 | hyper-raft `hyper-liveness` | A stream whose floor is nothing still sends once a flush proves a heartbeat (above) |
-| Focal `focal-bus` | `NodeFile` and `Member::open_simulated` (`sim` feature): a member's log on a simulated device, its data directory sealed as `Member::open` seals it. `Member::cut`, `serve`, `in_flight` and `plant` (`mutants` feature). The owed acknowledgements redirected in order. A member's diagnosis, `Member::core_state` (`sim` feature) |
+| hyper-raft `hyper-quic` | A token log takes a valid token issued before the first it checked (above) |
+| Focal `focal-bus` | `NodeFile` and `Member::open_simulated` (`sim` feature): a member's log on a simulated device, its data directory sealed as `Member::open` seals it. `Member::cut`, `serve`, `in_flight` and `plant` (`mutants` feature). The owed acknowledgements redirected in order. A member's diagnosis, `Member::core_state` (`sim` feature). A directory's identities made as Ed25519 when asked (`pki::KeyKind`) |
 
 ## Runs
 

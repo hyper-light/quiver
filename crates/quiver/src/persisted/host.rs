@@ -259,10 +259,22 @@ impl Host {
         let now = shard_instant();
         make_dir(&config.data)?;
         let run = raise_run(&config.data.join(RUN_FILE))?;
+        // Under the simulation the identities are made as Ed25519, whose signatures are one length:
+        // an ECDSA certificate verify is a byte longer or shorter from one handshake to the next, and
+        // so a run's flights, and a tenth of the seeds ran apart across processes (CP-T2.2 step 6).
+        #[cfg(feature = "sim")]
+        let kind = if sim.is_some() {
+            focal_bus::pki::KeyKind::Ed25519
+        } else {
+            focal_bus::pki::KeyKind::default()
+        };
+        #[cfg(not(feature = "sim"))]
+        let kind = focal_bus::pki::KeyKind::default();
         let ids = Identities::load(
             &config.identities,
             config.identities_key.as_deref(),
             config.nodes.len(),
+            kind,
         )?;
         let own = config
             .address(config.id)
@@ -483,11 +495,15 @@ impl Host {
             if let Some(Slot::Open(seat)) = &mut held.slot {
                 said.push_str(&format!("topic {incarnation}: {}\n", seat.diagnosis()));
             }
+            let endpoint = held.publisher.endpoint_state();
             said.push_str(&format!(
-                "  publisher {:?} {:?}, {:?}\n",
+                "  publisher {:?} {:?}, {:?}\n  publisher heard {:?}\n  publisher counts {:?}\n  publisher {}\n",
                 held.publisher.known(),
                 held.publisher.state(),
-                held.publisher.stats
+                held.publisher.stats,
+                held.publisher.heard,
+                held.publisher.counts,
+                endpoint
             ));
         }
         *asked = Some(said);

@@ -116,15 +116,16 @@ fn made(
 }
 
 impl Identities {
-    /// The identities of a cluster of `nodes`, kept in `dir` (made there the first time), sealed
-    /// under `key_file`, or under the per-user root key file named for the directory's root key
-    /// where it names none, as Focal's node keeps its own (focal-bus `serve`).
+    /// The identities of a cluster of `nodes`, kept in `dir` (made there the first time, with
+    /// `kind`'s keys), sealed under `key_file`, or under the per-user root key file named for the
+    /// directory's root key where it names none, as Focal's node keeps its own (focal-bus `serve`).
     pub(crate) fn load(
         dir: &std::path::Path,
         key_file: Option<&std::path::Path>,
         nodes: usize,
+        kind: pki::KeyKind,
     ) -> Result<Self, String> {
-        let local = pki::load_or_make(dir, key_file, nodes, nodes).map_err(said)?;
+        let local = pki::load_or_make_with(dir, key_file, nodes, nodes, kind).map_err(said)?;
         Ok(Self { local, nodes })
     }
 
@@ -682,6 +683,12 @@ pub(crate) struct Publisher {
     /// When the node it sends to last answered, or it began sending there.
     answered_at: Instant,
     pub(crate) stats: PublisherStats,
+    /// Under the simulation, what it chose and what its connections did, the latest 64, and its
+    /// sends by node and the redirects it took by sender and leader, for the diagnosis.
+    #[cfg(feature = "sim")]
+    pub(crate) heard: VecDeque<String>,
+    #[cfg(feature = "sim")]
+    pub(crate) counts: BTreeMap<String, u64>,
 }
 
 impl Publisher {
@@ -703,6 +710,10 @@ impl Publisher {
             resend_at: None,
             retry_at: None,
             dial_at: None,
+            #[cfg(feature = "sim")]
+            heard: VecDeque::new(),
+            #[cfg(feature = "sim")]
+            counts: BTreeMap::new(),
             led_at: now,
             answered_at: now,
             stats: PublisherStats::default(),
@@ -745,6 +756,23 @@ impl Publisher {
         });
     }
 
+    /// Under the simulation, a choice or a connection's change noted for the diagnosis.
+    #[cfg(feature = "sim")]
+    fn hear(&mut self, what: String) {
+        if self.heard.len() >= 64 {
+            self.heard.pop_front();
+        }
+        let ms = hyper_rt::futures::now_ns() / 1_000_000;
+        self.heard.push_back(format!("{ms} ms: {what}"));
+    }
+
+    /// Under the simulation, one more of what the diagnosis counts.
+    #[cfg(feature = "sim")]
+    fn count(&mut self, what: String) {
+        let count = self.counts.entry(what).or_default();
+        *count = count.saturating_add(1);
+    }
+
     /// Sends to `node` from now (or, for none, the next node after the one it sent to), and
     /// everything owed goes again.
     fn choose(&mut self, node: Option<u64>, now: Instant) {
@@ -763,6 +791,8 @@ impl Publisher {
             }
         });
         if next != self.target {
+            #[cfg(feature = "sim")]
+            self.count(format!("chooses {next:?}, was {:?}", self.target));
             self.leads = false;
             self.answered_at = now;
         }
@@ -777,15 +807,41 @@ impl Publisher {
     /// after [`RETRY`] if it doesn't connect.
     fn dial(&mut self, node: u64, now: Instant) {
         self.dial_at = now.checked_add(RETRY);
-        if let Some((_, address)) = self.nodes.iter().find(|(id, _)| *id == node)
-            && self.driver.endpoint().connect(now, node, *address).is_err()
-        {
-            self.stats.dials_refused = self.stats.dials_refused.saturating_add(1);
+        if let Some((_, address)) = self.nodes.iter().find(|(id, _)| *id == node).copied() {
+            let dialed = self.driver.endpoint().connect(now, node, address);
+            #[cfg(feature = "sim")]
+            self.count(format!("dials {node} at {address}: {dialed:?}"));
+            if dialed.is_err() {
+                self.stats.dials_refused = self.stats.dials_refused.saturating_add(1);
+            }
         }
+    }
+
+    /// Under the simulation, what the publisher's endpoint holds: its figures, and the paths it has
+    /// established.
+    #[cfg(feature = "sim")]
+    pub(crate) fn endpoint_state(&mut self) -> String {
+        let mut established = Vec::new();
+        self.driver.endpoint().established(&mut established);
+        format!(
+            "endpoint {:?} established {established:?} nodes {:?} connected {:?}",
+            self.driver.endpoint().stats(),
+            self.nodes,
+            self.connected
+        )
     }
 
     /// Acts on one of its endpoint's events; what it settled.
     pub(crate) fn on_event(&mut self, event: Event<Bus>, now: Instant) -> Vec<Settled> {
+        #[cfg(feature = "sim")]
+        if let Some((peer, up)) = peer_change(&event) {
+            self.hear(format!("peer {peer} {}", if up { "up" } else { "down" }));
+        }
+        #[cfg(feature = "sim")]
+        let sender = match &event {
+            Event::Frame { peer, .. } => Some(*peer),
+            _ => None,
+        };
         if let Some((peer, up)) = peer_change(&event) {
             if up {
                 self.stats.connects = self.stats.connects.saturating_add(1);
@@ -843,6 +899,13 @@ impl Publisher {
                 _ => {}
             },
         );
+        #[cfg(feature = "sim")]
+        for leader in &redirects {
+            self.count(format!(
+                "redirect from {sender:?} to {:?} in term {}",
+                leader.node, leader.term
+            ));
+        }
         if acked_by.is_some() {
             self.leads = true;
             self.led_at = now;
@@ -929,7 +992,17 @@ impl Publisher {
                     continue;
                 };
                 match client.publish(self.driver.endpoint(), batch) {
-                    Ok(()) => self.stats.resent = self.stats.resent.saturating_add(1),
+                    Ok(()) => {
+                        self.stats.resent = self.stats.resent.saturating_add(1);
+                        #[cfg(feature = "sim")]
+                        {
+                            let count = self
+                                .counts
+                                .entry(format!("resent to {target}"))
+                                .or_default();
+                            *count = count.saturating_add(1);
+                        }
+                    }
                     Err(_) => {
                         all_sent = false;
                         break;
