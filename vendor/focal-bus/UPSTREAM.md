@@ -27,11 +27,12 @@ The bus Quiver is built on (docs/design/focal-bus.md, kiln's CP-T2.1).
 Each change is recorded in `vendor/patches/focal-bus/`, applied in this order on upstream's tree
 (`vendor/MANIFEST.toml` names the commit and the paths taken; kiln's docs/vendoring.md). Each change to
 the bus's code is offered to Focal as a branch, and Focal's agent is told of it; a vendoring change
-alone (as the one below) isn't.
+alone (as the first below) isn't.
 
 | File | Change | Why | Recorded as |
 |---|---|---|---|
 | `Cargo.toml` | The shared crates (`hyper-*`) named by version, without a path into Focal's `vendor/` | Quiver takes hyper-raft once, beside the bus (`vendor/hyper-raft`), and kiln holds one copy of each hyper-light product: whoever builds the bus points each name at its copy | `0001-the-shared-crates-by-name-at-the-copy-of-hyper-raft-beside.patch` |
+| `crates/focal-bus/src/member.rs` | A member's liveness stream takes room for one peer where its group has none | Quiver's persisted class runs on one node as a group of one (kiln's CP-T2.2 step 4, `docs/design/persisted.md`): hyper-liveness refuses a stream of no peers, and hyper-raft elects a sole voter on its own vote. Offered to Focal | `0002-a-member-s-liveness-stream-takes-room-for-one-peer-so-a.patch` |
 
 ## Taking a newer upstream
 

@@ -21,7 +21,9 @@ Publishing never waits for a reader or a subscription: one that stalls holds up 
 other reader (kiln's CP-T2.1, AC-T2.1.5). Each topic states its class (Focal's doc 33):
 ephemeral, replicated, persisted or windowed. An implementation serves the classes it can and
 refuses the others, typed (`Refusal::Unsupported`), never serving one class as another. Quiver's
-node serves the ephemeral class today (docs/design/focal-bus.md).
+node serves the ephemeral class (docs/design/focal-bus.md), and on a cluster the persisted class
+(docs/design/persisted.md). A request an implementation can't make for want of a quorum of its
+nodes is refused `NoQuorum`, nothing of it kept.
 
 Methods of `Topics`: `create`, `delete`, `publish`, `read`, `wait`, `bounds`, `subscribe`.
 Methods of `Subscription`: `poll_ready`, `take`, `position`.
@@ -35,7 +37,9 @@ Redis and Kafka in every cell of the comparison (bench/records/2026-10-24-fedora
 
 ## Bounds
 
-Topic names are 1 to 128 of `A-Z a-z 0-9 _ - . /`; keys to 1024 bytes; payloads to 1 MiB; 1000
+Topic names are 1 to 128 of `A-Z a-z 0-9 _ - . /`; keys to 1024 bytes; payloads to 1 MiB (the
+replicated and persisted classes: 1 MiB less 1,102 bytes, what Focal's largest batch holds beside
+its framing and the longest key); 1000
 messages a read; a topic retains 1 to a million messages and 1 byte to 4 GiB.
 
 ## Clauses
