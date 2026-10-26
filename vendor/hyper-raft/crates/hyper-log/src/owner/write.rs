@@ -118,8 +118,16 @@ impl<F: BlockFile + 'static> Owner<F> {
     /// After a message: a submission that came while the owner was parked starts a batch, and
     /// one that came while it gathered joins the batch.
     pub(super) fn went_on(&mut self) {
-        // Under `Waits::Told` a batch starts only at a cut, which runs the loop (`Owner::cut`).
-        if self.intake.is_empty() || self.p.config.waits == Waits::Told {
+        if self.intake.is_empty() {
+            return;
+        }
+        // Under `Waits::Told` a batch starts at a cut, which runs the loop (`Owner::cut`), or as a
+        // caller waits on its write (`Owner::told`), which this submission may be.
+        if self.p.config.waits == Waits::Told {
+            if self.parked && self.told() {
+                self.parked = false;
+                self.agenda.step = true;
+            }
             return;
         }
         if self.parked {
@@ -161,7 +169,9 @@ impl<F: BlockFile + 'static> Owner<F> {
             }
             self.drain();
             let told = self.p.config.waits == Waits::Told;
-            if told && !self.told() {
+            // A restore of a lost frame at open is the log's own, written as it opens (the open
+            // waits for it), before any caller could cut.
+            if told && !self.told() && !self.schedule.restoring {
                 // Nothing is written until told: what is held and queued waits for a cut.
                 if !self.idle() {
                     return;

@@ -25,7 +25,7 @@ use super::catalog::{Applied, Catalog, Record};
 use super::group::{
     Cursor, Drv, Fed, Identities, Plan, Publisher, STREAM, Seat, Settled, drop_event,
 };
-use super::{Command, GroupFigures, PersistedConfig, Shared};
+use super::{Command, GroupFigures, PersistedConfig, Shared, lock};
 use crate::ephemeral::{Log, parse_record};
 use crate::node::Clock;
 
@@ -265,6 +265,7 @@ impl Host {
             members: config.ids(),
             clients: ids.nodes(),
             lane_window: ids.lane_window()?,
+            publishers: ids.publishers(),
             #[cfg(feature = "sim")]
             machine: sim.as_ref().map(super::sim::Start::machine),
         };
@@ -437,7 +438,37 @@ impl Host {
         self.take_commands(now);
         self.pump(now);
         self.figures();
+        #[cfg(feature = "sim")]
+        self.diagnose();
         Ok(())
+    }
+
+    /// Under the simulation, everything the node's members and publishers say of themselves, if
+    /// the world asked for it (`sim::World::diagnose`).
+    #[cfg(feature = "sim")]
+    fn diagnose(&mut self) {
+        let mut asked = lock(&self.shared.diagnosis);
+        if !asked.as_ref().is_some_and(String::is_empty) {
+            return;
+        }
+        let mut said = format!("catalog: {}\n", self.catalog_seat.diagnosis());
+        said.push_str(&format!(
+            "  publisher {:?} {:?}\n",
+            self.catalog_publisher.known(),
+            self.catalog_publisher.state()
+        ));
+        for (incarnation, held) in &mut self.topics {
+            if let Some(Slot::Open(seat)) = &mut held.slot {
+                said.push_str(&format!("topic {incarnation}: {}\n", seat.diagnosis()));
+            }
+            said.push_str(&format!(
+                "  publisher {:?} {:?}, {:?}\n",
+                held.publisher.known(),
+                held.publisher.state(),
+                held.publisher.stats
+            ));
+        }
+        *asked = Some(said);
     }
 
     fn dispatch(&mut self, source: Source, event: Event<Bus>, now: Instant) {
@@ -731,8 +762,8 @@ impl Host {
             let Some(everyone) = everyone else { continue };
             // A peer's port that changed (it rebound after a restart): dialed there from now.
             if let Some(Slot::Open(seat)) = &mut held.slot {
-                if seat.peers_changed(&everyone) {
-                    held.publisher.set_addresses(&everyone);
+                if seat.peers_changed(&everyone, now) {
+                    held.publisher.set_addresses(&everyone, now);
                 }
                 continue;
             }
@@ -756,6 +787,7 @@ impl Host {
                     members: self.config.ids(),
                     clients: self.ids.nodes(),
                     lane_window: self.ids.lane_window()?,
+                    publishers: self.ids.publishers(),
                     #[cfg(feature = "sim")]
                     machine: machine.clone(),
                 };
@@ -984,11 +1016,11 @@ impl Host {
         }))
     }
 
-    /// Under the simulation: what the members asked of their logs answered before the world moves
-    /// on. Every read the members asked of the device is served at once, and the node's disk
-    /// takes what the logs hold at the virtual time it drew for it: a cut of each log, each waited
-    /// for on the shard, so every answer reaches its member at an instant the seed chose
-    /// (`docs/design/persisted-sim.md`, "Determinism"). The start's kill may end it at a cut.
+    /// Under the simulation: what the members wrote to their logs taken by the node's disk at the
+    /// virtual time it drew for it: a cut of each log, each waited for on the shard, so every
+    /// answer reaches its member at an instant the seed chose (`docs/design/persisted-sim.md`,
+    /// "Determinism"). A member's reads of its log are blocking asks, answered as asked. The
+    /// start's kill may end it at a cut.
     #[cfg(feature = "sim")]
     fn settle_logs(&mut self, now: Instant) -> Result<(), Fault> {
         use super::sim::Fate;
@@ -996,21 +1028,11 @@ impl Host {
             if self.sim.is_none() {
                 return Ok(());
             }
-            let (writes, reads) = self.seats().fold((0usize, 0usize), |(w, r), seat| {
-                let (writes, reads) = seat.member.in_flight();
-                (w.saturating_add(writes), r.saturating_add(reads))
-            });
-            if reads > 0 {
-                for seat in self.seats() {
-                    if seat.member.in_flight().1 > 0 {
-                        let served = seat.member.serve().map_err(|e| e.to_string())?;
-                        // A read refused is the member's to hear at its turn.
-                        let _ = served.wait();
-                    }
-                }
-                self.turn_once(Vec::new(), now, now)?;
-                continue;
-            }
+            // A member's reads of its log are its own blocking asks, answered as asked; what it
+            // writes waits for the node's disk.
+            let writes = self
+                .seats()
+                .fold(0usize, |w, seat| w.saturating_add(seat.member.in_flight().0));
             let Some(sim) = self.sim.as_mut() else {
                 return Ok(());
             };
@@ -1059,7 +1081,7 @@ impl Host {
             if seat.member.in_flight().0 > 0 {
                 let cut = seat.member.cut().map_err(|e| e.to_string())?;
                 // A cut refused for a power cut is the member's to hear at its turn.
-                let _ = cut.wait();
+                answered(|| cut.poll().map(|_| ()), || seat.stuck("a cut"))?;
             }
         }
         Ok(())
@@ -1073,6 +1095,37 @@ impl Host {
             sim.arm(0);
         }
         "killed by the simulation".to_owned()
+    }
+}
+
+/// Under the simulation, how long the host waits for its log to answer a cut or a serve, in real
+/// time: past it the run is said to hang, never waited on for good.
+#[cfg(feature = "sim")]
+const HANG: Duration = Duration::from_secs(60);
+
+/// Waits on the shard until `poll` has an answer, at most [`HANG`]: past it, the fault `stuck`
+/// says what never answered.
+#[cfg(feature = "sim")]
+#[allow(
+    clippy::disallowed_methods,
+    reason = "the simulation's watch for a log that never answers: real time, outside the run's"
+)]
+fn answered(mut poll: impl FnMut() -> Option<()>, stuck: impl FnOnce() -> Fault) -> Result<(), Fault> {
+    let began = Instant::now();
+    let mut spins = 0_u32;
+    loop {
+        if poll().is_some() {
+            return Ok(());
+        }
+        if began.elapsed() > HANG {
+            return Err(stuck());
+        }
+        spins = spins.saturating_add(1);
+        if spins < 1_000 {
+            std::thread::yield_now();
+        } else {
+            std::thread::sleep(Duration::from_micros(100));
+        }
     }
 }
 

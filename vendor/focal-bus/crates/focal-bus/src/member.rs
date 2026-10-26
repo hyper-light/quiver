@@ -1179,6 +1179,14 @@ impl Member {
             .map_err(|_| BusError::Configuration("the node's log has closed"))
     }
 
+    /// Plants `mutant` in the node's replica, or takes the one planted out: a defect a test build
+    /// shows its checks catch (`hyper_raft::Mutant`; the `mutants` feature, which no consumer
+    /// enables). A member opened again holds none.
+    #[cfg(feature = "mutants")]
+    pub fn plant(&mut self, mutant: Option<hyper_raft::Mutant>) {
+        self.replica.plant(mutant);
+    }
+
     /// Tells the node's log to read the entries its replica asked for and the log holds
     /// (`hyper_log::Log::serve`): under `hyper_log::Waits::Told` it reads nothing from its device
     /// until told, and the handle is answered once every such read is; under the other waits, at

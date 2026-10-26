@@ -254,6 +254,10 @@ pub(crate) struct Shared {
     bound: usize,
     views: RwLock<HashMap<String, Arc<Log>>>,
     stats: Mutex<PersistedStats>,
+    /// Under the simulation, what its members were at the host's last turn, once asked for
+    /// (`sim::World::diagnose`): `Some` while asked, the host filling it.
+    #[cfg(feature = "sim")]
+    diagnosis: Mutex<Option<String>>,
 }
 
 fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
@@ -271,6 +275,8 @@ impl Shared {
             bound: config.publishes.saturating_add(config.topics),
             views: RwLock::new(HashMap::new()),
             stats: Mutex::new(PersistedStats::default()),
+            #[cfg(feature = "sim")]
+            diagnosis: Mutex::new(None),
         }
     }
 
@@ -345,6 +351,15 @@ impl Shared {
             waker.wake();
         }
         Ok(())
+    }
+
+    /// Wakes the host, for a turn.
+    #[cfg(feature = "sim")]
+    fn wake(&self) {
+        let waker = lock(&self.inbox).waker.clone();
+        if let Some(waker) = waker {
+            waker.wake();
+        }
     }
 
     /// Tells the host to stop: it ends at its next wake, holding nothing it answers.

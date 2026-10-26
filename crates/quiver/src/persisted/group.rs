@@ -199,6 +199,16 @@ impl Identities {
         made(config, budget, directory, seed)
     }
 
+    /// Each node, and the peer its publisher is to every member (`pki::Local::client_peer`).
+    pub(crate) fn publishers(&self) -> Vec<(u64, u64)> {
+        self.node_ids()
+            .filter_map(|node| {
+                let index = usize::try_from(node.checked_sub(1)?).ok()?;
+                Some((node, self.local.client_peer(index)?))
+            })
+            .collect()
+    }
+
     /// The lane window a member's acknowledgements are bounded by (`Member::open`).
     pub(crate) fn lane_window(&self) -> Result<usize, String> {
         Ok(
@@ -245,6 +255,16 @@ impl Redial {
         self.due.values().map(|(at, _)| *at).min()
     }
 
+    /// Under the simulation, the peers due to be dialed at `now`, with when each fell due.
+    #[cfg(feature = "sim")]
+    fn due_now(&self, now: Instant) -> Vec<(u64, Instant)> {
+        self.due
+            .iter()
+            .filter(|(_, (at, _))| *at <= now)
+            .map(|(peer, (at, _))| (*peer, *at))
+            .collect()
+    }
+
     /// Dials each peer of `peers` that is due; a dial that fails is due again, later.
     fn dial(
         &mut self,
@@ -282,6 +302,8 @@ pub(crate) struct Plan {
     pub(crate) members: Vec<u64>,
     pub(crate) clients: usize,
     pub(crate) lane_window: usize,
+    /// Each node, and the peer its publisher is to this member (`Identities::publishers`).
+    pub(crate) publishers: Vec<(u64, u64)>,
     /// Under the simulation, the node's simulated machine its log's device is on.
     #[cfg(feature = "sim")]
     pub(crate) machine: Option<std::sync::Arc<super::sim::Machine>>,
@@ -318,9 +340,13 @@ impl Plan {
                 device: machine.handle(&self.data)?,
                 settings,
             };
-            let member =
+            #[cfg_attr(not(feature = "plant-own-log-commit"), allow(unused_mut))]
+            let mut member =
                 Member::open_simulated(simulated, node, members, clients, window, budget, now)
                     .map_err(said)?;
+            // The planted bug's build: a commit on the leader's own log alone.
+            #[cfg(feature = "plant-own-log-commit")]
+            member.plant(Some(hyper_raft::Mutant::OwnLogCommit));
             return persisted(member);
         }
         let member = Member::open(settings, node, members, clients, window, budget, now)
@@ -343,6 +369,10 @@ pub(crate) struct Seat {
     pub(crate) member: Member,
     plan: Plan,
     redial: Redial,
+    /// Under the simulation, the member's last connection events and dials, with when (the shard's
+    /// clock, ms), for its diagnosis.
+    #[cfg(feature = "sim")]
+    heard: VecDeque<String>,
 }
 
 impl Seat {
@@ -354,15 +384,35 @@ impl Seat {
         for (peer, address) in &plan.peers {
             let _ = driver.endpoint().connect(now, *peer, *address);
         }
-        Ok(Self {
+        #[cfg_attr(not(feature = "sim"), allow(unused_mut))]
+        let mut seat = Self {
             driver,
             member,
             plan,
             redial: Redial::default(),
-        })
+            #[cfg(feature = "sim")]
+            heard: VecDeque::new(),
+        };
+        #[cfg(feature = "sim")]
+        seat.hear(format!("opens, dials {:?}", seat.plan.peers));
+        Ok(seat)
+    }
+
+    /// Under the simulation, a connection event or a dial noted for the diagnosis.
+    #[cfg(feature = "sim")]
+    fn hear(&mut self, what: String) {
+        if self.heard.len() >= 64 {
+            self.heard.pop_front();
+        }
+        let ms = hyper_rt::futures::now_ns() / 1_000_000;
+        self.heard.push_back(format!("{ms} ms: {what}"));
     }
 
     pub(crate) fn on_event(&mut self, event: Event<Bus>, now: Instant) {
+        #[cfg(feature = "sim")]
+        if let Some((peer, up)) = peer_change(&event) {
+            self.hear(format!("peer {peer} {}", if up { "up" } else { "down" }));
+        }
         if let Some((peer, up)) = peer_change(&event)
             && self.plan.peers.iter().any(|(id, _)| *id == peer)
         {
@@ -382,6 +432,10 @@ impl Seat {
     /// without this, a peer back from a kill was refused every connection it dialed
     /// (`Refusal::Busy`) and never caught up (CP-T2.2's kill drills, 2026-10-25).
     pub(crate) fn turn(&mut self, waker: &Waker, now: Instant) -> Result<(), String> {
+        #[cfg(feature = "sim")]
+        for (peer, at) in self.redial.due_now(now) {
+            self.hear(format!("dials {peer}, due since {at:?}"));
+        }
         self.redial
             .dial(self.driver.endpoint(), &self.plan.peers, now);
         let mut suspected = Vec::new();
@@ -397,8 +451,18 @@ impl Seat {
             });
         for peer in suspected {
             if self.plan.peers.iter().any(|(id, _)| *id == peer) {
+                #[cfg(feature = "sim")]
+                self.hear(format!("suspects {peer}: disconnects it and its publisher"));
                 self.driver.endpoint().disconnect(now, peer);
                 self.redial.note(peer, false, now);
+                // Its node's publisher too: a node back from a kill dials with the same client
+                // identity, and the dead process's connections held both of its places, so every
+                // member refused its publisher Busy until they had carried nothing for two minutes
+                // (CP-T2.2 step 6's simulation, seed 8). The publisher dials again, as it does.
+                let publisher = self.plan.publishers.iter().find(|(node, _)| *node == peer);
+                if let Some((_, client)) = publisher {
+                    self.driver.endpoint().disconnect(now, *client);
+                }
             }
         }
         if self.member.fenced() {
@@ -407,8 +471,12 @@ impl Seat {
         Ok(())
     }
 
-    /// Takes `everyone`'s addresses for its peers; whether one changed.
-    pub(crate) fn peers_changed(&mut self, everyone: &[(u64, SocketAddr)]) -> bool {
+    /// Takes `everyone`'s addresses for its peers; whether one changed. A peer that moved (its
+    /// member bound another port as it started again, the one it kept taken) has what this node
+    /// holds or is dialing at its old address closed, and is dialed at its new one: a dial in
+    /// flight to the old address held off every new one until its handshake timed out, two
+    /// minutes, the pair apart all that time (CP-T2.2 step 6's simulation, seed 3).
+    pub(crate) fn peers_changed(&mut self, everyone: &[(u64, SocketAddr)], now: Instant) -> bool {
         let peers: Vec<(u64, SocketAddr)> = everyone
             .iter()
             .filter(|(id, _)| *id != self.plan.id)
@@ -416,6 +484,19 @@ impl Seat {
             .collect();
         if peers == self.plan.peers {
             return false;
+        }
+        for (peer, address) in &peers {
+            let moved = self
+                .plan
+                .peers
+                .iter()
+                .any(|(id, before)| id == peer && before != address);
+            if moved {
+                #[cfg(feature = "sim")]
+                self.hear(format!("peer {peer} moved to {address}: closes and dials it there"));
+                self.driver.endpoint().disconnect(now, *peer);
+                self.redial.note(*peer, false, now);
+            }
         }
         self.plan.peers = peers;
         true
@@ -430,6 +511,52 @@ impl Seat {
 
     pub(crate) fn part(&self) -> &Part {
         self.member.node().part()
+    }
+
+    /// Under the simulation, everything the member and its endpoint say of themselves.
+    #[cfg(feature = "sim")]
+    pub(crate) fn diagnosis(&mut self) -> String {
+        let leader = self.member.leader();
+        let mut established = Vec::new();
+        self.driver.endpoint().established(&mut established);
+        let paths: Vec<String> = established
+            .iter()
+            .map(|(peer, at)| {
+                let quic = self.driver.endpoint().connection_stats(*peer);
+                format!("{peer}@{at}: {quic:?}")
+            })
+            .collect();
+        format!(
+            "member of node {} at {}: leads {}, leader {:?} in term {}, in flight {:?}, fenced {}\n  {:?}\n  endpoint {:?}\n  dials {:?}\n  established {paths:?}\n  heard {:?}\n  redial {:?}",
+            self.plan.id,
+            self.plan.data.display(),
+            self.member.is_leader(),
+            leader.node,
+            leader.term,
+            self.member.in_flight(),
+            self.member.fenced(),
+            self.member.stats(),
+            self.driver.endpoint().stats(),
+            self.plan.peers,
+            self.heard,
+            self.redial,
+        )
+    }
+
+    /// Under the simulation, what a wait of `what` that never answered finds of the member: its
+    /// work in flight and its log's frames, flushes and the flush on its device, if one is.
+    #[cfg(feature = "sim")]
+    pub(crate) fn stuck(&self, what: &str) -> String {
+        let (writes, reads) = self.member.in_flight();
+        let stats = self.member.stats();
+        format!(
+            "the simulation's {what} of node {}'s member at {} never answered: {writes} writes and \
+             {reads} reads in flight, its log's frames {}, flushes {}",
+            self.plan.id,
+            self.plan.data.display(),
+            stats.log.frames,
+            stats.log.flushes,
+        )
     }
 }
 
@@ -542,8 +669,19 @@ impl Publisher {
         self.choose(None, now);
     }
 
-    /// Takes `nodes`' addresses for the group's members, going on as it was.
-    pub(crate) fn set_addresses(&mut self, nodes: &[(u64, SocketAddr)]) {
+    /// Takes `nodes`' addresses for the group's members, going on as it was. A member that moved
+    /// has what the publisher holds or is dialing at its old address closed: a dial in flight
+    /// there held off a new one for two minutes, as the member's own did (`Seat::peers_changed`).
+    pub(crate) fn set_addresses(&mut self, nodes: &[(u64, SocketAddr)], now: Instant) {
+        for (node, address) in nodes {
+            let moved = self
+                .nodes
+                .iter()
+                .any(|(id, before)| id == node && before != address);
+            if moved {
+                self.driver.endpoint().disconnect(now, *node);
+            }
+        }
         nodes.clone_into(&mut self.nodes);
     }
 
@@ -856,6 +994,13 @@ impl Publisher {
     }
 
     /// The node it sends to, and the batches it owes and holds unsent.
+    /// Under the simulation: the node it sends to, whether it knows that node leads, and the
+    /// term it knows.
+    #[cfg(feature = "sim")]
+    pub(crate) const fn known(&self) -> (Option<u64>, bool, u64) {
+        (self.target, self.leads, self.term)
+    }
+
     pub(crate) fn state(&self) -> (Option<u64>, usize, usize) {
         (self.target, self.owed.len(), self.queued.len())
     }

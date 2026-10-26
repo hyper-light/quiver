@@ -44,10 +44,12 @@ const SECTOR: usize = 512;
 /// topic, with room for the ones a restart binds before the old ones close.
 const SOCKETS_PER_SHARD: u16 = 64;
 
-/// When a node's start ends in a kill ([`World::start`]).
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+/// When a node's running start ends in a kill ([`World::start`], [`World::doom`]), counted in its
+/// start's awaits and cuts.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Kill {
     /// It runs until the run ends.
+    #[default]
     Never,
     /// At its host's `n`-th await of the start (from 0), before it looks at what came.
     AtAwait(u64),
@@ -56,6 +58,22 @@ pub enum Kill {
     /// answered, before the members take its answers (the leader killed between its flush and its
     /// acknowledgement).
     AtCut { cut: u64, when: When },
+}
+
+/// A kill planned from now on ([`World::doom`]): after so many more awaits of the node's host, or
+/// at so many more cuts of its disk.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Doom {
+    Awaits(u64),
+    Cuts { after: u64, when: When },
+}
+
+/// How far a node's running start has come, and the kill planned for it.
+#[derive(Debug, Default)]
+struct Course {
+    awaits: u64,
+    cuts: u64,
+    kill: Kill,
 }
 
 /// Where in a cut a node is killed ([`Kill::AtCut`]).
@@ -84,6 +102,7 @@ pub(crate) struct Machine {
     data: PathBuf,
     devices: Mutex<BTreeMap<PathBuf, SimDevice>>,
     stalls: Mutex<Vec<(u64, u64)>>,
+    course: Mutex<Course>,
 }
 
 impl std::fmt::Debug for Machine {
@@ -151,12 +170,9 @@ impl Machine {
     }
 }
 
-/// What one start of a node's host is given by the world, and what it counts as it runs.
+/// What one start of a node's host is given by the world.
 pub(crate) struct Start {
     machine: Arc<Machine>,
-    kill: Kill,
-    awaits: u64,
-    cuts: u64,
     /// When the node's disk next takes what its logs hold.
     pub(crate) next_cut: Option<Instant>,
     seeds: u64,
@@ -184,16 +200,18 @@ impl Start {
 
     /// An await of the host: whether the start is killed here.
     pub(crate) fn awaited(&mut self) -> bool {
-        let at = self.awaits;
-        self.awaits = self.awaits.wrapping_add(1);
-        self.kill == Kill::AtAwait(at)
+        let mut course = lock(&self.machine.course);
+        let at = course.awaits;
+        course.awaits = course.awaits.wrapping_add(1);
+        course.kill == Kill::AtAwait(at)
     }
 
     /// A cut of the node's disk: what the start's kill makes of it.
     pub(crate) fn cutting(&mut self) -> Fate {
-        let at = self.cuts;
-        self.cuts = self.cuts.wrapping_add(1);
-        match self.kill {
+        let mut course = lock(&self.machine.course);
+        let at = course.cuts;
+        course.cuts = course.cuts.wrapping_add(1);
+        match course.kill {
             Kill::AtCut { cut, when } if cut == at => match when {
                 When::Before => Fate::Die,
                 When::During { ops } => Fate::DieDuring(ops),
@@ -338,6 +356,7 @@ impl World {
                     data,
                     devices: Mutex::new(BTreeMap::new()),
                     stalls: Mutex::new(Vec::new()),
+                    course: Mutex::new(Course::default()),
                 }),
                 config,
                 shared: None,
@@ -375,11 +394,13 @@ impl World {
         }
         slot.starts = slot.starts.wrapping_add(1);
         let start_seed = mix(mix(seed, node), slot.starts);
-        let start = Start {
-            machine: Arc::clone(&slot.machine),
-            kill,
+        *lock(&slot.machine.course) = Course {
             awaits: 0,
             cuts: 0,
+            kill,
+        };
+        let start = Start {
+            machine: Arc::clone(&slot.machine),
             next_cut: None,
             seeds: 0,
             draws: start_seed,
@@ -398,6 +419,26 @@ impl World {
             })
             .map_err(said)?;
         Ok(())
+    }
+
+    /// Plans `node`'s running start's kill from now: after so many more awaits, or at a cut so
+    /// many cuts on.
+    pub fn doom(&self, node: u64, doom: Doom) -> Result<(), String> {
+        let mut course = lock(&self.slot(node)?.machine.course);
+        course.kill = match doom {
+            Doom::Awaits(n) => Kill::AtAwait(course.awaits.saturating_add(n)),
+            Doom::Cuts { after, when } => Kill::AtCut {
+                cut: course.cuts.saturating_add(after),
+                when,
+            },
+        };
+        Ok(())
+    }
+
+    /// The awaits and cuts `node`'s running start has made.
+    pub fn course(&self, node: u64) -> Result<(u64, u64), String> {
+        let course = lock(&self.slot(node)?.machine.course);
+        Ok((course.awaits, course.cuts))
     }
 
     /// Whether `node`'s host runs.
@@ -508,6 +549,17 @@ impl World {
             messages.extend(batch.messages);
         }
         Some(messages)
+    }
+
+    /// Everything `node`'s members and publishers say of themselves, as its host's next turn finds
+    /// them: asked for, the world run a millisecond on, and read.
+    pub fn diagnose(&mut self, node: u64) -> Option<String> {
+        let shared = Arc::clone(self.slot(node).ok()?.shared.as_ref()?);
+        *lock(&shared.diagnosis) = Some(String::new());
+        shared.wake();
+        let next = self.rt.now_ns().saturating_add(1_000_000);
+        self.rt.run_until(next);
+        lock(&shared.diagnosis).take().filter(|s| !s.is_empty())
     }
 
     /// `node`'s figures as its host last set them.

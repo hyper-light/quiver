@@ -1297,6 +1297,7 @@ dependencies = [
  "futures",
  "hyper-block",
  "hyper-durable",
+ "hyper-raft",
  "hyper-rt",
  "hyper-rt-transport",
  "hyper-transport",

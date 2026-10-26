@@ -38,6 +38,9 @@ rcgen = { version = "=0.14.10", default-features = false, features = ["crypto", 
 # decides when each write reaches the device and what a crash leaves of it (Quiver's
 # docs/design/persisted-sim.md).
 sim = ["hyper-block/sim"]
+# A defect planted in a member's replica (`Member::plant`, `hyper_raft::Mutant`), for a test build
+# that shows a simulation catches it; no consumer enables it.
+mutants = ["hyper-durable/mutants", "hyper-raft/mutants"]
 
 [dev-dependencies]
 # A part's image written where each test's own directory is (`group`).
