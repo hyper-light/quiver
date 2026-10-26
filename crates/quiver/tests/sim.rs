@@ -138,14 +138,14 @@ fn fold(hash: u64, bytes: &[u8]) -> u64 {
     bytes.iter().fold(hash, |h, b| (h ^ u64::from(*b)).wrapping_mul(0x0100_0000_01b3))
 }
 
-/// The run `seed` draws, from the world's making to its checks.
-fn run(seed: u64) -> Report {
+/// The run `seed` draws, from the world's making to its checks, in the directory `name-<seed>`.
+fn run(name: &str, seed: u64) -> Report {
     let mut rng = Rng(seed ^ 0x5157_4552_5349_4d00);
     let mut trace = String::new();
     let path = SimPath::in_order(rng.range(100_000, 2_000_000), rng.range(0, 400_000))
         .with_loss(SimLoss::random(rng.below(20_000) as u32));
     let _ = writeln!(trace, "seed {seed}: path {path:?}");
-    let mut world = World::new(settings("run", seed, path)).unwrap();
+    let mut world = World::new(settings(name, seed, path)).unwrap();
     for node in 1..=3 {
         world.start(node, Kill::Never).unwrap();
     }
@@ -467,7 +467,8 @@ fn seeds() -> std::ops::Range<u64> {
 
 /// Writes a failing run's trace, and what it broke, where its seed's run was.
 fn keep_trace(report: &Report) -> PathBuf {
-    let path = root().join(format!("trace-{}.txt", report.seed));
+    let planted = if cfg!(feature = "plant-own-log-commit") { "plant-" } else { "" };
+    let path = root().join(format!("{planted}trace-{}.txt", report.seed));
     let mut text = format!(
         "seed {}\ndigest {:016x}\n{}\nbroken:\n",
         report.seed, report.digest, report.trace
@@ -485,8 +486,8 @@ fn keep_trace(report: &Report) -> PathBuf {
 #[cfg(not(feature = "plant-own-log-commit"))]
 #[test]
 fn a_seeds_run_is_the_same_run_twice() {
-    let first = run(7);
-    let second = run(7);
+    let first = run("twice", 7);
+    let second = run("twice", 7);
     assert_eq!(first.trace, second.trace);
     assert_eq!(first.publishes, second.publishes);
     assert_eq!(first.views, second.views);
@@ -502,7 +503,7 @@ fn a_seeds_run_is_the_same_run_twice() {
 fn faults_over_many_seeds() {
     let mut failed = Vec::new();
     for seed in seeds() {
-        let report = run(seed);
+        let report = run("run", seed);
         let acked = report.publishes.iter().filter(|p| p.3.is_ok()).count();
         eprintln!(
             "seed {seed}: {} publishes, {acked} acknowledged, digest {:016x}, {}",
@@ -512,7 +513,7 @@ fn faults_over_many_seeds() {
         );
         if !report.broken.is_empty() {
             let path = keep_trace(&report);
-            let again = run(seed);
+            let again = run("run", seed);
             failed.push(format!(
                 "seed {seed} ({} broken, trace {}; run again: digest {})",
                 report.broken.len(),
@@ -538,7 +539,7 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
         .and_then(|s| s.parse().ok())
         .unwrap_or(1_u64);
     for seed in first..first + 200 {
-        let report = run(seed);
+        let report = run("plant", seed);
         let lost: Vec<&String> = report
             .broken
             .iter()
@@ -546,11 +547,11 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
             .collect();
         eprintln!("seed {seed}: {} broken, {} of them acknowledged publishes lost", report.broken.len(), lost.len());
         if lost.is_empty() {
-            let _ = std::fs::remove_dir_all(root().join(format!("run-{seed}")));
+            let _ = std::fs::remove_dir_all(root().join(format!("plant-{seed}")));
             continue;
         }
         let path = keep_trace(&report);
-        let again = run(seed);
+        let again = run("plant", seed);
         assert_eq!(again.digest, report.digest, "seed {seed} ran apart on its replay");
         assert_eq!(again.broken, report.broken);
         eprintln!("found at seed {seed}, replayed alike (trace {}): {}", path.display(), lost[0]);
