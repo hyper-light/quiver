@@ -46,6 +46,9 @@ plant-own-log-commit = ["sim", "dep:hyper-raft", "hyper-raft/mutants", "focal-bu
 
 [dev-dependencies]
 event-listener = "5.4"
+# Focal's root key files under the system's temporary directory in a test, never where the user
+# keeps theirs (focal-seal's `keys_dir`): a node's identities and data directories are sealed.
+focal-seal = { version = "=0.1.0", features = ["test-support"] }
 futures = { version = "0.3.31", default-features = false, features = ["std", "async-await", "executor"] }
 # T-T2.1.2's builds (tests/ram_store.rs): hyper-durable as a program outside a test takes it.
 hyper-block = "=0.1.0"

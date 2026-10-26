@@ -113,9 +113,15 @@ fn made(
 }
 
 impl Identities {
-    /// The identities of a cluster of `nodes`, kept in `dir` (made there the first time).
-    pub(crate) fn load(dir: &std::path::Path, nodes: usize) -> Result<Self, String> {
-        let local = pki::load_or_make(dir, nodes, nodes).map_err(said)?;
+    /// The identities of a cluster of `nodes`, kept in `dir` (made there the first time), sealed
+    /// under `key_file`, or under the per-user root key file named for the directory's root key
+    /// where it names none, as Focal's node keeps its own (focal-bus `serve`).
+    pub(crate) fn load(
+        dir: &std::path::Path,
+        key_file: Option<&std::path::Path>,
+        nodes: usize,
+    ) -> Result<Self, String> {
+        let local = pki::load_or_make(dir, key_file, nodes, nodes).map_err(said)?;
         Ok(Self { local, nodes })
     }
 
@@ -768,31 +774,36 @@ impl Publisher {
         let mut out_of_order = false;
         let mut acked_by = None;
         let from = self.target.unwrap_or(0);
-        Client::new(from).on_event(self.driver.endpoint(), event, |delivery| match delivery {
-            Delivery::Acked(ack) if ack.producer == producer && ack.stream == STREAM => {
-                stats.acks = stats.acks.saturating_add(1);
-                if ack.class == Ack::OUT_OF_ORDER {
-                    out_of_order = true;
-                } else if ack.class == Ack::REFUSED {
-                    if let Some(gone) = owed.remove(&ack.sequence) {
-                        settled.push(Settled::Refused(gone.ticket));
-                    }
-                } else {
-                    acked_by = Some(from);
-                    if let Some(entry) = owed.get_mut(&ack.sequence) {
-                        entry.batch = None;
-                        if ack.count > 0 {
-                            entry.base = Some(ack.base);
+        Client::new(from).on_event(
+            self.driver.endpoint(),
+            event,
+            now,
+            |delivery| match delivery {
+                Delivery::Acked(ack) if ack.producer == producer && ack.stream == STREAM => {
+                    stats.acks = stats.acks.saturating_add(1);
+                    if ack.class == Ack::OUT_OF_ORDER {
+                        out_of_order = true;
+                    } else if ack.class == Ack::REFUSED {
+                        if let Some(gone) = owed.remove(&ack.sequence) {
+                            settled.push(Settled::Refused(gone.ticket));
+                        }
+                    } else {
+                        acked_by = Some(from);
+                        if let Some(entry) = owed.get_mut(&ack.sequence) {
+                            entry.batch = None;
+                            if ack.count > 0 {
+                                entry.base = Some(ack.base);
+                            }
                         }
                     }
                 }
-            }
-            Delivery::Redirected(redirect) if redirect.producer == producer => {
-                stats.redirects = stats.redirects.saturating_add(1);
-                redirects.push(redirect.leader);
-            }
-            _ => {}
-        });
+                Delivery::Redirected(redirect) if redirect.producer == producer => {
+                    stats.redirects = stats.redirects.saturating_add(1);
+                    redirects.push(redirect.leader);
+                }
+                _ => {}
+            },
+        );
         if acked_by.is_some() {
             self.leads = true;
             self.led_at = now;

@@ -13,7 +13,7 @@ gate = ["bash scripts/gates.sh"]
 [projects.focal-bus]
 kind = "git"
 repository = "https://github.com/hyper-light/focal"
-commit = "f8052a5eaf21f81709129583e535331c2e9722f3"
+commit = "b6cf8e33b5119b5beef8fe9723455caacb30ade5"
 path = "vendor/focal-bus"
 take = [
   "Cargo.toml",
@@ -32,7 +32,7 @@ own = ["UPSTREAM.md"]
 [projects.hyper-raft]
 kind = "git"
 repository = "https://github.com/hyper-light/hyper-raft"
-commit = "25cf88924895ee55976caa061a48789355fb3354"
+commit = "c6baec2de3d0520fc422c6b8f112480c2de817e8"
 path = "vendor/hyper-raft"
 take = [
   "Cargo.toml",

@@ -355,6 +355,8 @@ impl World {
                 nodes: addresses.clone(),
                 data: data.clone(),
                 identities: settings.identities.clone(),
+                // Kept beside the identities, as they are kept across runs.
+                identities_key: Some(settings.identities.with_extension("key")),
                 part_memory: PersistedConfig::PART_MEMORY_MIN,
                 topics: 4,
                 publishes: 4096,

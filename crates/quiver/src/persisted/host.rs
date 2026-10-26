@@ -256,7 +256,11 @@ impl Host {
         let now = shard_instant();
         make_dir(&config.data)?;
         let run = raise_run(&config.data.join(RUN_FILE))?;
-        let ids = Identities::load(&config.identities, config.nodes.len())?;
+        let ids = Identities::load(
+            &config.identities,
+            config.identities_key.as_deref(),
+            config.nodes.len(),
+        )?;
         let own = config
             .address(config.id)
             .ok_or("this node isn't among the cluster's nodes")?;

@@ -3,10 +3,9 @@
 The crates Focal's bus is built on (`vendor/focal-bus`), at hyper-raft's `main`.
 
 - **Upstream:** https://github.com/hyper-light/hyper-raft, commit
-  `25cf88924895ee55976caa061a48789355fb3354` (2026-10-22), MIT (`LICENSE`): hyper-raft's `main` since
-  its `main` and `fate-commit` lines met (the merge `7d5e536`), and the revision Focal's
-  `bus-replicated` at `f8052a5` takes its shared crates at (Focal's `vendor/README.md`): Mantle takes
-  it too, so kiln holds one.
+  `c6baec2de3d0520fc422c6b8f112480c2de817e8` (2026-10-25), MIT (`LICENSE`): hyper-raft's `main`, and
+  the revision Focal's `bus-replicated` at `b6cf8e3` takes its shared crates at (Focal's
+  `vendor/README.md`). kiln holds one copy, which Mantle (kiln's T10) builds on too.
 - **What is here:** upstream's root manifest and the fifteen crates, whole, at upstream's paths:
   `hyper-block`, `hyper-datagram`, `hyper-durable`, `hyper-liveness`, `hyper-log`, `hyper-measure`,
   `hyper-quic`, `hyper-raft`, `hyper-rt`, `hyper-rt-transport`, `hyper-seal`, `hyper-sim`,

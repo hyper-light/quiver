@@ -62,6 +62,10 @@ pub struct PersistedConfig {
     /// The cluster's identities (`focal_bus::pki`): a node's and a publisher's for each node, made
     /// there the first time, the same directory at every node.
     pub identities: PathBuf,
+    /// The key file the identities' directory keeps its keys under (Focal's sealing at rest, its
+    /// doc 29 §12.9), the same file at every node that shares the directory; `None`, the per-user
+    /// root key file named for the directory's root key, as Focal's own node keeps its identities.
+    pub identities_key: Option<PathBuf>,
     /// Each part's memory, the catalog's and each topic's: what its window keeps of its batches
     /// and what its log holds (about twice it, `hyper_log::Config::derive`).
     pub part_memory: u64,

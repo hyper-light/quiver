@@ -35,10 +35,10 @@ index baf27cf2834947235203bdea0b0fa133a53e1aab..e2a3405031f1a0deff644985a43d2bcc
      pub fn id(&self) -> u64 {
          self.node.raft.id()
 diff --git a/crates/hyper-log/src/device.rs b/crates/hyper-log/src/device.rs
-index 063a80efee388a52acdc7e56c7cde3164430188a..d0213beaf12dda6c6bd88debe6565b3bd444a9a5 100644
+index 5b3951a6c8c85d52ec206b898984df88f36e5ccf..c66d2455e3918bb4003e8f8662d918a28fcc3297 100644
 --- a/crates/hyper-log/src/device.rs
 +++ b/crates/hyper-log/src/device.rs
-@@ -461,6 +461,9 @@ pub(crate) struct Device<F> {
+@@ -476,6 +476,9 @@ pub(crate) struct Device<F> {
      mac: Option<hyper_seal::log::FrameMac>,
      /// What making a record durable has cost this file each way ([`Device::confirm`]).
      costs: Costs,
@@ -48,7 +48,7 @@ index 063a80efee388a52acdc7e56c7cde3164430188a..d0213beaf12dda6c6bd88debe6565b3b
  }
  
  /// A running mean of nanoseconds, of every sample since the log opened: no constant weighs them.
-@@ -519,9 +522,17 @@ impl<F: BlockFile> Device<F> {
+@@ -534,9 +537,17 @@ impl<F: BlockFile> Device<F> {
              more,
              mac: None,
              costs: Costs::default(),
@@ -66,7 +66,7 @@ index 063a80efee388a52acdc7e56c7cde3164430188a..d0213beaf12dda6c6bd88debe6565b3b
      /// The device of a sealed log, which checks every frame it reads against `mac`.
      pub(crate) fn sealed(mut self, mac: Option<hyper_seal::log::FrameMac>) -> Self {
          self.mac = mac;
-@@ -726,7 +737,7 @@ impl<F: BlockFile> Device<F> {
+@@ -741,7 +752,7 @@ impl<F: BlockFile> Device<F> {
      /// own. Each mean is of every sample since the log opened, so no constant weighs them; a way
      /// not taken keeps the mean it had, and is taken again once the other's mean passes it.
      fn confirm(&mut self, buf: &mut AlignedBuf, at: u64) -> (Result<(), LogError>, Timing) {
@@ -88,10 +88,10 @@ index f7edc474afdcaeb8c0d4ff3467c451b2842b0895..5cb46ae4b352999ef5d6c49a2941972c
          match self.ask(query)? {
              Answer::Entries(f) => Ok(f),
 diff --git a/crates/hyper-log/src/lib.rs b/crates/hyper-log/src/lib.rs
-index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498bb603e924 100644
+index 2312c5f325662cd7b2c139b3e0f3540297d235a0..53b17f2f117b5a85eba7d80855249eaeeaca26a2 100644
 --- a/crates/hyper-log/src/lib.rs
 +++ b/crates/hyper-log/src/lib.rs
-@@ -100,6 +100,17 @@ pub enum Waits {
+@@ -103,6 +103,17 @@ pub enum Waits {
      /// submitters never return within a wait, as the replica simulation's, which drives each
      /// member's submissions one at a time.
      Never,
@@ -109,7 +109,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
  }
  
  /// Entries to write from `first` on, replacing any the group holds at or after it.
-@@ -928,6 +939,7 @@ impl<F: BlockFile + 'static> Log<F> {
+@@ -930,6 +941,7 @@ impl<F: BlockFile + 'static> Log<F> {
          p.fills = crate::unwind::contained(|| file.fills_new_space()).unwrap_or(false);
          let (more, told) = sync_channel(device::MORE);
          let device = device::Device::new(file, pool, config.segment_bytes, told)
@@ -117,7 +117,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
              .sealed(sealer.as_ref().map(seal::Sealer::frame_mac));
          let wiring = owner::Wiring {
              device,
-@@ -1041,6 +1053,34 @@ impl<F: BlockFile + 'static> Log<F> {
+@@ -1043,6 +1055,34 @@ impl<F: BlockFile + 'static> Log<F> {
          )
      }
  
@@ -152,7 +152,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
      /// Asks the owner and waits for its answer.
      fn ask(&self, query: Query) -> Result<Answer, LogError> {
          ask(&self.lines.inbox, query)
-@@ -1181,7 +1221,7 @@ impl<F: BlockFile + 'static> Log<F> {
+@@ -1183,7 +1223,7 @@ impl<F: BlockFile + 'static> Log<F> {
          page: Page,
          into: Fetched,
      ) -> Result<Fetched, LogError> {
@@ -161,7 +161,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
              .wait()
      }
  
-@@ -1195,6 +1235,19 @@ impl<F: BlockFile + 'static> Log<F> {
+@@ -1197,6 +1237,19 @@ impl<F: BlockFile + 'static> Log<F> {
          page: Page,
          into: Fetched,
          waker: Option<Waker>,
@@ -181,7 +181,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
      ) -> Result<Fetching, LogError> {
          let (ticket, waiting) = ticket::call(waker);
          let query = Query::Entries {
-@@ -1203,6 +1256,7 @@ impl<F: BlockFile + 'static> Log<F> {
+@@ -1205,6 +1258,7 @@ impl<F: BlockFile + 'static> Log<F> {
              high,
              page,
              into,
@@ -190,7 +190,7 @@ index d28149e346ab72c882532b331208d102fda5a796..c2b64da7b245fb8b220763563889498b
          self.lines
              .inbox
 diff --git a/crates/hyper-log/src/owner/mod.rs b/crates/hyper-log/src/owner/mod.rs
-index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf61d091c3 100644
+index 9af435fa6cef90e3a8ccdb0fd9f2127be599234f..d17dcfeceef656f806f6ecef7659359f09a2f6c1 100644
 --- a/crates/hyper-log/src/owner/mod.rs
 +++ b/crates/hyper-log/src/owner/mod.rs
 @@ -51,7 +51,7 @@ use crate::state::State;
@@ -202,7 +202,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
  
  use read::Fetch;
  pub(crate) use read::Query;
-@@ -81,6 +81,12 @@ pub(crate) enum Message<F> {
+@@ -79,6 +79,12 @@ pub(crate) enum Message<F> {
      Release(u128),
      /// The log is closing: the owner answers what it holds and ends.
      Close,
@@ -215,7 +215,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
  }
  
  /// What the owner hears, in the order it hears it: a message from its inbox, or what came back
-@@ -293,6 +299,14 @@ pub(crate) struct Owner<F> {
+@@ -288,6 +294,14 @@ pub(crate) struct Owner<F> {
      /// The bytes the last frame wrote: a fill's piece is no larger, so a frame that waits behind
      /// one waits no longer than behind another frame.
      frame_bytes: u64,
@@ -230,7 +230,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
  }
  
  impl<F: BlockFile + 'static> Owner<F> {
-@@ -366,6 +380,10 @@ impl<F: BlockFile + 'static> Owner<F> {
+@@ -359,6 +373,10 @@ impl<F: BlockFile + 'static> Owner<F> {
              filled: None,
              unfilled: None,
              frame_bytes: 0,
@@ -241,7 +241,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
          }
      }
  
-@@ -571,11 +589,82 @@ impl<F: BlockFile + 'static> Owner<F> {
+@@ -553,11 +571,82 @@ impl<F: BlockFile + 'static> Owner<F> {
              }
              Message::Claim(group, ticket) => self.claim(group, ticket),
              Message::Release(group) => self.release(group),
@@ -325,7 +325,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
      /// A job and the device back from the thread that did it: the device is the owner's again,
      /// and the job's completion is acted on.
      fn back(&mut self, mut back: Box<Carrier<F>>) {
-@@ -633,7 +722,7 @@ impl<F: BlockFile + 'static> Owner<F> {
+@@ -613,7 +702,7 @@ impl<F: BlockFile + 'static> Owner<F> {
                  // them, comes after the word.
                  let admit = s.admit;
                  self.intake.push_back(s);
@@ -334,7 +334,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
                  if admit && let Some(s) = self.intake.back() {
                      s.ticket.admit();
                  }
-@@ -656,7 +745,7 @@ impl<F: BlockFile + 'static> Owner<F> {
+@@ -636,7 +725,7 @@ impl<F: BlockFile + 'static> Owner<F> {
              if let Some(s) = self.waiting.remove(&seq) {
                  let admit = s.admit;
                  self.intake.push_back(s);
@@ -343,7 +343,7 @@ index 3f4739160b92147bbeba33f047e880fcd37b5c64..e2604bc5e8f78eaec7c3ea4cbfd07fcf
                  if admit && let Some(s) = self.intake.back() {
                      s.ticket.admit();
                  }
-@@ -865,6 +954,14 @@ impl<F: BlockFile + 'static> Owner<F> {
+@@ -845,6 +934,14 @@ impl<F: BlockFile + 'static> Owner<F> {
          self.looking = true;
      }
  
