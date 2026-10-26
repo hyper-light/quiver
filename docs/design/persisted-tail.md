@@ -391,25 +391,31 @@ disks hold it.
 Focal's agent set six conditions on the disk mode before it goes anywhere. Where each stands on
 2026-10-25:
 
-1. **Mode agreement:** met (hyper-raft cp/t2.2-mode 0854933, on Mantle's degraded-suspicion-main).
+1. **Mode agreement:** met (hyper-raft cp/t2.2-mode a10449e, on Mantle's degraded-suspicion-main
+   fbaaa6c).
    - The heartbeat states the mode in flags bit 2, after Mantle's stopping bit 1. A heartbeat of
-     the other mode is refused, typed (`Refusal::OtherMode`), and its sender is never misjudged.
-   - As Focal's agent decided, the mode is the group's own, in its replicated configuration
-     (`DiskMode` in `ConfState`): its founding configuration states it, or a conf change sets it,
-     at one index at every member. The core, the replica and the stream all take it from the
-     configuration a member has applied.
-   - A record that states no mode is byte for byte as before. Turning the mode on waits for the
-     owner's fence (`Config::disk_fence`, Focal's upgrade fence), because an older build refuses a
-     configuration that states it.
-   - The harness switches a running group under a publish a millisecond (8 seeds). With the
-     fences closed the change is refused, typed, and nothing moves. With them open, a follower made
-     late by its Raft traffic applies it 300 ms after the others; meanwhile heartbeats are refused
-     both ways, nothing is suspected and no term is spent. A 2 s stall of the leader's disk then
-     spends no term.
-   - Made late by its disk instead, the follower, still in today's mode, sends no heartbeat until
-     a flush proves one. It is suspected for that silence before it switches, as today's mode
-     suspects a stalled disk, and no term is spent. A switch made while the leader's own disk
-     stalls would cost what today's mode costs (inferred, not tested).
+     the other mode is refused for its disk, typed (`Refusal::OtherMode`).
+   - As Focal's agent decided, the mode is a founding setting. Every owner states it from the
+     group's definition (hyper-durable's `Settings::disk`), and a switch is a rolling restart,
+     the leader last (hyper-raft's `docs/durable.md` §4.2).
+   - Withdrawn: a route that put the mode in the group's replicated configuration, behind a fence
+     (0854933). It was built from an earlier message of Focal's agent, which a later one
+     superseded. It is kept on a local branch and not offered.
+   - A peer's mode turning other is told once (`Change::ModeDiffers`), and its agreeing again once
+     (`Change::ModeAgrees`). The core acts on neither.
+   - The backstop: a heartbeat of the other mode is still taken for its sender's process (its run,
+     its arrival, its round trip), only not for its disk, so a dead process of either mode is
+     suspected.
+   - In the harness, a group of three killed its leader in two shapes, 8 seeds each: the leader
+     alone in the disk mode, and a follower alone in it. A new leader came 43 to 93 ms after the
+     kill, against 44 to 96 ms in one mode (the bound 192 ms). The mixed group spent no
+     suspicion and no term before the kill.
+   - hyper-liveness's simulation holds a pair of the two modes to its arrivals over 256 seeds a
+     world. A node killed while it speaks the other mode is suspected by both its peers.
+   - In the mixed window, a peer in today's mode sends a heartbeat only once a flush proves one.
+     Either mode's judge may suspect it for that silence, as today's mode suspects a stalled disk.
+     A switch made while the leader's own disk stalls would cost what today's mode costs
+     (inferred, not tested).
 2. **A model of the Persisted acknowledgement:** met. hyper-check's model of the persisted class's
    commits (`tests/models/unpersisted.rs`) found no fault at any of three scopes (192,592 to
    4,133,285 classes). The rule taken out (the leader's memory counted) was refused in 7 steps. Both
