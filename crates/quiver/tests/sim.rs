@@ -357,7 +357,15 @@ fn run(name: &str, seed: u64) -> Report {
         }
         (1..=3).all(|n| w.holds(n, TOPIC))
     });
-    assert!(created, "seed {seed}: the topic was never held everywhere");
+    // A topic never held everywhere breaks the run, which draws no schedule and keeps its nodes'
+    // diagnosis, rather than ending every seed after it.
+    if !created {
+        let _ = writeln!(
+            trace,
+            "{}: the topic was never held everywhere",
+            world.now_ns()
+        );
+    }
 
     let mut publishes: Vec<Publish> = Vec::new();
     let mut tally = Tally {
@@ -376,7 +384,7 @@ fn run(name: &str, seed: u64) -> Report {
     let mut down: [Option<u64>; 3] = [None; 3];
     let mut mended_at: BTreeMap<(u64, u64), u64> = BTreeMap::new();
     let t0 = world.now_ns();
-    let end = t0 + RUN_NS;
+    let end = if created { t0 + RUN_NS } else { t0 };
     let mut next_publish = t0;
     let mut next_fault = t0 + rng.range(100 * MS, 1_500 * MS);
     let mut next_check = t0 + CHECK_NS;
@@ -518,7 +526,7 @@ fn run(name: &str, seed: u64) -> Report {
     // What each node says of itself, for a run that never settled: kept apart from the trace, as
     // it holds real-time measures (each log's flush times) no run repeats.
     let mut diagnosis = String::new();
-    if !settled {
+    if !settled || !created {
         for node in 1..=3 {
             let _ = writeln!(diagnosis, "node {node} at the end: {:?}", world.stats(node));
             let _ = writeln!(diagnosis, "node {node}'s course: {:?}", world.course(node));
@@ -581,6 +589,9 @@ fn run(name: &str, seed: u64) -> Report {
     }
     if !settled {
         broken.push("the nodes never caught up once mended".to_owned());
+    }
+    if !created {
+        broken.push("the topic was never held everywhere".to_owned());
     }
     Report {
         seed,
@@ -1043,8 +1054,9 @@ fn faults_over_many_seeds() {
 }
 
 /// The planted bug (AC-T2.2.5's test; `--features plant-own-log-commit`): every group commits what
-/// its leader's own log holds, before a quorum's flush. The simulation finds a seed whose run loses
-/// an acknowledged publish, and runs that seed again to the same digest and the same loss.
+/// its leader's own log holds, before a quorum's flush. The simulation finds a seed whose run breaks
+/// a check, an acknowledged publish lost or an applied one changed, which no seed of a correct build
+/// does, and runs that seed again to the same digest and the same breaks.
 #[cfg(feature = "plant-own-log-commit")]
 #[test]
 fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
@@ -1059,7 +1071,9 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
             report.broken.len(),
             report.lost
         );
-        if report.lost == 0 {
+        // A correct build breaks no seed (`faults_over_many_seeds`): any check the planted build
+        // breaks is the bug found, acknowledged publishes lost or applied ones changed.
+        if report.broken.is_empty() {
             let _ = std::fs::remove_dir_all(root().join(format!("plant-{seed}")));
             continue;
         }
@@ -1073,9 +1087,16 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
         );
         assert_eq!(again.broken, report.broken);
         eprintln!(
-            "found at seed {seed}, replayed alike (trace {}): {}",
+            "found at seed {seed}, {} acknowledged publishes lost, replayed alike (trace {}): {}",
+            report.lost,
             path.display(),
-            report.broken.join("; ")
+            report
+                .broken
+                .iter()
+                .take(5)
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("; ")
         );
         return;
     }
