@@ -457,16 +457,42 @@ impl Seat {
         self.redial
             .dial(self.driver.endpoint(), &self.plan.peers, now);
         let mut suspected = Vec::new();
-        self.member
-            .turn(self.driver.endpoint(), waker, now, &mut |event| {
+        let mut restarted = Vec::new();
+        self.member.turn(
+            self.driver.endpoint(),
+            waker,
+            now,
+            &mut |event| match event {
                 // A peer it heard from before: one never heard from (its member not yet open) holds
                 // no connection that ended with its process, and closing what it holds only delays it.
-                if let GroupEvent::Suspected(suspicion) = event
-                    && suspicion.last.is_some()
-                {
+                GroupEvent::Suspected(suspicion) if suspicion.last.is_some() => {
                     suspected.push(suspicion.peer);
                 }
-            });
+                GroupEvent::Restarted { peer } => restarted.push(*peer),
+                _ => {}
+            },
+        );
+        // A node back from a kill within its peers' detection bound is never suspected: they hear
+        // only that it restarted, its stream's later run. Its dead run's publisher connections held
+        // both of its client identity's places, and every member refused the new run's publisher
+        // Busy until they had carried nothing for two minutes (the sweep at d4ad260, seeds 1293
+        // and 2608: 3,718 connections lost, no acknowledgement). Its member's own connections need
+        // nothing: the new run answers the dead run's with a reset (its restart key).
+        for peer in restarted {
+            let publisher = self
+                .plan
+                .publishers
+                .iter()
+                .find(|(node, _)| *node == peer)
+                .map(|(_, client)| *client);
+            if self.plan.peers.iter().any(|(id, _)| *id == peer)
+                && let Some(client) = publisher
+            {
+                #[cfg(feature = "sim")]
+                self.hear(format!("{peer} restarted: disconnects its publisher"));
+                self.driver.endpoint().disconnect(now, client);
+            }
+        }
         for peer in suspected {
             if self.plan.peers.iter().any(|(id, _)| *id == peer) {
                 #[cfg(feature = "sim")]
