@@ -1,8 +1,9 @@
 # The persisted class under simulation (kiln's CP-T2.2, step 6)
 
-Status: 2026-10-26, proposed and being built for CP-T2.2 step 6 (AC-T2.2.5, kiln plan
-`01a16c5b7e8c75acbdfafd51315c3885`). How Quiver's persisted class runs in a deterministic
-simulation, what the simulation does to it, and what each run checks. CLAUDE.md §5: each decision
+Status: 2026-10-26, built for CP-T2.2 step 6 (AC-T2.2.5, kiln plan
+`01a16c5b7e8c75acbdfafd51315c3885`), on Focal's bus at `b6cf8e3` and hyper-raft at `c6baec2`. How
+Quiver's persisted class runs in a deterministic simulation, what the simulation does to it, what
+each run checks, and what it found. CLAUDE.md §5: each decision
 with its sources, its evidence and what would falsify it.
 
 ## What it must show
@@ -116,34 +117,82 @@ publish's outcome, every node's view, the fabric's counts and every device's wri
 
 Each of these runs again as its seed, and seeds 1 to 20 pass with all three fixed.
 
+- **Followers that never caught up again (Focal's bus, hyper-raft).** Over about 6,000 seeds of
+  the generator before this one's (the bus at `f8052a5`, hyper-raft at `25cf889`), 77 runs (1.3%)
+  left a node behind for the whole minute after everything mended. In none was an acknowledged
+  publish lost, or another put at its offset. The member's diagnosis (focal-bus's `sim` feature:
+  the core's state, each member's progress, the outbox, the Raft traffic per peer, the liveness
+  stream's measures) traced three causes:
+  - A leader's Raft frames to a node that waited for its lane waited for good once the node's
+    next connection took the old one's place: a lane says it has room only once it refused a
+    frame, and the new one never had. One leader queued 16,032 heartbeats and 320 appends for a
+    node that, hearing its leader's liveness, never campaigned. Focal's bus fixed it in `425dcda`
+    (a member's new connection flushes what waited).
+  - A restarted node's liveness stream sent no heartbeat and refused every peer's as Unmeasured,
+    so its leader suspected it for good and left it out of its beats. hyper-raft's newer
+    liveness and QUIC fixes (`3e54e50` among them) cleared 12 of the 14 seeds the outbox's fix
+    left; with Focal's bus at `b6cf8e3` and hyper-raft at `c6baec2`, 71 of the 77 passed.
+  - The six left: the stream's first flush was answered at the instant it was asked (a cut due
+    then), its timer not yet measured, so its floor and first interval were nothing, and the
+    pair kept a schedule's spacing of nothing. Every heartbeat came due at the instant it was
+    asked, no flush fell after the one before, and the stream proved none in 121,752 tries, sent
+    none, asked no wake, and so never measured its timer. Fixed here (hyper-raft's recorded change
+    `0004`, its test failing without it, offered upstream): all 77 pass.
+
 ## What the simulation does
 
-- **kill -9 of a node**, the moment drawn from the seed: at its host's n-th await; before a cut
-  (what it hadn't cut is lost, as hyper-log's queue is with a process); during a cut (power cut at
-  the cut's j-th write or flush, a torn frame); or after a cut, before the member takes its
-  answers (the leader killed between its flush and its acknowledgement). The node's devices are
-  then crashed with `Crash::KeepAll`, for a kill (the OS kept what was written), or with
-  `Crash::Random` or `LoseAll`, for a power loss. Each restarts after a drawn downtime from what
-  its devices and files kept.
-- **Partitions:** each pair of nodes cut one or both ways for a drawn time, then healed.
-- **Loss, reordering and jitter** on every path, from the fabric's model. Duplicated messages are
-  the publishers' resends: after a redirect, a silent leader, a lost connection or a lost answer.
-  The part's sessions must recognise each.
-- **Disk stalls:** a cut drawn 0.5 to 3 s late on one node or on all at once (doc 34's shared
-  disk).
+Each seed draws a run (`tests/sim.rs`): 6 s of virtual time with a publish every 2 to 30 ms
+through a node drawn at random, and a fault every 0.2 to 2 s, a kill 40% of the time, a partition
+25%, a disk stall 20%, nothing 15%.
 
-After the schedule, every partition heals, every node is up, and the run goes on until each node
-has applied the same offsets.
+- **kill -9 of a node:** of the topic's leader half the time, else of any node. Where it lands,
+  in the node's own course: 40% of the time at its host's n-th await from then (n below 400), else
+  at its disk's c-th cut from then (c below 12), before the cut (what it hadn't cut is lost, as
+  hyper-log's queue is with a process), during it (power cut after up to seven of the cut's writes
+  and flushes: a torn frame, a frame without its confirmation) or after it, before the members
+  take its answers (the leader killed between its flush and its acknowledgement), a third each.
+  The node's devices are then crashed as a kill leaves them (`Crash::KeepAll`, the OS kept what
+  was written) or as a power cut does (`Random`, `LoseAll`), a third each, and the node starts
+  again 20 ms to 2.5 s later from what its devices and files kept.
+- **Partitions:** a pair of nodes cut both ways (70%) or one way, for 50 ms to 2 s.
+- **The network**, drawn for the seed: one way 0.1 to 2 ms, up to 0.4 ms either side; each flow in
+  order or, on half the seeds, reordered by its jitter; up to 2% of datagrams lost one by one or,
+  on half the seeds, in bursts (entered by up to 1% of datagrams, 2 to 10 long on average, losing
+  30 to 100% of what they hold); up to 2% delivered twice, each copy after a delay of its own
+  (hyper-rt's `SimPath::with_duplicates`). QUIC discards a packet it already processed (RFC 9000
+  §12.3), so the duplicates Quiver's code meets are resends: a publisher's after a redirect, a
+  silent leader or a lost connection, and Raft's own. The leaders must recognise each, and a seed
+  counts what they did.
+- **The disk:** each cut's latency drawn, 85% 0.05 to 1 ms, 14% 1 to 10 ms, 1% 10 to 120 ms; a
+  stall of one disk (70%) or every disk at once (30%, doc 34's shared disk) for 0.2 to 2.5 s holds
+  each cut that falls in it until it ends.
+
+After the 6 s every partition mends and every node is up, and the run goes on until every node
+has applied the same offsets and every publish is answered, at most 60 s.
 
 ## What each run checks
+
+While the run goes on, every 100 ms of virtual time, each running node's view: what it holds at
+each offset is what every view before showed there (an applied publish never changes, across
+nodes, kills and recoveries), every publish acknowledged so far within the offsets it holds is
+there, and no payload is there twice. So each recovery is checked as it catches up. At the end:
 
 - every acknowledged publish is at the offset it was acknowledged with, in every node's view;
 - each producer's acknowledged publishes are in its order;
 - no record is there twice;
-- the nodes' views agree.
+- the nodes' views agree;
+- every node caught up, and every publish was answered.
 
-A run's trace is its seed, the schedule the seed drew, and the digest at each slice. A failing
-seed is written with its trace, and it replays from either.
+Lost acknowledged publishes, AC-T2.2.5's measure, are those some node's view lacks at their offset
+at the end; a run breaks on any check. A run's trace is its seed and the schedule it drew, each
+fault, kill, crash and restart with its virtual time; its digest folds the trace, every publish's
+outcome, every view, the devices' operations and the fabric's counts. Every 100 ms the run marks
+where it stands (each node's awaits and cuts, its devices' writes and flushes, its groups' figures,
+the fabric's counts), so a replay that runs apart says where. A failing seed's trace is kept with
+what it broke, its nodes' own account and its marks, and the seed runs again to the same digest.
+Each seed's line counts its kills by where they fell and whether they took the leader, the crash
+states, partitions and stalls, the resends and the leaders' recognitions, the views checked, and
+the datagrams the fabric duplicated and lost.
 
 ## The planted bug
 
@@ -152,21 +201,25 @@ every member's replica. The group then commits what its leader's own durable log
 quorum's flush. Without faults no acknowledged publish is lost. A leader killed after its own flush,
 before the followers have the entry, loses it once they elect a leader without it. The simulation
 must find this and replay it from its seed
-(`the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed`). hyper-raft's own
-oracles catch it too (`tests/check.rs`, seed 0).
+(`the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed`): a correct build
+breaks no check, so any check the planted build breaks is the bug found. At `c6baec2` it is found
+at seed 3, applied publishes changed (nodes 1 and 2 differ at offsets 173 and 174), and replayed to
+the same digest. hyper-raft's own oracles catch it too (`tests/check.rs`, seed 0).
 
 ## The changes to vendored code
 
-Each is recorded in its project's `UPSTREAM.md` and offered upstream (hyper-raft's on the local
-branch `cp/t2.2-told` at 25cf889). None changes what a production build does: the told and serve
-paths need `Waits::Told`, the anchor and binds a simulated shard, and the rest a feature.
+Each is recorded in its project's `UPSTREAM.md` and offered upstream (hyper-raft's seams on the
+local branch `cp/t2.2-told`, its liveness fix on `cp/t2.2-liveness` at `a91f1e0`). The seams change
+nothing a production build does: the told and serve paths need `Waits::Told`, the anchor and binds
+a simulated shard, and the rest a feature. The liveness fix does: it is a fix.
 
 | Project | Change |
 |---|---|
 | hyper-raft `hyper-log` | `Waits::Told` and `Log::cut`: a frame only when told, its confirmation made one way. `Log::serve` for waking fetches. A restore at open, and a caller that waits on its write or fetch, tell the log by waiting |
-| hyper-raft `hyper-rt`, `hyper-rt-transport` | `sim::anchor` and `shard_instant`: one clock for every driver on a simulated shard. A simulated bind takes the port asked for in its shard |
+| hyper-raft `hyper-rt`, `hyper-rt-transport` | `sim::anchor` and `shard_instant`: one clock for every driver on a simulated shard. A simulated bind takes the port asked for in its shard. A simulated path may duplicate datagrams (`SimPath::with_duplicates`) |
 | hyper-raft `hyper-raft`, `hyper-durable` | `Mutant::OwnLogCommit`, and `Replica::plant` to reach it (`mutants` features) |
-| Focal `focal-bus` | `NodeFile` and `Member::open_simulated` (`sim` feature): a member's log on a simulated device. `Member::cut`, `serve`, `in_flight` and `plant` (`mutants` feature). The owed acknowledgements redirected in order |
+| hyper-raft `hyper-liveness` | A stream whose floor is nothing still sends once a flush proves a heartbeat (above) |
+| Focal `focal-bus` | `NodeFile` and `Member::open_simulated` (`sim` feature): a member's log on a simulated device, its data directory sealed as `Member::open` seals it. `Member::cut`, `serve`, `in_flight` and `plant` (`mutants` feature). The owed acknowledgements redirected in order. A member's diagnosis, `Member::core_state` (`sim` feature) |
 
 ## Runs
 
