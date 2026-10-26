@@ -349,8 +349,8 @@ impl Plan {
             member.plant(Some(hyper_raft::Mutant::OwnLogCommit));
             return persisted(member);
         }
-        let member = Member::open(settings, node, members, clients, window, budget, now)
-            .map_err(said)?;
+        let member =
+            Member::open(settings, node, members, clients, window, budget, now).map_err(said)?;
         persisted(member)
     }
 }
@@ -493,7 +493,9 @@ impl Seat {
                 .any(|(id, before)| id == peer && before != address);
             if moved {
                 #[cfg(feature = "sim")]
-                self.hear(format!("peer {peer} moved to {address}: closes and dials it there"));
+                self.hear(format!(
+                    "peer {peer} moved to {address}: closes and dials it there"
+                ));
                 self.driver.endpoint().disconnect(now, *peer);
                 self.redial.note(*peer, false, now);
             }

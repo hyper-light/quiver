@@ -550,9 +550,9 @@ fn run_host(
         let _ = opened.send(open);
     };
     shard
-        .block_on(async move {
-            host_body(config, &shared, told, clock, budget, host::Sim::default()).await
-        })
+        .block_on(
+            async move { host_body(config, &shared, told, clock, budget, host::real()).await },
+        )
         .map_err(|e| format!("its shard: {e:?}"))?
 }
 

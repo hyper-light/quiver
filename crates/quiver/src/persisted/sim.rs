@@ -26,8 +26,8 @@ use hyper_block::buf::Alignment;
 pub use hyper_block::sim::Crash;
 use hyper_block::sim::{Fault, SimDevice, SimHandle};
 use hyper_rt::shard::ShardId;
-pub use hyper_rt::sim::{SimFabricStats, SimLoss, SimPath};
 use hyper_rt::sim::SimRuntime;
+pub use hyper_rt::sim::{SimFabricStats, SimLoss, SimPath};
 use quiver_api::{Message, Offset, Refusal, Topic};
 
 use super::{Command, PersistedConfig, PersistedStats, Shared, lock};
@@ -120,7 +120,10 @@ impl Machine {
         let mut devices = lock(&self.devices);
         if !devices.contains_key(dir) {
             let place = dir.strip_prefix(&self.data).unwrap_or(dir);
-            let seed = mix(mix(self.seed, self.id), fnv(place.to_string_lossy().as_bytes()));
+            let seed = mix(
+                mix(self.seed, self.id),
+                fnv(place.to_string_lossy().as_bytes()),
+            );
             let align = |n| Alignment::new(n).map_err(|e| format!("{e:?}"));
             let device =
                 SimDevice::new(align(BLOCK)?, align(SECTOR)?, seed, HANDLES).map_err(said)?;
@@ -232,7 +235,9 @@ impl Start {
     pub(crate) fn latency(&mut self, now_ns: u64) -> Duration {
         self.draws = mix(self.draws, 1);
         let draw = self.draws;
-        let within = |lo: u64, hi: u64| lo.saturating_add(draw.checked_rem(hi.saturating_sub(lo).max(1)).unwrap_or(0));
+        let within = |lo: u64, hi: u64| {
+            lo.saturating_add(draw.checked_rem(hi.saturating_sub(lo).max(1)).unwrap_or(0))
+        };
         let ns = match draw.checked_rem(1000).unwrap_or(0) {
             0..=849 => within(50_000, 1_000_000),
             850..=989 => within(1_000_000, 10_000_000),
@@ -303,7 +308,9 @@ impl<T> Answer<T> {
         match self.0.try_recv() {
             Ok(Some(answer)) => Some(answer),
             Ok(None) => None,
-            Err(_) => Some(Err(Refusal::Unavailable("the node's host ended".to_owned()))),
+            Err(_) => Some(Err(Refusal::Unavailable(
+                "the node's host ended".to_owned(),
+            ))),
         }
     }
 }
@@ -372,9 +379,7 @@ impl World {
 
     fn slot(&self, node: u64) -> Result<&Slot, String> {
         let at = usize::try_from(node.checked_sub(1).ok_or("node 0")?).map_err(said)?;
-        self.nodes
-            .get(at)
-            .ok_or_else(|| format!("no node {node}"))
+        self.nodes.get(at).ok_or_else(|| format!("no node {node}"))
     }
 
     fn slot_mut(&mut self, node: u64) -> Result<&mut Slot, String> {

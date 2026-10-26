@@ -25,7 +25,9 @@ use super::catalog::{Applied, Catalog, Record};
 use super::group::{
     Cursor, Drv, Fed, Identities, Plan, Publisher, STREAM, Seat, Settled, drop_event,
 };
-use super::{Command, GroupFigures, PersistedConfig, Shared, lock};
+#[cfg(feature = "sim")]
+use super::lock;
+use super::{Command, GroupFigures, PersistedConfig, Shared};
 use crate::ephemeral::{Log, parse_record};
 use crate::node::Clock;
 
@@ -45,8 +47,21 @@ const IDLE: Duration = Duration::from_millis(100);
 /// a node that runs for real.
 #[cfg(feature = "sim")]
 pub(crate) type Sim = Option<super::sim::Start>;
+/// Nothing: a node that runs for real.
 #[cfg(not(feature = "sim"))]
-pub(crate) type Sim = ();
+pub(crate) struct Sim;
+
+/// A node that runs for real: no world gave it its start.
+#[cfg(feature = "sim")]
+pub(crate) const fn real() -> Sim {
+    None
+}
+
+/// A node that runs for real.
+#[cfg(not(feature = "sim"))]
+pub(crate) const fn real() -> Sim {
+    Sim
+}
 
 /// A command waiting for what it asked to be settled.
 enum Waiter {
@@ -237,7 +252,7 @@ impl Host {
         #[cfg(feature = "sim")]
         let mut sim = sim;
         #[cfg(not(feature = "sim"))]
-        let () = sim;
+        let Sim = sim;
         let now = shard_instant();
         make_dir(&config.data)?;
         let run = raise_run(&config.data.join(RUN_FILE))?;
@@ -723,7 +738,8 @@ impl Host {
                 let at = |port| SocketAddr::new(own.ip(), port);
                 // The port it kept, unless another socket took it while the node was down: then
                 // one the system picks, recorded in the catalog as the part's port at this node.
-                let bound = kept.map(|port| bind(&self.ids, self.config.id, at(port), true, seed()));
+                let bound =
+                    kept.map(|port| bind(&self.ids, self.config.id, at(port), true, seed()));
                 let driver = match bound {
                     Some(Ok(driver)) => driver,
                     _ => bind(&self.ids, self.config.id, at(0), true, seed())?,
@@ -760,11 +776,13 @@ impl Host {
                 })
                 .collect();
             let Some(everyone) = everyone else { continue };
-            // A peer's port that changed (it rebound after a restart): dialed there from now.
+            // A port that changed (its member rebound after a restart): dialed there from now. The
+            // publisher takes every node's, this node's own among them: its member's peers leave
+            // this node out, so a publisher told only when they changed kept its own node's old
+            // port, and a node that led never reached itself (CP-T2.2 step 6's simulation, seed 9).
             if let Some(Slot::Open(seat)) = &mut held.slot {
-                if seat.peers_changed(&everyone, now) {
-                    held.publisher.set_addresses(&everyone, now);
-                }
+                seat.peers_changed(&everyone, now);
+                held.publisher.set_addresses(&everyone, now);
                 continue;
             }
             if let Some(Slot::Bound(_)) = &held.slot
@@ -1000,7 +1018,10 @@ impl Host {
 
     /// None: a node that runs for real seeds its endpoints from the system.
     #[cfg(not(feature = "sim"))]
-    #[allow(clippy::unused_self, reason = "the simulation's build seeds from its start")]
+    #[allow(
+        clippy::unused_self,
+        reason = "the simulation's build seeds from its start"
+    )]
     const fn endpoint_seed(&self) -> Option<[u8; 32]> {
         None
     }
@@ -1030,9 +1051,9 @@ impl Host {
             }
             // A member's reads of its log are its own blocking asks, answered as asked; what it
             // writes waits for the node's disk.
-            let writes = self
-                .seats()
-                .fold(0usize, |w, seat| w.saturating_add(seat.member.in_flight().0));
+            let writes = self.seats().fold(0usize, |w, seat| {
+                w.saturating_add(seat.member.in_flight().0)
+            });
             let Some(sim) = self.sim.as_mut() else {
                 return Ok(());
             };
@@ -1110,7 +1131,10 @@ const HANG: Duration = Duration::from_secs(60);
     clippy::disallowed_methods,
     reason = "the simulation's watch for a log that never answers: real time, outside the run's"
 )]
-fn answered(mut poll: impl FnMut() -> Option<()>, stuck: impl FnOnce() -> Fault) -> Result<(), Fault> {
+fn answered(
+    mut poll: impl FnMut() -> Option<()>,
+    stuck: impl FnOnce() -> Fault,
+) -> Result<(), Fault> {
     let began = Instant::now();
     let mut spins = 0_u32;
     loop {

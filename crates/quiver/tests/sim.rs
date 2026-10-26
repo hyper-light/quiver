@@ -12,6 +12,8 @@
 //! for the gate's time); a failing seed's trace is written under the test's directory, and
 //! `QUIVER_SIM_REPLAY` names a trace to run again.
 #![cfg(feature = "sim")]
+// The planted bug's build runs its own test alone, leaving the fault test's helpers unread.
+#![cfg_attr(feature = "plant-own-log-commit", allow(dead_code))]
 #![allow(
     clippy::unwrap_used,
     clippy::expect_used,
@@ -30,9 +32,7 @@ use std::fmt::Write as _;
 use std::path::PathBuf;
 use std::time::Duration;
 
-use quiver::persisted::sim::{
-    Answer, Crash, Doom, Kill, Settings, SimLoss, SimPath, When, World,
-};
+use quiver::persisted::sim::{Answer, Crash, Doom, Kill, Settings, SimLoss, SimPath, When, World};
 use quiver_api::{Class, Offset, Topic};
 
 const TOPIC: &str = "sim";
@@ -119,6 +119,10 @@ struct Publish {
     outcome: Option<Result<Offset, String>>,
 }
 
+/// One publish as a run saw it: its payload, the node and the start it went through, and its
+/// answer, the offset it was acknowledged at or why not.
+type Outcome = (Vec<u8>, u64, u64, Result<Offset, String>);
+
 /// What a run saw and left: its trace, every publish's outcome, each node's view, and its digest.
 struct Report {
     seed: u64,
@@ -126,7 +130,7 @@ struct Report {
     /// What each node said of itself at the end of a run that never settled (not digested).
     diagnosis: String,
     /// Payload, node, start, outcome.
-    publishes: Vec<(Vec<u8>, u64, u64, Result<Offset, String>)>,
+    publishes: Vec<Outcome>,
     views: Vec<Vec<(Offset, Vec<u8>)>>,
     digest: u64,
     /// Why the run's checks failed, if they did.
@@ -135,7 +139,9 @@ struct Report {
 
 /// FNV-1a over `bytes`, folded into `hash`.
 fn fold(hash: u64, bytes: &[u8]) -> u64 {
-    bytes.iter().fold(hash, |h, b| (h ^ u64::from(*b)).wrapping_mul(0x0100_0000_01b3))
+    bytes.iter().fold(hash, |h, b| {
+        (h ^ u64::from(*b)).wrapping_mul(0x0100_0000_01b3)
+    })
 }
 
 /// The run `seed` draws, from the world's making to its checks, in the directory `name-<seed>`.
@@ -183,7 +189,10 @@ fn run(name: &str, seed: u64) -> Report {
                 let why = world.ended(node).unwrap_or_default();
                 world.crash(node, crash).unwrap();
                 let back = now + rng.range(20 * MS, 2_500 * MS);
-                let _ = writeln!(trace, "{now}: node {node} down ({why}), {crash:?}, back at {back}");
+                let _ = writeln!(
+                    trace,
+                    "{now}: node {node} down ({why}), {crash:?}, back at {back}"
+                );
                 down[at] = Some(back);
             }
             if let Some(back) = down[at]
@@ -258,8 +267,7 @@ fn run(name: &str, seed: u64) -> Report {
                     .unwrap_or(0)
             })
             .collect();
-        publishes.iter().all(|p| p.outcome.is_some())
-            && applied.iter().all(|a| *a == applied[0])
+        publishes.iter().all(|p| p.outcome.is_some()) && applied.iter().all(|a| *a == applied[0])
     });
     // A little longer, for the views to take what was applied.
     let next = world.now_ns() + 500 * MS;
@@ -271,7 +279,11 @@ fn run(name: &str, seed: u64) -> Report {
         for node in 1..=3 {
             let _ = writeln!(diagnosis, "node {node} at the end: {:?}", world.stats(node));
             let _ = writeln!(diagnosis, "node {node}'s course: {:?}", world.course(node));
-            let _ = writeln!(diagnosis, "node {node}: {}", world.diagnose(node).unwrap_or_default());
+            let _ = writeln!(
+                diagnosis,
+                "node {node}: {}",
+                world.diagnose(node).unwrap_or_default()
+            );
         }
     }
     let views: Vec<Vec<(Offset, Vec<u8>)>> = (1..=3)
@@ -293,7 +305,7 @@ fn run(name: &str, seed: u64) -> Report {
     let fabric = format!("{:?}", world.fabric());
     digest = fold(digest, fabric.as_bytes());
     world.stop();
-    let publishes: Vec<(Vec<u8>, u64, u64, Result<Offset, String>)> = publishes
+    let publishes: Vec<Outcome> = publishes
         .into_iter()
         .map(|p| {
             let outcome = p.outcome.unwrap_or_else(|| Err("unanswered".to_owned()));
@@ -394,10 +406,7 @@ fn fault(
 
 /// What a run broke: an acknowledged publish missing from a node's view or at another offset, a
 /// producer's acknowledged publishes out of its order, a payload twice in a view, two views apart.
-fn check(
-    publishes: &[(Vec<u8>, u64, u64, Result<Offset, String>)],
-    views: &[Vec<(Offset, Vec<u8>)>],
-) -> Vec<String> {
+fn check(publishes: &[Outcome], views: &[Vec<(Offset, Vec<u8>)>]) -> Vec<String> {
     let mut broken = Vec::new();
     let at: Vec<BTreeMap<Offset, &Vec<u8>>> = views
         .iter()
@@ -467,7 +476,11 @@ fn seeds() -> std::ops::Range<u64> {
 
 /// Writes a failing run's trace, and what it broke, where its seed's run was.
 fn keep_trace(report: &Report) -> PathBuf {
-    let planted = if cfg!(feature = "plant-own-log-commit") { "plant-" } else { "" };
+    let planted = if cfg!(feature = "plant-own-log-commit") {
+        "plant-"
+    } else {
+        ""
+    };
     let path = root().join(format!("{planted}trace-{}.txt", report.seed));
     let mut text = format!(
         "seed {}\ndigest {:016x}\n{}\nbroken:\n",
@@ -491,8 +504,48 @@ fn a_seeds_run_is_the_same_run_twice() {
     assert_eq!(first.trace, second.trace);
     assert_eq!(first.publishes, second.publishes);
     assert_eq!(first.views, second.views);
-    assert_eq!(first.digest, second.digest, "seed 7 ran apart:\n{}", first.trace);
+    assert_eq!(
+        first.digest, second.digest,
+        "seed 7 ran apart:\n{}",
+        first.trace
+    );
     assert!(first.broken.is_empty(), "{:#?}", first.broken);
+}
+
+/// A failing seed's kept trace (`QUIVER_SIM_REPLAY` names its file) runs again: its seed's run gives
+/// the trace and the digest the file holds, its schedule and every outcome alike.
+#[test]
+fn a_kept_trace_replays() {
+    let Ok(path) = std::env::var("QUIVER_SIM_REPLAY") else {
+        return;
+    };
+    let text = std::fs::read_to_string(&path).unwrap();
+    let mut lines = text.lines();
+    let seed: u64 = lines
+        .next()
+        .and_then(|l| l.strip_prefix("seed "))
+        .and_then(|s| s.parse().ok())
+        .unwrap();
+    let digest = lines
+        .next()
+        .and_then(|l| l.strip_prefix("digest "))
+        .unwrap();
+    let name = if cfg!(feature = "plant-own-log-commit") {
+        "replay-plant"
+    } else {
+        "replay"
+    };
+    let report = run(name, seed);
+    assert_eq!(
+        format!("{:016x}", report.digest),
+        digest,
+        "seed {seed} replays apart"
+    );
+    assert!(text.contains(&report.trace), "seed {seed}'s trace differs");
+    eprintln!(
+        "{path}: seed {seed} replayed, digest {digest}, {} broken",
+        report.broken.len()
+    );
 }
 
 /// Every seed `seeds` names: no acknowledged publish lost, out of order, twice or apart; a failing
@@ -509,7 +562,11 @@ fn faults_over_many_seeds() {
             "seed {seed}: {} publishes, {acked} acknowledged, digest {:016x}, {}",
             report.publishes.len(),
             report.digest,
-            if report.broken.is_empty() { "ok" } else { "BROKEN" }
+            if report.broken.is_empty() {
+                "ok"
+            } else {
+                "BROKEN"
+            }
         );
         if !report.broken.is_empty() {
             let path = keep_trace(&report);
@@ -518,7 +575,11 @@ fn faults_over_many_seeds() {
                 "seed {seed} ({} broken, trace {}; run again: digest {})",
                 report.broken.len(),
                 path.display(),
-                if again.digest == report.digest { "the same" } else { "DIFFERENT" }
+                if again.digest == report.digest {
+                    "the same"
+                } else {
+                    "DIFFERENT"
+                }
             ));
         } else {
             let _ = std::fs::remove_dir_all(root().join(format!("run-{seed}")));
@@ -526,7 +587,6 @@ fn faults_over_many_seeds() {
     }
     assert!(failed.is_empty(), "{failed:#?}");
 }
-
 
 /// The planted bug (AC-T2.2.5's test; `--features plant-own-log-commit`): every group commits what
 /// its leader's own log holds, before a quorum's flush. The simulation finds a seed whose run loses
@@ -545,16 +605,27 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
             .iter()
             .filter(|b| b.starts_with("acknowledged"))
             .collect();
-        eprintln!("seed {seed}: {} broken, {} of them acknowledged publishes lost", report.broken.len(), lost.len());
+        eprintln!(
+            "seed {seed}: {} broken, {} of them acknowledged publishes lost",
+            report.broken.len(),
+            lost.len()
+        );
         if lost.is_empty() {
             let _ = std::fs::remove_dir_all(root().join(format!("plant-{seed}")));
             continue;
         }
         let path = keep_trace(&report);
         let again = run("plant", seed);
-        assert_eq!(again.digest, report.digest, "seed {seed} ran apart on its replay");
+        assert_eq!(
+            again.digest, report.digest,
+            "seed {seed} ran apart on its replay"
+        );
         assert_eq!(again.broken, report.broken);
-        eprintln!("found at seed {seed}, replayed alike (trace {}): {}", path.display(), lost[0]);
+        eprintln!(
+            "found at seed {seed}, replayed alike (trace {}): {}",
+            path.display(),
+            lost[0]
+        );
         return;
     }
     panic!("no seed from {first} found the planted bug");
