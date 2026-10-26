@@ -30,6 +30,8 @@
 mod catalog;
 mod group;
 mod host;
+#[cfg(feature = "sim")]
+pub mod sim;
 
 use std::collections::{HashMap, VecDeque};
 use std::net::SocketAddr;
@@ -259,6 +261,31 @@ fn lock<T>(m: &Mutex<T>) -> MutexGuard<'_, T> {
 }
 
 impl Shared {
+    fn new(config: &PersistedConfig) -> Self {
+        Self {
+            inbox: Mutex::new(Inbox {
+                commands: VecDeque::new(),
+                waker: None,
+                stop: false,
+            }),
+            bound: config.publishes.saturating_add(config.topics),
+            views: RwLock::new(HashMap::new()),
+            stats: Mutex::new(PersistedStats::default()),
+        }
+    }
+
+    /// The host ended, `why` said, and every command waiting refused.
+    fn end(&self, why: String) {
+        lock(&self.stats).ended = Some(why);
+        self.stop();
+    }
+
+    /// Whether the host ended.
+    #[cfg(feature = "sim")]
+    fn ended(&self) -> bool {
+        lock(&self.stats).ended.is_some()
+    }
+
     fn stopping(&self) -> bool {
         lock(&self.inbox).stop
     }
@@ -370,24 +397,14 @@ impl Persisted {
         clock: Clock,
     ) -> Result<Self, Refusal> {
         config.check()?;
-        let shared = Arc::new(Shared {
-            inbox: Mutex::new(Inbox {
-                commands: VecDeque::new(),
-                waker: None,
-                stop: false,
-            }),
-            bound: config.publishes.saturating_add(config.topics),
-            views: RwLock::new(HashMap::new()),
-            stats: Mutex::new(PersistedStats::default()),
-        });
+        let shared = Arc::new(Shared::new(&config));
         let (opened, open) = std::sync::mpsc::sync_channel::<Result<(), String>>(1);
         let for_host = Arc::clone(&shared);
         let host = std::thread::Builder::new()
             .name(format!("quiver-persisted-{}", config.id))
             .spawn(move || {
                 let ended = run_host(config, &for_host, &opened, clock, budget);
-                lock(&for_host.stats).ended = Some(ended.unwrap_or_else(|why| why));
-                for_host.stop();
+                for_host.end(ended.unwrap_or_else(|why| why));
             })
             .map_err(|e| Refusal::Unavailable(format!("the persisted host's thread: {e}")))?;
         match open.recv() {
@@ -514,22 +531,36 @@ fn run_host(
     };
     let shared = Arc::clone(shared);
     let opened = opened.clone();
+    let told = move |open: Result<(), String>| {
+        let _ = opened.send(open);
+    };
     shard
         .block_on(async move {
-            let waker =
-                std::future::poll_fn(|context| std::task::Poll::Ready(context.waker().clone()))
-                    .await;
-            shared.set_waker(waker.clone());
-            let mut host = match host::Host::open(config, Arc::clone(&shared), waker, clock, budget)
-            {
-                Ok(host) => host,
-                Err(why) => {
-                    let _ = opened.send(Err(why.clone()));
-                    return Err(why);
-                }
-            };
-            let _ = opened.send(Ok(()));
-            host.run().await.map(|()| "it was stopped".to_owned())
+            host_body(config, &shared, told, clock, budget, host::Sim::default()).await
         })
         .map_err(|e| format!("its shard: {e:?}"))?
+}
+
+/// The host on the shard it's polled on: opened (said through `opened`), run until it's stopped or
+/// faults; why it ended. Under the simulation `sim` is what the world gave this start.
+async fn host_body(
+    config: PersistedConfig,
+    shared: &Arc<Shared>,
+    opened: impl FnOnce(Result<(), String>),
+    clock: Clock,
+    budget: MemoryBudget,
+    sim: host::Sim,
+) -> Result<String, String> {
+    let waker =
+        std::future::poll_fn(|context| std::task::Poll::Ready(context.waker().clone())).await;
+    shared.set_waker(waker.clone());
+    let mut host = match host::Host::open(config, Arc::clone(shared), waker, clock, budget, sim) {
+        Ok(host) => host,
+        Err(why) => {
+            opened(Err(why.clone()));
+            return Err(why);
+        }
+    };
+    opened(Ok(()));
+    host.run().await.map(|()| "it was stopped".to_owned())
 }

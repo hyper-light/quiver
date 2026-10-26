@@ -17,7 +17,7 @@ use std::time::{Duration, Instant};
 use focal_bus::wire::Bus;
 use focal_memory::MemoryBudget;
 use futures::channel::oneshot;
-use hyper_rt_transport::Driver;
+use hyper_rt_transport::{Driver, shard_instant};
 use hyper_transport::Event;
 use quiver_api::{Offset, Refusal, Topic};
 
@@ -40,6 +40,13 @@ const KEYS_DIR: &str = "keys";
 const PORT_FILE: &str = "port";
 /// The longest the host sleeps with nothing due: what bounds a missed wake's cost.
 const IDLE: Duration = Duration::from_millis(100);
+
+/// Under the simulation (`sim`), what the world gave this start (`super::sim::Start`); nothing in
+/// a node that runs for real.
+#[cfg(feature = "sim")]
+pub(crate) type Sim = Option<super::sim::Start>;
+#[cfg(not(feature = "sim"))]
+pub(crate) type Sim = ();
 
 /// A command waiting for what it asked to be settled.
 enum Waiter {
@@ -113,6 +120,9 @@ pub(crate) struct Host {
     publishes: usize,
     /// A feed stopped at its bound: the next turn is due at once.
     more: bool,
+    /// Under the simulation, what the world gave this start.
+    #[cfg(feature = "sim")]
+    sim: Sim,
 }
 
 /// What a fatal fault of the host is said as.
@@ -188,11 +198,19 @@ fn producer(id: u64, run: u64) -> Result<u64, Fault> {
     Ok(id.wrapping_shl(48) | run)
 }
 
-fn bind(ids: &Identities, id: u64, address: SocketAddr, member: bool) -> Result<Drv, Fault> {
+/// Node `id`'s member's endpoint, or its publisher's, bound at `address`, its QUIC layer seeded
+/// with `seed` where one is given (the simulation's).
+fn bind(
+    ids: &Identities,
+    id: u64,
+    address: SocketAddr,
+    member: bool,
+    seed: Option<[u8; 32]>,
+) -> Result<Drv, Fault> {
     let endpoint = if member {
-        ids.member_endpoint(id)?
+        ids.member_endpoint(id, seed)?
     } else {
-        ids.client_endpoint(id)?
+        ids.client_endpoint(id, seed)?
     };
     Driver::bind(endpoint, address, focal_bus::limits::IO)
         .map_err(|e| format!("{address} could not be bound: {e:?}"))
@@ -214,8 +232,13 @@ impl Host {
         waker: Waker,
         clock: Clock,
         budget: MemoryBudget,
+        sim: Sim,
     ) -> Result<Self, Fault> {
-        let now = Instant::now();
+        #[cfg(feature = "sim")]
+        let mut sim = sim;
+        #[cfg(not(feature = "sim"))]
+        let () = sim;
+        let now = shard_instant();
         make_dir(&config.data)?;
         let run = raise_run(&config.data.join(RUN_FILE))?;
         let ids = Identities::load(&config.identities, config.nodes.len())?;
@@ -226,7 +249,13 @@ impl Host {
         make_dir(&catalog_dir)?;
         let keys = config.data.join(KEYS_DIR);
         make_dir(&keys)?;
-        let member_driver = bind(&ids, config.id, own, true)?;
+        #[cfg(feature = "sim")]
+        let mut seed = || sim.as_mut().map(super::sim::Start::endpoint_seed);
+        #[cfg(not(feature = "sim"))]
+        let seed = || None;
+        let member_driver = bind(&ids, config.id, own, true, seed())?;
+        let any = SocketAddr::new(own.ip(), 0);
+        let client_driver = bind(&ids, config.id, any, false, seed())?;
         let plan = Plan {
             id: config.id,
             peers: config.peers(),
@@ -236,9 +265,10 @@ impl Host {
             members: config.ids(),
             clients: ids.nodes(),
             lane_window: ids.lane_window()?,
+            #[cfg(feature = "sim")]
+            machine: sim.as_ref().map(super::sim::Start::machine),
         };
         let catalog_seat = Seat::open(member_driver, plan, now)?;
-        let client_driver = bind(&ids, config.id, SocketAddr::new(own.ip(), 0), false)?;
         let mut catalog_publisher =
             Publisher::new(client_driver, producer(config.id, run)?, config.id, now);
         catalog_publisher.set_nodes(config.nodes.clone(), now);
@@ -269,6 +299,8 @@ impl Host {
             next_ticket: 1,
             publishes: 0,
             more: false,
+            #[cfg(feature = "sim")]
+            sim,
         })
     }
 
@@ -278,7 +310,11 @@ impl Host {
             if self.shared.stopping() {
                 return Ok(());
             }
-            let began = Instant::now();
+            #[cfg(feature = "sim")]
+            if self.sim.as_mut().is_some_and(super::sim::Start::awaited) {
+                return Err(self.die());
+            }
+            let began = shard_instant();
             let due = if self.more {
                 Some(began)
             } else {
@@ -305,7 +341,7 @@ impl Host {
                 Poll::Pending
             })
             .await?;
-            let now = Instant::now();
+            let now = shard_instant();
             self.turn(found, began, now)?;
         }
     }
@@ -353,10 +389,26 @@ impl Host {
             }
             all.push(held.publisher.deadline(wait));
         }
+        #[cfg(feature = "sim")]
+        all.push(self.sim.as_ref().and_then(|s| s.next_cut));
         all.into_iter().flatten().min()
     }
 
+    /// A turn: the events found acted on, every member's turn, what they committed fed; under the
+    /// simulation, then what the members asked of their logs answered (`Host::settle_logs`).
     fn turn(
+        &mut self,
+        found: Vec<(Source, Event<Bus>)>,
+        began: Instant,
+        now: Instant,
+    ) -> Result<(), Fault> {
+        self.turn_once(found, began, now)?;
+        #[cfg(feature = "sim")]
+        self.settle_logs(now)?;
+        Ok(())
+    }
+
+    fn turn_once(
         &mut self,
         found: Vec<(Source, Event<Bus>)>,
         began: Instant,
@@ -561,17 +613,19 @@ impl Host {
             .config
             .address(self.config.id)
             .ok_or("this node's address")?;
+        let seed = self.endpoint_seed();
         let driver = bind(
             &self.ids,
             self.config.id,
             SocketAddr::new(own.ip(), 0),
             false,
+            seed,
         )?;
         let publisher = Publisher::new(
             driver,
             producer(self.config.id, self.run)?,
             self.config.id,
-            Instant::now(),
+            shard_instant(),
         );
         let view = Arc::new(Log::new(topic, STREAM, self.budget.clone()));
         if let Some(old) = self.shared.put_view(name, Arc::clone(&view)) {
@@ -625,6 +679,12 @@ impl Host {
             .address(self.config.id)
             .ok_or("this node's address")?;
         let mut announce = Vec::new();
+        #[cfg(feature = "sim")]
+        let machine = self.sim.as_ref().map(super::sim::Start::machine);
+        #[cfg(feature = "sim")]
+        let mut seed = || self.sim.as_mut().map(super::sim::Start::endpoint_seed);
+        #[cfg(not(feature = "sim"))]
+        let seed = || None;
         for (incarnation, held) in &mut self.topics {
             if held.slot.is_none() {
                 make_dir(&held.dir)?;
@@ -632,10 +692,10 @@ impl Host {
                 let at = |port| SocketAddr::new(own.ip(), port);
                 // The port it kept, unless another socket took it while the node was down: then
                 // one the system picks, recorded in the catalog as the part's port at this node.
-                let driver = match kept.map(|port| bind(&self.ids, self.config.id, at(port), true))
-                {
+                let bound = kept.map(|port| bind(&self.ids, self.config.id, at(port), true, seed()));
+                let driver = match bound {
                     Some(Ok(driver)) => driver,
-                    _ => bind(&self.ids, self.config.id, at(0), true)?,
+                    _ => bind(&self.ids, self.config.id, at(0), true, seed())?,
                 };
                 let port = local_port(&driver)?;
                 if kept != Some(port) {
@@ -696,6 +756,8 @@ impl Host {
                     members: self.config.ids(),
                     clients: self.ids.nodes(),
                     lane_window: self.ids.lane_window()?,
+                    #[cfg(feature = "sim")]
+                    machine: machine.clone(),
                 };
                 held.slot = Some(Slot::Open(Box::new(Seat::open(*driver, plan, now)?)));
                 held.publisher.set_nodes(everyone, now);
@@ -894,6 +956,123 @@ impl Host {
             })
             .collect();
         self.shared.set_figures(self.run, catalog, topics);
+    }
+}
+
+impl Host {
+    /// The seed of the next endpoint this start makes: the simulation's, in the order made.
+    #[cfg(feature = "sim")]
+    fn endpoint_seed(&mut self) -> Option<[u8; 32]> {
+        self.sim.as_mut().map(super::sim::Start::endpoint_seed)
+    }
+
+    /// None: a node that runs for real seeds its endpoints from the system.
+    #[cfg(not(feature = "sim"))]
+    #[allow(clippy::unused_self, reason = "the simulation's build seeds from its start")]
+    const fn endpoint_seed(&self) -> Option<[u8; 32]> {
+        None
+    }
+
+    /// Every open member of the node: the catalog's, then each topic's in the order created.
+    #[cfg(feature = "sim")]
+    fn seats(&self) -> impl Iterator<Item = &Seat> {
+        std::iter::once(&self.catalog_seat).chain(self.topics.values().filter_map(|held| {
+            match &held.slot {
+                Some(Slot::Open(seat)) => Some(&**seat),
+                _ => None,
+            }
+        }))
+    }
+
+    /// Under the simulation: what the members asked of their logs answered before the world moves
+    /// on. Every read the members asked of the device is served at once, and the node's disk
+    /// takes what the logs hold at the virtual time it drew for it: a cut of each log, each waited
+    /// for on the shard, so every answer reaches its member at an instant the seed chose
+    /// (`docs/design/persisted-sim.md`, "Determinism"). The start's kill may end it at a cut.
+    #[cfg(feature = "sim")]
+    fn settle_logs(&mut self, now: Instant) -> Result<(), Fault> {
+        use super::sim::Fate;
+        loop {
+            if self.sim.is_none() {
+                return Ok(());
+            }
+            let (writes, reads) = self.seats().fold((0usize, 0usize), |(w, r), seat| {
+                let (writes, reads) = seat.member.in_flight();
+                (w.saturating_add(writes), r.saturating_add(reads))
+            });
+            if reads > 0 {
+                for seat in self.seats() {
+                    if seat.member.in_flight().1 > 0 {
+                        let served = seat.member.serve().map_err(|e| e.to_string())?;
+                        // A read refused is the member's to hear at its turn.
+                        let _ = served.wait();
+                    }
+                }
+                self.turn_once(Vec::new(), now, now)?;
+                continue;
+            }
+            let Some(sim) = self.sim.as_mut() else {
+                return Ok(());
+            };
+            if writes == 0 {
+                sim.next_cut = None;
+                return Ok(());
+            }
+            let due = match sim.next_cut {
+                Some(at) => at,
+                None => {
+                    let at = now
+                        .checked_add(sim.latency(hyper_rt::futures::now_ns()))
+                        .unwrap_or(now);
+                    sim.next_cut = Some(at);
+                    at
+                }
+            };
+            if due > now {
+                return Ok(());
+            }
+            sim.next_cut = None;
+            match sim.cutting() {
+                Fate::Die => return Err(self.die()),
+                Fate::DieDuring(ops) => {
+                    sim.arm(ops);
+                    self.cut_all()?;
+                    return Err(self.die());
+                }
+                Fate::DieAfter => {
+                    self.cut_all()?;
+                    return Err(self.die());
+                }
+                Fate::Live => {
+                    self.cut_all()?;
+                    self.turn_once(Vec::new(), now, now)?;
+                }
+            }
+        }
+    }
+
+    /// A cut of every log that holds writes, each waited for: what it held is durable and
+    /// answered, or refused where power was cut.
+    #[cfg(feature = "sim")]
+    fn cut_all(&self) -> Result<(), Fault> {
+        for seat in self.seats() {
+            if seat.member.in_flight().0 > 0 {
+                let cut = seat.member.cut().map_err(|e| e.to_string())?;
+                // A cut refused for a power cut is the member's to hear at its turn.
+                let _ = cut.wait();
+            }
+        }
+        Ok(())
+    }
+
+    /// The start's kill: power cut on every device at once, so nothing the dying node's logs
+    /// would write as they close lands, and the host ends; why.
+    #[cfg(feature = "sim")]
+    fn die(&self) -> Fault {
+        if let Some(sim) = &self.sim {
+            sim.arm(0);
+        }
+        "killed by the simulation".to_owned()
     }
 }
 

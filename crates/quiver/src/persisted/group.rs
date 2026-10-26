@@ -96,6 +96,22 @@ fn said(error: impl std::fmt::Display) -> String {
     error.to_string()
 }
 
+/// An endpoint made now on the shard's clock (`hyper_rt_transport::shard_instant`, the host's off
+/// a simulated shard), its QUIC layer seeded with `seed` where one is given.
+fn made(
+    config: Config<Role>,
+    budget: BusBudget,
+    directory: BusDirectory,
+    seed: Option<[u8; 32]>,
+) -> Result<Endpoint<Bus, BusBudget, BusDirectory>, String> {
+    let now = hyper_rt_transport::shard_instant();
+    match seed {
+        Some(seed) => Endpoint::new_seeded(config, budget, directory, now, seed),
+        None => Endpoint::new(config, budget, directory, now),
+    }
+    .map_err(|e| format!("{e:?}"))
+}
+
 impl Identities {
     /// The identities of a cluster of `nodes`, kept in `dir` (made there the first time).
     pub(crate) fn load(dir: &std::path::Path, nodes: usize) -> Result<Self, String> {
@@ -111,10 +127,13 @@ impl Identities {
         (1..=u64::try_from(self.nodes).unwrap_or(0)).take(self.nodes)
     }
 
-    /// Node `id`'s endpoint for a member: it knows the other nodes and every node's publisher.
+    /// Node `id`'s endpoint for a member: it knows the other nodes and every node's publisher. Its
+    /// QUIC layer is seeded with `seed` where one is given (the simulation's), from the system
+    /// otherwise.
     pub(crate) fn member_endpoint(
         &self,
         id: u64,
+        seed: Option<[u8; 32]>,
     ) -> Result<Endpoint<Bus, BusBudget, BusDirectory>, String> {
         let peers = self.nodes.saturating_sub(1);
         let mut directory = BusDirectory::new(self.nodes.saturating_add(peers));
@@ -138,25 +157,21 @@ impl Identities {
         }
         let own = self.local.node(id).ok_or("no identity for this node")?;
         let limits = focal_bus::limits::node(self.nodes, peers).map_err(said)?;
-        Endpoint::new(
-            Config {
-                tls: Tls::mutual(&credentials(&self.local, own), true)
-                    .map_err(|e| format!("{e:?}"))?,
-                role: Role::Node,
-                limits,
-                congestion: Default::default(),
-            },
-            BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?),
-            directory,
-            Instant::now(),
-        )
-        .map_err(|e| format!("{e:?}"))
+        let config = Config {
+            tls: Tls::mutual(&credentials(&self.local, own), true).map_err(|e| format!("{e:?}"))?,
+            role: Role::Node,
+            limits,
+            congestion: Default::default(),
+        };
+        let budget = BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?);
+        made(config, budget, directory, seed)
     }
 
-    /// Node `id`'s endpoint for a publisher: it knows every node.
+    /// Node `id`'s endpoint for a publisher: it knows every node. Seeded as a member's is.
     pub(crate) fn client_endpoint(
         &self,
         id: u64,
+        seed: Option<[u8; 32]>,
     ) -> Result<Endpoint<Bus, BusBudget, BusDirectory>, String> {
         let mut directory = BusDirectory::new(self.nodes);
         for node in self.node_ids() {
@@ -173,19 +188,15 @@ impl Identities {
         let own = Self::client_index(id)
             .and_then(|index| self.local.clients.get(index))
             .ok_or("no client identity for this node")?;
-        Endpoint::new(
-            Config {
-                tls: Tls::mutual(&credentials(&self.local, own), false)
-                    .map_err(|e| format!("{e:?}"))?,
-                role: Role::Client,
-                limits: focal_bus::limits::client_of(self.nodes).map_err(said)?,
-                congestion: Default::default(),
-            },
-            BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?),
-            directory,
-            Instant::now(),
-        )
-        .map_err(|e| format!("{e:?}"))
+        let config = Config {
+            tls: Tls::mutual(&credentials(&self.local, own), false)
+                .map_err(|e| format!("{e:?}"))?,
+            role: Role::Client,
+            limits: focal_bus::limits::client_of(self.nodes).map_err(said)?,
+            congestion: Default::default(),
+        };
+        let budget = BusBudget::new(MemoryBudget::new(TRANSPORT_MEMORY, 0).map_err(said)?);
+        made(config, budget, directory, seed)
     }
 
     /// The lane window a member's acknowledgements are bounded by (`Member::open`).
@@ -271,6 +282,9 @@ pub(crate) struct Plan {
     pub(crate) members: Vec<u64>,
     pub(crate) clients: usize,
     pub(crate) lane_window: usize,
+    /// Under the simulation, the node's simulated machine its log's device is on.
+    #[cfg(feature = "sim")]
+    pub(crate) machine: Option<std::sync::Arc<super::sim::Machine>>,
 }
 
 impl Plan {
@@ -287,30 +301,40 @@ impl Plan {
             budget.clone(),
         )
         .map_err(said)?;
-        let member = Member::open(
-            MemberSettings {
-                id: self.id,
-                peers: self.peers.clone(),
-                data: self.data.clone(),
-                key_file: self.key_file.clone(),
-                memory_bytes: self.memory,
-                // No fates: the group commits on a majority's disks, the persisted class.
-                fates: Vec::new(),
-                spanning: 0,
-            },
-            node,
-            self.members.clone(),
-            self.clients,
-            self.lane_window,
-            budget,
-            now,
-        )
-        .map_err(said)?;
-        if member.class() != Durability::Persisted {
-            return Err("the part's group would not acknowledge on a majority's disks".to_owned());
+        let settings = MemberSettings {
+            id: self.id,
+            peers: self.peers.clone(),
+            data: self.data.clone(),
+            key_file: self.key_file.clone(),
+            memory_bytes: self.memory,
+            // No fates: the group commits on a majority's disks, the persisted class.
+            fates: Vec::new(),
+            spanning: 0,
+        };
+        let (members, clients, window) = (self.members.clone(), self.clients, self.lane_window);
+        #[cfg(feature = "sim")]
+        if let Some(machine) = &self.machine {
+            let simulated = focal_bus::member::Simulated {
+                device: machine.handle(&self.data)?,
+                settings,
+            };
+            let member =
+                Member::open_simulated(simulated, node, members, clients, window, budget, now)
+                    .map_err(said)?;
+            return persisted(member);
         }
-        Ok(member)
+        let member = Member::open(settings, node, members, clients, window, budget, now)
+            .map_err(said)?;
+        persisted(member)
     }
+}
+
+/// `member`, if it acknowledges on a majority's disks: the persisted class.
+fn persisted(member: Member) -> Result<Member, String> {
+    if member.class() != Durability::Persisted {
+        return Err("the part's group would not acknowledge on a majority's disks".to_owned());
+    }
+    Ok(member)
 }
 
 /// This node's member of a part's group, on its endpoint.

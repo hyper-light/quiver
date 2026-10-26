@@ -34,6 +34,20 @@ use crate::task::SpawnRequest;
 /// Format: the "no deadline requested" sentinel.
 const NO_DEADLINE: u64 = u64::MAX;
 
+/// The instant every simulated shard's clock reads zero at: one for the process, taken the first time
+/// it is asked for. An adapter that speaks `std::time::Instant` anchors to it on a simulated shard
+/// (hyper-rt-transport's `Driver`), so every endpoint of a simulation reads one clock however much real
+/// time passed between their making; an endpoint anchored when it was made would read the virtual clock
+/// offset by the real time before it, a different offset for each.
+#[allow(
+    clippy::disallowed_methods,
+    reason = "a simulation's Instant anchor, its one read of the host's clock (docs/sim.md §3.2)"
+)]
+pub fn anchor() -> std::time::Instant {
+    static ANCHOR: std::sync::OnceLock<std::time::Instant> = std::sync::OnceLock::new();
+    *ANCHOR.get_or_init(std::time::Instant::now)
+}
+
 use std::collections::{BTreeMap, VecDeque};
 
 use crate::mem::Encoded;
@@ -692,6 +706,24 @@ impl SimSockets {
         self.port_base.saturating_add(index)
     }
 
+    /// Takes socket `index` from the free list, the others left in their order; `None` if it is not
+    /// there.
+    fn take_free(&self, index: u16) -> Option<u16> {
+        let mut above = Vec::new();
+        let mut found = false;
+        while let Some(free) = self.free.pop() {
+            if free == index {
+                found = true;
+                break;
+            }
+            above.push(free);
+        }
+        for free in above.into_iter().rev() {
+            let _ = self.free.push(free);
+        }
+        found.then_some(index)
+    }
+
     /// The bytes every socket's receive buffer holds at once: the send queue's bound.
     fn outbound_bound(&self) -> usize {
         self.sockets.len().saturating_mul(SIM_RECV_BUFFER_BYTES)
@@ -740,13 +772,26 @@ fn with_sockets<R>(f: impl FnOnce(&ShardContext, &SimSockets) -> R) -> Option<R>
         .flatten()
 }
 
-/// Binds a simulated socket on the current shard: its index and port.
-pub(crate) fn sim_bind() -> Result<(u16, u16), RtError> {
+/// Binds a simulated socket on the current shard: its index and port. A port of the shard's own
+/// range asked for by number is taken if free and refused if bound, as an OS binds one, so a node
+/// started again on its shard listens where its peers dial it; any other (port 0, or another shard's)
+/// is the next free port.
+pub(crate) fn sim_bind(requested: u16) -> Result<(u16, u16), RtError> {
     with_sockets(|_, sockets| {
-        let index = sockets.free.pop().ok_or(RtError::Capacity {
+        let full = || RtError::Capacity {
             what: "simulated sockets",
             bound: sockets.sockets.len(),
-        })?;
+        };
+        let index = match sockets.index_of(requested).filter(|_| requested != 0) {
+            Some(index) if sockets.socket(index).is_some_and(|s| s.bound.get()) => {
+                return Err(RtError::DriverRefused {
+                    call: "bind a simulated port already bound",
+                    code: None,
+                });
+            }
+            Some(index) => sockets.take_free(index).ok_or_else(full)?,
+            None => sockets.free.pop().ok_or_else(full)?,
+        };
         if let Some(socket) = sockets.socket(index) {
             socket.bound.set(true);
             socket.held.set(0);
