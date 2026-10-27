@@ -57,6 +57,9 @@ const POINTS: u64 = 40;
 const STUCK: Duration = Duration::from_secs(120);
 /// How often a waiting driver or host looks again.
 const POLL: Duration = Duration::from_millis(2);
+/// What a failure of the lab's own connections starts with: it stops the lab, never taken for a
+/// node's refusal.
+const LAB: &str = "lab: ";
 
 type Fault = String;
 
@@ -169,6 +172,8 @@ struct Host {
     drill: PathBuf,
     /// The request a root helper waits on to stall this node's disk, and what it writes once done.
     stall: Option<(PathBuf, PathBuf)>,
+    /// Where each line passed to the node and its answer's first line go, with QUIVER_LAB_TRACE set.
+    trace: Option<Mutex<std::fs::File>>,
     child: Arc<Mutex<Option<Child>>>,
     talk: Mutex<Option<Talk>>,
     run: Mutex<Run>,
@@ -406,6 +411,17 @@ impl Host {
     }
 
     fn ask(&self, line: &str) -> String {
+        let answer = self.ask_node(line);
+        if let Some(trace) = &self.trace
+            && let Ok(mut file) = trace.lock()
+        {
+            let first = answer.lines().next().unwrap_or_default();
+            let _ = writeln!(file, "{:?} {line} => {first}", SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default());
+        }
+        answer
+    }
+
+    fn ask_node(&self, line: &str) -> String {
         let Ok(mut held) = self.talk.lock() else {
             return "error poisoned".into();
         };
@@ -459,10 +475,21 @@ fn host(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         (None, None) => None,
         _ => return Err("--stall-request and --stall-done go together".into()),
     };
+    let trace = match std::env::var_os("QUIVER_LAB_TRACE") {
+        Some(_) => Some(Mutex::new(
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(dir.join("trace.log"))
+                .map_err(|e| e.to_string())?,
+        )),
+        None => None,
+    };
     let host = Arc::new(Host {
         dir,
         drill,
         stall,
+        trace,
         child: Arc::new(Mutex::new(None)),
         talk: Mutex::new(None),
         run: Mutex::new(Host::new_run()),
@@ -523,10 +550,12 @@ impl Conn {
 
     fn line(&mut self) -> Result<String, Fault> {
         let mut line = String::new();
+        // An error here leaves the connection's lines unknown: the lab's own failure (`LAB`), never
+        // taken for the node's answer.
         match self.read.read_line(&mut line) {
-            Ok(0) => Err("the host closed its connection".into()),
+            Ok(0) => Err(format!("{LAB}the host closed its connection")),
             Ok(_) => Ok(line.trim_end().to_owned()),
-            Err(e) => Err(format!("the host's answer: {e}")),
+            Err(e) => Err(format!("{LAB}the host's answer: {e}")),
         }
     }
 
@@ -534,7 +563,7 @@ impl Conn {
     fn ask(&mut self, line: &str) -> Result<String, Fault> {
         writeln!(self.write, "{line}")
             .and_then(|()| self.write.flush())
-            .map_err(|e| format!("to the host: {e}"))?;
+            .map_err(|e| format!("{LAB}to the host: {e}"))?;
         let mut answer = self.line()?;
         let count = answer
             .strip_prefix("messages ")
@@ -873,13 +902,18 @@ impl Lab {
         let mut first = self.machine(through)?.talk.take().ok_or("lent")?;
         let mut second = self.machine(fallback)?.talk.take().ok_or("lent")?;
         let publisher = std::thread::spawn(move || {
-            let (mut acked, mut unknown) = (Vec::new(), Vec::new());
+            let (mut acked, mut unknown, mut failed) = (Vec::new(), Vec::new(), None);
             let mut on_second = false;
             for i in 0..RUN {
                 let payload = format!("{drill}-{phase}{i}");
                 let talk = if on_second { &mut second } else { &mut first };
                 match talk.publish(&payload) {
                     Ok(offset) => acked.push((payload, offset)),
+                    Err(why) if why.starts_with(LAB) => {
+                        unknown.push(payload);
+                        failed = Some(why);
+                        break;
+                    }
                     // Refused, or its process killed under it: its fate is unknown.
                     Err(_) => {
                         unknown.push(payload);
@@ -887,7 +921,7 @@ impl Lab {
                     }
                 }
             }
-            (acked, unknown, first, second)
+            (acked, unknown, failed, first, second)
         });
         // The kill comes at its point, from the victim's host, or once the run ended before it.
         let mut fired = None;
@@ -915,13 +949,16 @@ impl Lab {
                 return Err(format!("node {victim}'s kill: {killed}"));
             }
         }
-        let (acked, unknown, first, second) = publisher
+        let (acked, unknown, failed, first, second) = publisher
             .join()
             .map_err(|_| "the publisher's thread panicked".to_owned())?;
         self.machine(through)?.talk = Some(first);
         self.machine(fallback)?.talk = Some(second);
         heard.acked.extend(acked);
         heard.unknown.extend(unknown);
+        if let Some(why) = failed {
+            return Err(why);
+        }
         let began = Instant::now();
         self.spawn(victim)?;
         self.ready(victim)?;
@@ -999,7 +1036,7 @@ impl Lab {
                         heard.acked.insert(payload, offset);
                         Ok(Some(()))
                     }
-                    Err(why) if why.contains("ended") || why.contains("down") => Err(why),
+                    Err(why) if why.starts_with(LAB) || why.contains("ended") || why.contains("down") => Err(why),
                     // Refused while a leader is chosen: it may be appended yet.
                     Err(_) => {
                         heard.unknown.insert(payload);
