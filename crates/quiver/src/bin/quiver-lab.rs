@@ -27,7 +27,9 @@
 //! every node; once every node holds every acknowledged publish, each node's log is read back
 //! whole and held to what the publishers heard (every acknowledged publish at its offset, nothing
 //! twice, the three logs alike), and the topic group's term is read for the elections the drill
-//! cost. A line of JSON per drill goes to `--out`; the first drill that fails stops the lab.
+//! cost. A line of JSON per drill goes to `--out`. A drill that loses an acknowledged publish stops
+//! the lab; a request no host answers within STUCK is a hang, recorded with what every node says
+//! and followed by a fresh cluster, HANGS of them at most.
 //!
 //! `quiver-lab stall --hosts … --nodes … --stalled ID [--stalls K] [--every-ms R] [--seconds D]
 //! [--at-ms T] [--out FILE] [--work DIR]`
@@ -57,9 +59,11 @@ const POINTS: u64 = 40;
 const STUCK: Duration = Duration::from_secs(120);
 /// How often a waiting driver or host looks again.
 const POLL: Duration = Duration::from_millis(2);
-/// What a failure of the lab's own connections starts with: it stops the lab, never taken for a
-/// node's refusal.
+/// What a failure of the lab's own connections starts with: never taken for a node's refusal.
 const LAB: &str = "lab: ";
+/// The hangs a lab takes, each recorded with a snapshot and followed by a fresh cluster, before it
+/// stops: a request no host answered within STUCK.
+const HANGS: u64 = 10;
 
 type Fault = String;
 
@@ -559,19 +563,26 @@ fn host(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
 
 /// A connection to a host: one line out, its answer in.
 struct Conn {
+    address: String,
     write: TcpStream,
     read: BufReader<TcpStream>,
 }
 
 impl Conn {
     fn open(address: &str, token: &str) -> Result<Self, Fault> {
+        Self::open_within(address, token, STUCK)
+    }
+
+    /// A connection whose every answer comes within `patience`, or the lab's failure.
+    fn open_within(address: &str, token: &str, patience: Duration) -> Result<Self, Fault> {
         let stream = TcpStream::connect(address).map_err(|e| format!("{address}: {e}"))?;
         let _ = stream.set_nodelay(true);
         stream
-            .set_read_timeout(Some(STUCK))
+            .set_read_timeout(Some(patience))
             .map_err(|e| e.to_string())?;
         let read = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
         let mut conn = Self {
+            address: address.to_owned(),
             write: stream,
             read,
         };
@@ -586,9 +597,9 @@ impl Conn {
         // An error here leaves the connection's lines unknown: the lab's own failure (`LAB`), never
         // taken for the node's answer.
         match self.read.read_line(&mut line) {
-            Ok(0) => Err(format!("{LAB}the host closed its connection")),
+            Ok(0) => Err(format!("{LAB}{} closed its connection", self.address)),
             Ok(_) => Ok(line.trim_end().to_owned()),
-            Err(e) => Err(format!("{LAB}the host's answer: {e}")),
+            Err(e) => Err(format!("{LAB}{}'s answer: {e}", self.address)),
         }
     }
 
@@ -596,7 +607,7 @@ impl Conn {
     fn ask(&mut self, line: &str) -> Result<String, Fault> {
         writeln!(self.write, "{line}")
             .and_then(|()| self.write.flush())
-            .map_err(|e| format!("{LAB}to the host: {e}"))?;
+            .map_err(|e| format!("{LAB}to {}: {e}", self.address))?;
         let mut answer = self.line()?;
         let count = answer
             .strip_prefix("messages ")
@@ -749,6 +760,7 @@ impl Rng {
 struct Machine {
     id: u64,
     os: String,
+    address: String,
     talk: Option<Conn>,
     control: Conn,
 }
@@ -757,6 +769,7 @@ struct Lab {
     nodes: String,
     machines: Vec<Machine>,
     identities: Vec<(String, Vec<u8>)>,
+    token: String,
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -915,6 +928,33 @@ impl Lab {
             longest = longest.max(began.elapsed().as_millis());
         }
         Ok(longest)
+    }
+
+    /// Each node as its host and its process say, over fresh connections that wait 5 s for an
+    /// answer: what a hang leaves to look at (a node whose publish waits answers nothing).
+    fn snapshot(&self) -> String {
+        let mut said = Vec::new();
+        for m in &self.machines {
+            let answer = Conn::open_within(&m.address, &self.token, Duration::from_secs(5))
+                .and_then(|mut c| {
+                    let status = c.ask("status")?;
+                    let figures = c.node(&format!("figures {TOPIC}")).unwrap_or_else(|e| e);
+                    Ok(format!("{status}; {figures}"))
+                })
+                .unwrap_or_else(|e| e);
+            said.push(format!("node {} ({}): {answer}", m.id, m.os));
+        }
+        said.join(" | ")
+    }
+
+    /// Every host reached again on fresh connections: after a hang the old ones' lines are
+    /// unknown.
+    fn reconnect(&mut self) -> Result<(), Fault> {
+        for m in &mut self.machines {
+            m.control = Conn::open(&m.address, &self.token)?;
+            m.talk = Some(Conn::open(&m.address, &self.token)?);
+        }
+        Ok(())
     }
 
     /// The topic group's term: the highest any node knows.
@@ -1312,6 +1352,7 @@ fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::Fi
         machines.push(Machine {
             id: *id,
             os,
+            address: address.clone(),
             talk: Some(Conn::open(address, &token)?),
             control,
         });
@@ -1331,6 +1372,7 @@ fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::Fi
             nodes,
             machines,
             identities,
+            token,
         },
         record,
     ))
@@ -1369,6 +1411,7 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     let mut heard = Heard::default();
     // Elections at kills of a follower (each should cost none), and each kill of a leader's.
     let (mut lost_any, mut follower_elections, mut leader_elections) = (false, 0u64, Vec::new());
+    let mut hangs = 0u64;
     for n in first..first.saturating_add(drills) {
         if n == first || n.saturating_sub(1).checked_rem(fresh_every.max(1)) == Some(0) {
             lab.fresh()?;
@@ -1381,6 +1424,25 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             .unwrap_or(Kind::Leader);
         let (line, costs) = match lab.drill(n, kind, &mut rng, &mut heard) {
             Ok(drilled) => drilled,
+            // A request no host answered: a hang, not a loss. What each node says is kept, and the
+            // lab goes on with a fresh cluster, up to HANGS of them.
+            Err(why) if why.starts_with(LAB) && hangs < HANGS => {
+                hangs = hangs.saturating_add(1);
+                let line = format!(
+                    "{{\"drill\":{n},\"kind\":\"{}\",\"hung\":{:?},\"snapshot\":{:?}}}",
+                    kind.name(),
+                    why,
+                    lab.snapshot()
+                );
+                if let Some(file) = record.as_mut() {
+                    let _ = writeln!(file, "{line}");
+                }
+                out(&line);
+                lab.reconnect()?;
+                lab.fresh()?;
+                heard = Heard::default();
+                continue;
+            }
             Err(why) => {
                 lost_any = true;
                 let line = format!(
@@ -1410,7 +1472,7 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     let leader_kills = leader_elections.len();
     let without = leader_elections.iter().filter(|e| **e == 0).count();
     out(&format!(
-        "summary: {} drills, lost {}, elections at follower kills {follower_elections}, kills of a leader {leader_kills} ({without} without an election)",
+        "summary: {} drills, lost {}, hung {hangs}, elections at follower kills {follower_elections}, kills of a leader {leader_kills} ({without} without an election)",
         drills,
         if lost_any {
             "see the failure above"
