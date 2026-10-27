@@ -824,6 +824,9 @@ struct Kill {
     /// The persistence point the kill came at, counted from the run's start, had it come before
     /// the run's end.
     fired: Option<u64>,
+    /// When the driver saw the node down, by its own wall clock (ms): within a status poll of the
+    /// kill, and the clock the other nodes' logs on the driver's machine share.
+    at_ms: u128,
     ready_ms: u128,
     /// The topic group's term before it: the elections up to the next kill's (or the drill's end)
     /// are this kill's.
@@ -1059,6 +1062,7 @@ impl Lab {
         // The kill comes at its point, from the victim's host, or once the run ended before it.
         let mut fired = None;
         let began = Instant::now();
+        let mut at_ms = 0;
         while fired.is_none() && !publisher.is_finished() {
             let status = self.control(victim, "status")?;
             if status.starts_with("exited") {
@@ -1072,6 +1076,7 @@ impl Lab {
                 .and_then(|f| f.parse::<u64>().ok())
             {
                 fired = Some(at.saturating_sub(base));
+                at_ms = wall_ms();
             }
             if began.elapsed() > STUCK {
                 return Err(format!(
@@ -1085,6 +1090,7 @@ impl Lab {
             if !killed.starts_with("killed") && killed != "down" {
                 return Err(format!("node {victim}'s kill: {killed}"));
             }
+            at_ms = wall_ms();
         }
         let (acked, unknown, failed, first, second) = publisher
             .join()
@@ -1104,6 +1110,7 @@ impl Lab {
             leader,
             point,
             fired,
+            at_ms,
             ready_ms: began.elapsed().as_millis(),
             term,
         })
@@ -1280,7 +1287,7 @@ impl Lab {
             costs.push((kill.leader, elections));
             let _ = write!(
                 record,
-                "{}{{\"victim\":{},\"os\":\"{}\",\"leader\":{},\"point\":{},\"fired\":{},\"ready_ms\":{},\"elections\":{elections}}}",
+                "{}{{\"victim\":{},\"os\":\"{}\",\"leader\":{},\"point\":{},\"fired\":{},\"at_ms\":{},\"ready_ms\":{},\"elections\":{elections}}}",
                 if i == 0 { "" } else { "," },
                 kill.victim,
                 self.os(kill.victim),
@@ -1288,6 +1295,7 @@ impl Lab {
                 kill.point,
                 kill.fired
                     .map_or_else(|| "null".to_owned(), |f| f.to_string()),
+                kill.at_ms,
                 kill.ready_ms
             );
         }
