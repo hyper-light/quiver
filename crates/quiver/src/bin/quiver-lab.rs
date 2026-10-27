@@ -787,7 +787,14 @@ struct Kill {
     /// the run's end.
     fired: Option<u64>,
     ready_ms: u128,
+    /// The topic group's term before it: the elections up to the next kill's (or the drill's end)
+    /// are this kill's.
+    term: u64,
 }
+
+/// A drill's record, and each of its kills as (whether it killed the leader, the elections it
+/// cost).
+type Drilled = (String, Vec<(bool, u64)>);
 
 fn wait_for<T>(what: &str, mut f: impl FnMut() -> Result<Option<T>, Fault>) -> Result<T, Fault> {
     let began = Instant::now();
@@ -947,6 +954,7 @@ impl Lab {
         point: u64,
         heard: &mut Heard,
     ) -> Result<Kill, Fault> {
+        let term = self.term()?;
         let leader = self.talk(victim)?.figures()?.0;
         let fallback = self
             .ids()
@@ -1031,6 +1039,7 @@ impl Lab {
             point,
             fired,
             ready_ms: began.elapsed().as_millis(),
+            term,
         })
     }
 
@@ -1071,7 +1080,7 @@ impl Lab {
         kind: Kind,
         rng: &mut Rng,
         heard: &mut Heard,
-    ) -> Result<String, Fault> {
+    ) -> Result<Drilled, Fault> {
         let began = Instant::now();
         let rtt_before = self.rtt_ms()?;
         let term_before = self.term()?;
@@ -1189,10 +1198,16 @@ impl Lab {
             heard.unknown.len(),
             began.elapsed().as_millis()
         );
+        let mut costs = Vec::new();
         for (i, kill) in kills.iter().enumerate() {
+            let next = kills
+                .get(i.saturating_add(1))
+                .map_or(term_after, |k| k.term);
+            let elections = next.saturating_sub(kill.term);
+            costs.push((kill.leader, elections));
             let _ = write!(
                 record,
-                "{}{{\"victim\":{},\"os\":\"{}\",\"leader\":{},\"point\":{},\"fired\":{},\"ready_ms\":{}}}",
+                "{}{{\"victim\":{},\"os\":\"{}\",\"leader\":{},\"point\":{},\"fired\":{},\"ready_ms\":{},\"elections\":{elections}}}",
                 if i == 0 { "" } else { "," },
                 kill.victim,
                 self.os(kill.victim),
@@ -1204,7 +1219,7 @@ impl Lab {
             );
         }
         record.push_str("]}");
-        Ok(record)
+        Ok((record, costs))
     }
 }
 
@@ -1345,6 +1360,7 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     ));
     let kinds = [Kind::Leader, Kind::Follower, Kind::Own, Kind::TwoInTurn];
     let mut heard = Heard::default();
+    // Elections at kills of a follower (each should cost none), and each kill of a leader's.
     let (mut lost_any, mut follower_elections, mut leader_elections) = (false, 0u64, Vec::new());
     for n in first..first.saturating_add(drills) {
         if n == first || n.saturating_sub(1).checked_rem(fresh_every.max(1)) == Some(0) {
@@ -1356,8 +1372,8 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             .and_then(|i| kinds.get(i))
             .copied()
             .unwrap_or(Kind::Leader);
-        let line = match lab.drill(n, kind, &mut rng, &mut heard) {
-            Ok(line) => line,
+        let (line, costs) = match lab.drill(n, kind, &mut rng, &mut heard) {
+            Ok(drilled) => drilled,
             Err(why) => {
                 lost_any = true;
                 let line = format!(
@@ -1372,15 +1388,12 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
                 break;
             }
         };
-        let elections = line
-            .split("\"elections\":")
-            .nth(1)
-            .and_then(|r| r.split(',').next())
-            .and_then(|e| e.parse::<u64>().ok())
-            .unwrap_or(0);
-        match kind {
-            Kind::Follower => follower_elections = follower_elections.saturating_add(elections),
-            _ => leader_elections.push(elections),
+        for (leader, elections) in costs {
+            if leader {
+                leader_elections.push(elections);
+            } else {
+                follower_elections = follower_elections.saturating_add(elections);
+            }
         }
         if let Some(file) = record.as_mut() {
             let _ = writeln!(file, "{line}");
@@ -1390,7 +1403,7 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     let leader_kills = leader_elections.len();
     let without = leader_elections.iter().filter(|e| **e == 0).count();
     out(&format!(
-        "summary: {} drills, lost {}, elections at follower kills {follower_elections}, drills killing a leader {leader_kills} ({without} without an election)",
+        "summary: {} drills, lost {}, elections at follower kills {follower_elections}, kills of a leader {leader_kills} ({without} without an election)",
         drills,
         if lost_any {
             "see the failure above"
