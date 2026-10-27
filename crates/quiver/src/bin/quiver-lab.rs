@@ -3,9 +3,10 @@
 //! on Windows) and started again on what its directory holds, every acknowledged publish read back
 //! from every node after each drill. A lab's program, never a product's.
 //!
-//! `quiver-lab host --listen ADDRESS --dir DIR [--drill PATH]`
+//! `quiver-lab host --listen ADDRESS --dir DIR --token-file PATH [--drill PATH]`
 //!
-//! One machine's part. It starts its node when told, passes the driver's lines to it and its answers
+//! One machine's part. Every connection says the lab's token first (`auth TOKEN`, the token the
+//! file holds, which the driver is given too); one that doesn't is closed. It starts its node when told, passes the driver's lines to it and its answers
 //! back, and kills it, at once or at its K-th persistence point from now. Each connection is
 //! answered on a thread of its own, its lines in order, so a publish can wait on one while the kill
 //! comes on another. Lines: `ping`; `put PATH HEX` (a file under DIR); `wipe` (the node killed, its
@@ -17,7 +18,7 @@
 //! with dm-delay) and answers once the helper says it's done.
 //!
 //! `quiver-lab drive --hosts 1=ADDRESS,2=ADDRESS,3=ADDRESS --nodes 1=ADDRESS,2=ADDRESS,3=ADDRESS
-//! --drills N [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
+//! --token-file PATH --drills N [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
 //!
 //! The drills. Each kills one node, or two in turn, while a run of publishes goes through another:
 //! the leader (publishing through a follower), a follower, the leader with the publisher's
@@ -83,6 +84,27 @@ fn flags(args: &[String]) -> Result<BTreeMap<String, String>, Fault> {
         found.insert(name.to_owned(), value.clone());
     }
     Ok(found)
+}
+
+/// The lab's token, from the file `--token-file` names: what each connection to a host says first.
+fn token(flags: &BTreeMap<String, String>) -> Result<String, Fault> {
+    let path = flags.get("token-file").ok_or("--token-file is needed")?;
+    let token = std::fs::read_to_string(path).map_err(|e| format!("{path}: {e}"))?;
+    let token = token.trim().to_owned();
+    if token.len() < 32 {
+        return Err(format!("{path}: a token of 32 characters at least"));
+    }
+    Ok(token)
+}
+
+/// Whether `said` is `token`, every byte looked at whatever the first that differs.
+fn same(said: &str, token: &str) -> bool {
+    said.len() == token.len()
+        && said
+            .bytes()
+            .zip(token.bytes())
+            .fold(0u8, |differ, (a, b)| differ | (a ^ b))
+            == 0
 }
 
 fn hex(bytes: &[u8]) -> String {
@@ -287,9 +309,17 @@ impl Host {
         match verb {
             "ping" => format!("pong {}", std::env::consts::OS),
             "put" => match rest.split_once(' ') {
-                Some((path, data)) if !path.contains("..") => self
-                    .put(path, data)
-                    .map_or_else(|e| format!("error {e}"), |()| "ok".to_owned()),
+                // Only a path below the host's directory: never `..`, a root or a prefix, which
+                // `Path::join` would take in its place.
+                Some((path, data))
+                    if Path::new(path)
+                        .components()
+                        .all(|c| matches!(c, std::path::Component::Normal(_))) =>
+                {
+                    self
+                        .put(path, data)
+                        .map_or_else(|e| format!("error {e}"), |()| "ok".to_owned())
+                }
                 _ => "error put PATH HEX".into(),
             },
             "wipe" => {
@@ -438,16 +468,25 @@ fn host(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         run: Mutex::new(Host::new_run()),
         log: Arc::new(Mutex::new(log)),
     });
+    let token = Arc::new(token(flags)?);
     let listener = TcpListener::bind(listen).map_err(|e| format!("{listen}: {e}"))?;
     out(&format!("listening {listen}"));
     for stream in listener.incoming() {
         let Ok(stream) = stream else { continue };
-        let host = Arc::clone(&host);
+        let (host, token) = (Arc::clone(&host), Arc::clone(&token));
         std::thread::spawn(move || {
             let _ = stream.set_nodelay(true);
             let Ok(write) = stream.try_clone() else { return };
             let mut write = std::io::BufWriter::new(write);
-            for line in BufReader::new(stream).lines() {
+            let mut lines = BufReader::new(stream).lines();
+            // The lab's token first, or nothing.
+            let said = lines.next().and_then(Result::ok).unwrap_or_default();
+            let authorized = said.strip_prefix("auth ").is_some_and(|t| same(t.trim_end(), &token));
+            let first = if authorized { "ok" } else { "error auth" };
+            if writeln!(write, "{first}").and_then(|()| write.flush()).is_err() || !authorized {
+                return;
+            }
+            for line in lines {
                 let Ok(line) = line else { return };
                 let answer = host.answer(line.trim_end());
                 if writeln!(write, "{answer}").and_then(|()| write.flush()).is_err() {
@@ -468,14 +507,18 @@ struct Conn {
 }
 
 impl Conn {
-    fn open(address: &str) -> Result<Self, Fault> {
+    fn open(address: &str, token: &str) -> Result<Self, Fault> {
         let stream = TcpStream::connect(address).map_err(|e| format!("{address}: {e}"))?;
         let _ = stream.set_nodelay(true);
         stream
             .set_read_timeout(Some(STUCK))
             .map_err(|e| e.to_string())?;
         let read = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
-        Ok(Self { write: stream, read })
+        let mut conn = Self { write: stream, read };
+        match conn.ask(&format!("auth {token}"))?.as_str() {
+            "ok" => Ok(conn),
+            other => Err(format!("{address}: {other}")),
+        }
     }
 
     fn line(&mut self) -> Result<String, Fault> {
@@ -1046,12 +1089,13 @@ fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::Fi
         "identities.key".to_owned(),
         std::fs::read(work.join("identities.key")).map_err(|e| e.to_string())?,
     ));
+    let token = token(flags)?;
     let mut machines = Vec::new();
     for (id, address) in &hosts {
-        let mut control = Conn::open(address)?;
+        let mut control = Conn::open(address, &token)?;
         let pong = control.ask("ping")?;
         let os = pong.strip_prefix("pong ").ok_or_else(|| format!("{address}: {pong}"))?.to_owned();
-        machines.push(Machine { id: *id, os, talk: Some(Conn::open(address)?), control });
+        machines.push(Machine { id: *id, os, talk: Some(Conn::open(address, &token)?), control });
     }
     let record = match flags.get("out") {
         Some(path) => Some(std::fs::OpenOptions::new().create(true).append(true).open(path).map_err(|e| format!("{path}: {e}"))?),
