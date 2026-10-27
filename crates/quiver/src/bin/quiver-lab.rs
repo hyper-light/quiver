@@ -81,6 +81,14 @@ fn pause(d: Duration) {
     std::thread::park_timeout(d);
 }
 
+/// The wall clock, ms since the epoch: the node logs' stamp, so a kill on one machine and what
+/// the nodes on another told after it line up (each machine's clock its own).
+fn wall_ms() -> u128 {
+    std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.as_millis())
+}
+
 fn flags(args: &[String]) -> Result<BTreeMap<String, String>, Fault> {
     let mut found = BTreeMap::new();
     let mut at = args.iter();
@@ -271,11 +279,24 @@ impl Host {
                         if at != 0 && n >= at && fired.load(Ordering::Acquire) == u64::MAX {
                             fired.store(n, Ordering::Release);
                             kill_now(&child_handle);
+                            if let Ok(mut file) = log.lock() {
+                                let _ = writeln!(
+                                    file,
+                                    "{} {:>9.3} lab: killed at its persistence point {n}",
+                                    wall_ms(),
+                                    began.elapsed().as_secs_f64()
+                                );
+                            }
                         }
                     }
                     _ => {
                         if let Ok(mut file) = log.lock() {
-                            let _ = writeln!(file, "{:>9.3} {line}", began.elapsed().as_secs_f64());
+                            let _ = writeln!(
+                                file,
+                                "{} {:>9.3} {line}",
+                                wall_ms(),
+                                began.elapsed().as_secs_f64()
+                            );
                         }
                     }
                 }
@@ -367,6 +388,9 @@ impl Host {
             "kill" => {
                 let frames = self.frames();
                 if kill_now(&self.child) {
+                    if let Ok(mut file) = self.log.lock() {
+                        let _ = writeln!(file, "{} lab: killed at once, frames {frames}", wall_ms());
+                    }
                     format!("killed {frames}")
                 } else {
                     "down".into()

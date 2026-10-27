@@ -15,7 +15,8 @@
 //! `ended WHY` if its host ended; and, every 5 s while a publish waits past 5 s, `slow NAME: …`
 //! with what the topic's publisher and member know, since the node takes no line meanwhile; and,
 //! every 5 s while the topic's member lacks a connection to a peer or a publish waits past 5 s,
-//! `wire NAME: …` with what its endpoints hold and their sockets did in those 5 s.
+//! `wire NAME: …` with what its endpoints hold and their sockets did in those 5 s; and each time a
+//! topic's member's term, leader or lead changes, `leader NAME: term T, leader L, leads B`.
 //! It ends at the end of its input.
 
 use std::future::Future;
@@ -150,6 +151,9 @@ fn answer(node: &Node, line: &str) -> String {
     }
 }
 
+/// A topic's member's term, the leader it knows, and whether it leads.
+type Led = (u64, Option<u64>, bool);
+
 /// The ids a mask of [`WireFigures`] holds, in order.
 fn ids(mask: u64) -> Vec<u64> {
     (0..64).filter(|id| mask & (1 << id) != 0).collect()
@@ -222,11 +226,28 @@ fn run(args: &[String]) -> Result<(), String> {
             // Each topic's figures as they were SLOW ago: a member that answered publishes with
             // the leader, or parked them, since then is told, with what else it did meanwhile.
             let mut sampled: Option<(std::time::Instant, PersistedStats)> = None;
+            // Each topic's member's term, leader and lead as last told.
+            let mut led: Vec<(String, Led)> = Vec::new();
             while !done.load(Ordering::Relaxed) {
                 let stats = node.persisted_stats().unwrap_or_default();
                 if let (Some(why), false) = (&stats.ended, ended) {
                     ended = true;
                     let _ = writeln!(std::io::stderr().lock(), "ended {why}");
+                }
+                for (name, g) in &stats.topics {
+                    let state = (g.term, g.leader, g.leads);
+                    match led.iter_mut().find(|(n, _)| n == name) {
+                        Some((_, was)) if *was == state => continue,
+                        Some((_, was)) => *was = state,
+                        None => led.push((name.clone(), state)),
+                    }
+                    let _ = writeln!(
+                        std::io::stderr().lock(),
+                        "leader {name}: term {}, leader {:?}, leads {}",
+                        g.term,
+                        g.leader,
+                        g.leads
+                    );
                 }
                 let now = std::time::Instant::now();
                 waiting.retain(|(name, _, _)| {
