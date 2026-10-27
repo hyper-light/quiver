@@ -1021,13 +1021,15 @@ impl Host {
 
     /// The node's figures, for its owner.
     fn figures(&mut self) {
-        let catalog = GroupFigures::of(&self.catalog_seat, &self.catalog_publisher, 0);
+        let catalog = GroupFigures::of(&mut self.catalog_seat, &mut self.catalog_publisher, 0);
         let topics = self
             .topics
-            .iter()
+            .iter_mut()
             .map(|(incarnation, held)| {
-                let figures = match &held.slot {
-                    Some(Slot::Open(seat)) => GroupFigures::of(seat, &held.publisher, *incarnation),
+                let figures = match &mut held.slot {
+                    Some(Slot::Open(seat)) => {
+                        GroupFigures::of(seat, &mut held.publisher, *incarnation)
+                    }
                     _ => GroupFigures {
                         incarnation: *incarnation,
                         ..GroupFigures::default()

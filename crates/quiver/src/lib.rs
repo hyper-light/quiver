@@ -22,7 +22,7 @@ pub mod node;
 pub mod persisted;
 
 pub use node::{Clock, Node, NodeConfig, Stats, wall_clock};
-pub use persisted::{GroupFigures, PersistedConfig, PersistedStats};
+pub use persisted::{GroupFigures, PersistedConfig, PersistedStats, WireFigures};
 
 /// What `quiver` prints for its arguments, where, and the exit status.
 #[derive(Debug, PartialEq, Eq)]

@@ -940,7 +940,8 @@ impl Lab {
                 .and_then(|mut c| {
                     let status = c.ask("status")?;
                     let figures = c.node(&format!("figures {TOPIC}")).unwrap_or_else(|e| e);
-                    Ok(format!("{status}; {figures}"))
+                    let wire = c.node(&format!("wire {TOPIC}")).unwrap_or_else(|e| e);
+                    Ok(format!("{status}; {figures}; {wire}"))
                 })
                 .unwrap_or_else(|e| e);
             said.push(format!("node {} ({}): {answer}", m.id, m.os));

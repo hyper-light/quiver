@@ -310,6 +310,31 @@ impl Redial {
     }
 }
 
+/// What `driver`'s endpoint holds and its sockets did, `peers` the ids it is to reach and
+/// `redials` those it is to dial again (`super::WireFigures`).
+fn wire(driver: &mut Drv, peers: impl Iterator<Item = u64>, redials: usize) -> super::WireFigures {
+    let bit = |id: u64| 1u64.checked_shl(u32::try_from(id).unwrap_or(u32::MAX)).unwrap_or(0);
+    let mut established = Vec::new();
+    driver.endpoint().established(&mut established);
+    let stats = driver.endpoint().stats();
+    let (listener, sockets) = (driver.stats(), driver.peer_stats());
+    super::WireFigures {
+        peers: peers.fold(0, |mask, id| mask | bit(id)),
+        up: established.iter().fold(0, |mask, (id, _)| mask | bit(*id)),
+        redials,
+        connections: stats.connections,
+        pending: stats.admission.pending,
+        admitted: stats.admission.admitted,
+        replaced: stats.admission.replaced,
+        refused_busy: stats.admission.refused_busy,
+        out: listener.sent.saturating_add(sockets.sent),
+        listener_in: listener.received,
+        peers_in: sockets.received,
+        send_errors: listener.send_errors.saturating_add(sockets.send_errors),
+        astray: listener.astray.saturating_add(sockets.astray),
+    }
+}
+
 /// What a member is opened from, kept to open it again after it fences.
 #[derive(Debug, Clone)]
 pub(crate) struct Plan {
@@ -558,6 +583,12 @@ impl Seat {
 
     pub(crate) fn part(&self) -> &Part {
         self.member.node().part()
+    }
+
+    /// What the member's endpoint holds and its sockets did.
+    pub(crate) fn wire(&mut self) -> super::WireFigures {
+        let peers = self.plan.peers.iter().map(|(id, _)| *id);
+        wire(&mut self.driver, peers, self.redial.due.len())
     }
 
     /// Under the simulation, everything the member and its endpoint say of themselves.
@@ -1128,6 +1159,12 @@ impl Publisher {
 
     pub(crate) fn state(&self) -> (Option<u64>, usize, usize) {
         (self.target, self.owed.len(), self.queued.len())
+    }
+
+    /// What the publisher's endpoint holds and its sockets did.
+    pub(crate) fn wire(&mut self) -> super::WireFigures {
+        let nodes = self.nodes.iter().map(|(id, _)| *id);
+        wire(&mut self.driver, nodes, self.redial.due.len())
     }
 
     pub(crate) fn deadline(&self, wait: Duration) -> Option<Instant> {

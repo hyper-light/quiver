@@ -9,10 +9,13 @@
 //! It says `ready RUN` once it has caught up with its catalog's group. Each line it reads is answered by one line:
 //! `create NAME` by `ok` or `refused WHY`; `publish NAME PAYLOAD` by `acked OFFSET` or
 //! `refused WHY`; `read NAME FROM` by `messages COUNT NEXT` and the messages, a line each
-//! (`OFFSET PAYLOAD`); `figures NAME` by `figures LEADS TERM END`. Standard error carries
+//! (`OFFSET PAYLOAD`); `figures NAME` by `figures LEADS TERM END`; `wire NAME` by `wire …`, what
+//! the topic's endpoints hold and did since they began. Standard error carries
 //! `frames N` each time the frames its logs wrote and flushed reach N: its persistence points;
 //! `ended WHY` if its host ended; and, every 5 s while a publish waits past 5 s, `slow NAME: …`
-//! with what the topic's publisher and member know, since the node takes no line meanwhile.
+//! with what the topic's publisher and member know, since the node takes no line meanwhile; and,
+//! every 5 s while the topic's member lacks a connection to a peer or a publish waits past 5 s,
+//! `wire NAME: …` with what its endpoints hold and their sockets did in those 5 s.
 //! It ends at the end of its input.
 
 use std::future::Future;
@@ -26,7 +29,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
-use quiver::{Node, NodeConfig, PersistedConfig, PersistedStats};
+use quiver::{GroupFigures, Node, NodeConfig, PersistedConfig, PersistedStats, WireFigures};
 use quiver_api::{Class, Topic, Topics};
 
 /// How often the frames its logs wrote are looked at: a persistence point is told within this.
@@ -138,8 +141,48 @@ fn answer(node: &Node, line: &str) -> String {
             let end = block_on(node.bounds(name)).map_or(0, |(_, end)| end);
             format!("figures {} {} {end}", u8::from(topic.leads), topic.term)
         }
+        ["wire", name] => {
+            let stats = node.persisted_stats().unwrap_or_default();
+            let topic = stats.topic(name).copied().unwrap_or_default();
+            format!("wire {}", wires(&topic, &GroupFigures::default()))
+        }
         _ => format!("refused unknown command {line:?}"),
     }
+}
+
+/// The ids a mask of [`WireFigures`] holds, in order.
+fn ids(mask: u64) -> Vec<u64> {
+    (0..64).filter(|id| mask & (1 << id) != 0).collect()
+}
+
+/// What one endpoint holds now, and what it did since `was`.
+fn wire(now: &WireFigures, was: &WireFigures) -> String {
+    let grew = |now: u64, then: u64| now.saturating_sub(then);
+    format!(
+        "up {:?} of {:?}, redials {}, connections {}, pending {}; admitted +{}, replaced +{}, busy +{}, out +{}, in +{} listener +{} peers, send errors +{}, astray +{}",
+        ids(now.up),
+        ids(now.peers),
+        now.redials,
+        now.connections,
+        now.pending,
+        grew(now.admitted, was.admitted),
+        grew(now.replaced, was.replaced),
+        grew(now.refused_busy, was.refused_busy),
+        grew(now.out, was.out),
+        grew(now.listener_in, was.listener_in),
+        grew(now.peers_in, was.peers_in),
+        grew(now.send_errors, was.send_errors),
+        grew(now.astray, was.astray),
+    )
+}
+
+/// What a topic's member's endpoint and its publisher's hold now, and what they did since `was`.
+fn wires(now: &GroupFigures, was: &GroupFigures) -> String {
+    format!(
+        "member {}; publisher {}",
+        wire(&now.member_wire, &was.member_wire),
+        wire(&now.publisher_wire, &was.publisher_wire)
+    )
 }
 
 fn run(args: &[String]) -> Result<(), String> {
@@ -201,6 +244,18 @@ fn run(args: &[String]) -> Result<(), String> {
                                 continue;
                             };
                             let grew = |now: u64, then: u64| now.saturating_sub(then);
+                            let short = g.member_wire.up & g.member_wire.peers != g.member_wire.peers;
+                            let slow = waiting.iter().any(|(n, since, _)| {
+                                n == name && now.saturating_duration_since(*since) >= SLOW
+                            });
+                            if short || slow {
+                                let _ = writeln!(
+                                    std::io::stderr().lock(),
+                                    "wire {name}: in {:.0} s {}",
+                                    SLOW.as_secs_f64(),
+                                    wires(g, was)
+                                );
+                            }
                             let (redirected, parked) = (
                                 grew(g.redirected, was.redirected),
                                 grew(g.parked, was.parked),

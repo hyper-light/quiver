@@ -209,10 +209,41 @@ pub struct GroupFigures {
     pub relieved: u64,
     pub answers_waited: u64,
     pub terms: u64,
+    /// What the member's endpoint and the publisher's hold and what their sockets did.
+    pub member_wire: WireFigures,
+    pub publisher_wire: WireFigures,
+}
+
+/// What one of a node's endpoints holds and what its sockets did, as its host last looked: the
+/// evidence for a node cut off from its peers while its process runs (kiln's CP-T2.2 step 7, the
+/// publisher-after-kill plan's step 1).
+#[derive(Debug, Clone, Copy, Default, PartialEq, Eq)]
+pub struct WireFigures {
+    /// The peers it is to reach, and those it holds an identified connection to, a bit each by id
+    /// (ids under 64); those it is to dial again.
+    pub peers: u64,
+    pub up: u64,
+    pub redials: usize,
+    /// Connections held in any state, and handshakes under way.
+    pub connections: usize,
+    pub pending: usize,
+    /// Connections admitted so far, those that replaced one of their identity's, and those refused
+    /// for an identity at its bound with none of its connections idle (`Refusal::Busy`).
+    pub admitted: u64,
+    pub replaced: u64,
+    pub refused_busy: u64,
+    /// Datagrams sent and received on the listener's socket, and on its peers' sockets (Linux's
+    /// socket a connection: the driver's module doc), the sends the kernel refused, and the
+    /// receives that told of an earlier datagram astray.
+    pub out: u64,
+    pub listener_in: u64,
+    pub peers_in: u64,
+    pub send_errors: u64,
+    pub astray: u64,
 }
 
 impl GroupFigures {
-    fn of(seat: &group::Seat, publisher: &group::Publisher, incarnation: u64) -> Self {
+    fn of(seat: &mut group::Seat, publisher: &mut group::Publisher, incarnation: u64) -> Self {
         let leader = seat.member.leader();
         let stats = seat.member.stats();
         Self {
@@ -240,6 +271,8 @@ impl GroupFigures {
             relieved: stats.relieved,
             answers_waited: stats.answers_waited,
             terms: stats.terms,
+            member_wire: seat.wire(),
+            publisher_wire: publisher.wire(),
         }
     }
 }
