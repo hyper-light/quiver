@@ -197,6 +197,18 @@ pub struct GroupFigures {
     pub connects: u64,
     pub losses: u64,
     pub dials_refused: u64,
+    /// What this node's member did with publishes, as Focal's member counts it: proposed while
+    /// it led, parked while the replica could take no more, answered with the leader (sent again
+    /// by their publisher: the leader's own name when it couldn't keep one), the drives its replica
+    /// refused, the inputs that waited for the window's memory, the answers that waited for their
+    /// publisher's lane, and the terms it saw begin.
+    pub proposed: u64,
+    pub parked: u64,
+    pub redirected: u64,
+    pub refused_drives: u64,
+    pub relieved: u64,
+    pub answers_waited: u64,
+    pub terms: u64,
 }
 
 impl GroupFigures {
@@ -221,6 +233,13 @@ impl GroupFigures {
             connects: publisher.stats.connects,
             losses: publisher.stats.losses,
             dials_refused: publisher.stats.dials_refused,
+            proposed: stats.proposed,
+            parked: stats.parked,
+            redirected: stats.redirected,
+            refused_drives: stats.refused_drives,
+            relieved: stats.relieved,
+            answers_waited: stats.answers_waited,
+            terms: stats.terms,
         }
     }
 }

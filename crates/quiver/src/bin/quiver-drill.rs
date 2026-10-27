@@ -26,7 +26,7 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::task::{Context, Poll, Wake, Waker};
 use std::time::Duration;
 
-use quiver::{Node, NodeConfig, PersistedConfig};
+use quiver::{Node, NodeConfig, PersistedConfig, PersistedStats};
 use quiver_api::{Class, Topic, Topics};
 
 /// How often the frames its logs wrote are looked at: a persistence point is told within this.
@@ -176,6 +176,9 @@ fn run(args: &[String]) -> Result<(), String> {
             // told: a publish that waits past SLOW is told every SLOW, with what the publisher
             // knows, since the node takes no line while one waits (kiln's CP-T2.2 step 7).
             let mut waiting: Vec<(String, std::time::Instant, std::time::Instant)> = Vec::new();
+            // Each topic's figures as they were SLOW ago: a member that answered publishes with
+            // the leader, or parked them, since then is told, with what else it did meanwhile.
+            let mut sampled: Option<(std::time::Instant, PersistedStats)> = None;
             while !done.load(Ordering::Relaxed) {
                 let stats = node.persisted_stats().unwrap_or_default();
                 if let (Some(why), false) = (&stats.ended, ended) {
@@ -188,6 +191,41 @@ fn run(args: &[String]) -> Result<(), String> {
                         .topic(name)
                         .is_some_and(|g| g.owed > 0 || g.queued > 0)
                 });
+                if sampled
+                    .as_ref()
+                    .is_none_or(|(at, _)| now.saturating_duration_since(*at) >= SLOW)
+                {
+                    if let Some((_, before)) = &sampled {
+                        for (name, g) in &stats.topics {
+                            let Some(was) = before.topic(name) else {
+                                continue;
+                            };
+                            let grew = |now: u64, then: u64| now.saturating_sub(then);
+                            let (redirected, parked) = (
+                                grew(g.redirected, was.redirected),
+                                grew(g.parked, was.parked),
+                            );
+                            if redirected == 0 && parked == 0 {
+                                continue;
+                            }
+                            let _ = writeln!(
+                                std::io::stderr().lock(),
+                                "member {name}: leads {}, leader {:?} in term {}; in {:.0} s proposed +{}, parked +{parked}, redirected +{redirected}, refused drives +{}, relieved +{}, answers waited +{}, terms +{}; applied {}",
+                                g.leads,
+                                g.leader,
+                                g.term,
+                                SLOW.as_secs_f64(),
+                                grew(g.proposed, was.proposed),
+                                grew(g.refused_drives, was.refused_drives),
+                                grew(g.relieved, was.relieved),
+                                grew(g.answers_waited, was.answers_waited),
+                                grew(g.terms, was.terms),
+                                g.applied
+                            );
+                        }
+                    }
+                    sampled = Some((now, stats.clone()));
+                }
                 for (name, g) in &stats.topics {
                     if g.owed == 0 && g.queued == 0 {
                         continue;
