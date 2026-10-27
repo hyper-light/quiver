@@ -895,6 +895,21 @@ impl Lab {
         })
     }
 
+    /// The longest round trip of a `ping` to any host, in milliseconds: the network's health
+    /// around a drill, so an election can be told from a stall of the network.
+    fn rtt_ms(&mut self) -> Result<u128, Fault> {
+        let mut longest = 0;
+        for id in self.ids() {
+            let began = Instant::now();
+            let pong = self.control(id, "ping")?;
+            if !pong.starts_with("pong") {
+                return Err(format!("node {id}'s host: {pong}"));
+            }
+            longest = longest.max(began.elapsed().as_millis());
+        }
+        Ok(longest)
+    }
+
     /// The topic group's term: the highest any node knows.
     fn term(&mut self) -> Result<u64, Fault> {
         let mut term = 0;
@@ -1058,6 +1073,7 @@ impl Lab {
         heard: &mut Heard,
     ) -> Result<String, Fault> {
         let began = Instant::now();
+        let rtt_before = self.rtt_ms()?;
         let term_before = self.term()?;
         let leader_before = self.leader()?;
         let ids = self.ids();
@@ -1163,8 +1179,9 @@ impl Lab {
         check(heard, &logs).map_err(|why| format!("drill {n} ({}): {why}", kind.name()))?;
         let term_after = self.term()?;
         let leader_after = self.leader()?;
+        let rtt_after = self.rtt_ms()?;
         let mut record = format!(
-            "{{\"drill\":{n},\"kind\":\"{}\",\"term_before\":{term_before},\"term_after\":{term_after},\"elections\":{},\"leader_before\":{leader_before},\"leader_after\":{leader_after},\"messages\":{},\"acked\":{},\"unknown\":{},\"ms\":{},\"kills\":[",
+            "{{\"drill\":{n},\"kind\":\"{}\",\"rtt_ms\":[{rtt_before},{rtt_after}],\"term_before\":{term_before},\"term_after\":{term_after},\"elections\":{},\"leader_before\":{leader_before},\"leader_after\":{leader_after},\"messages\":{},\"acked\":{},\"unknown\":{},\"ms\":{},\"kills\":[",
             kind.name(),
             term_after.saturating_sub(term_before),
             logs.first().map_or(0, |(_, l)| l.len()),
