@@ -18,7 +18,8 @@
 //! with dm-delay) and answers once the helper says it's done.
 //!
 //! `quiver-lab drive --hosts 1=ADDRESS,2=ADDRESS,3=ADDRESS --nodes 1=ADDRESS,2=ADDRESS,3=ADDRESS
-//! --token-file PATH --drills N [--first F] [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
+//! --token-file PATH --drills N [--first F] [--seed S] [--fresh-every M] [--out FILE] [--work DIR]
+//! [--keep-hung yes]`
 //!
 //! The drills. Each kills one node, or two in turn, while a run of publishes goes through another:
 //! the leader (publishing through a follower), a follower, the leader with the publisher's
@@ -1412,6 +1413,13 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     // Elections at kills of a follower (each should cost none), and each kill of a leader's.
     let (mut lost_any, mut follower_elections, mut leader_elections) = (false, 0u64, Vec::new());
     let mut hangs = 0u64;
+    // `--keep-hung`: the first hang stops the lab with the cluster left as it hung, its stuck node
+    // there to look at (its threads, its time), where otherwise the lab goes on, fresh.
+    let hangs_allowed = if flags.contains_key("keep-hung") {
+        0
+    } else {
+        HANGS
+    };
     for n in first..first.saturating_add(drills) {
         if n == first || n.saturating_sub(1).checked_rem(fresh_every.max(1)) == Some(0) {
             lab.fresh()?;
@@ -1426,7 +1434,7 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             Ok(drilled) => drilled,
             // A request no host answered: a hang, not a loss. What each node says is kept, and the
             // lab goes on with a fresh cluster, up to HANGS of them.
-            Err(why) if why.starts_with(LAB) && hangs < HANGS => {
+            Err(why) if why.starts_with(LAB) && hangs < hangs_allowed => {
                 hangs = hangs.saturating_add(1);
                 let line = format!(
                     "{{\"drill\":{n},\"kind\":\"{}\",\"hung\":{:?},\"snapshot\":{:?}}}",
@@ -1445,10 +1453,16 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             }
             Err(why) => {
                 lost_any = true;
+                let snapshot = if why.starts_with(LAB) {
+                    lab.snapshot()
+                } else {
+                    String::new()
+                };
                 let line = format!(
-                    "{{\"drill\":{n},\"kind\":\"{}\",\"failed\":{:?}}}",
+                    "{{\"drill\":{n},\"kind\":\"{}\",\"failed\":{:?},\"snapshot\":{:?}}}",
                     kind.name(),
-                    why
+                    why,
+                    snapshot
                 );
                 if let Some(file) = record.as_mut() {
                     let _ = writeln!(file, "{line}");
