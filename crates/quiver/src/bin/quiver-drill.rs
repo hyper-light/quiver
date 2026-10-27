@@ -10,7 +10,9 @@
 //! `create NAME` by `ok` or `refused WHY`; `publish NAME PAYLOAD` by `acked OFFSET` or
 //! `refused WHY`; `read NAME FROM` by `messages COUNT NEXT` and the messages, a line each
 //! (`OFFSET PAYLOAD`); `figures NAME` by `figures LEADS TERM END`. Standard error carries
-//! `frames N` each time the frames its logs wrote and flushed reach N: its persistence points.
+//! `frames N` each time the frames its logs wrote and flushed reach N: its persistence points;
+//! `ended WHY` if its host ended; and, every 5 s while a publish waits past 5 s, `slow NAME: …`
+//! with what the topic's publisher and member know, since the node takes no line meanwhile.
 //! It ends at the end of its input.
 
 use std::future::Future;
@@ -29,6 +31,9 @@ use quiver_api::{Class, Topic, Topics};
 
 /// How often the frames its logs wrote are looked at: a persistence point is told within this.
 const WATCH: Duration = Duration::from_millis(1);
+/// How long a publish waits before the publisher's figures are told on standard error, and how
+/// often again while it waits.
+const SLOW: Duration = Duration::from_secs(5);
 
 struct Unpark(std::thread::Thread);
 
@@ -167,11 +172,53 @@ fn run(args: &[String]) -> Result<(), String> {
         move || {
             let mut told = 0;
             let mut ended = false;
+            // Each topic whose publisher owes or holds a publish, since when, and when it was last
+            // told: a publish that waits past SLOW is told every SLOW, with what the publisher
+            // knows, since the node takes no line while one waits (kiln's CP-T2.2 step 7).
+            let mut waiting: Vec<(String, std::time::Instant, std::time::Instant)> = Vec::new();
             while !done.load(Ordering::Relaxed) {
                 let stats = node.persisted_stats().unwrap_or_default();
                 if let (Some(why), false) = (&stats.ended, ended) {
                     ended = true;
                     let _ = writeln!(std::io::stderr().lock(), "ended {why}");
+                }
+                let now = std::time::Instant::now();
+                waiting.retain(|(name, _, _)| {
+                    stats
+                        .topic(name)
+                        .is_some_and(|g| g.owed > 0 || g.queued > 0)
+                });
+                for (name, g) in &stats.topics {
+                    if g.owed == 0 && g.queued == 0 {
+                        continue;
+                    }
+                    let Some(at) = waiting.iter_mut().find(|(n, _, _)| n == name) else {
+                        waiting.push((name.clone(), now, now));
+                        continue;
+                    };
+                    if now.saturating_duration_since(at.1) >= SLOW
+                        && now.saturating_duration_since(at.2) >= SLOW
+                    {
+                        at.2 = now;
+                        let _ = writeln!(
+                            std::io::stderr().lock(),
+                            "slow {name}: a publish waits {:.1} s; publisher target {:?}, owed {}, queued {}, sent {}, resent {}, redirects {}, connects {}, losses {}, dials refused {}; member leader {:?} in term {}, leads {}, applied {}",
+                            now.saturating_duration_since(at.1).as_secs_f64(),
+                            g.target,
+                            g.owed,
+                            g.queued,
+                            g.sent,
+                            g.resent,
+                            g.redirects,
+                            g.connects,
+                            g.losses,
+                            g.dials_refused,
+                            g.leader,
+                            g.term,
+                            g.leads,
+                            g.applied
+                        );
+                    }
                 }
                 let frames = stats.frames();
                 if frames != told {
