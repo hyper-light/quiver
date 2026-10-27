@@ -12,6 +12,10 @@
 //! directory gone); `spawn ID NODES` and `ready`; `ask LINE` (a line for the node, answered as it
 //! answers, or `ended` if it died first, `down` if none runs); `kill`; `arm K`; `status`.
 //!
+//! `quiver-lab host … --stall-request PATH --stall-done PATH`: the host of the node whose disk is
+//! stalled. `stall` writes the request a root helper waits on (it stalls the disk's device 2 s
+//! with dm-delay) and answers once the helper says it's done.
+//!
 //! `quiver-lab drive --hosts 1=ADDRESS,2=ADDRESS,3=ADDRESS --nodes 1=ADDRESS,2=ADDRESS,3=ADDRESS
 //! --drills N [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
 //!
@@ -23,6 +27,14 @@
 //! whole and held to what the publishers heard (every acknowledged publish at its offset, nothing
 //! twice, the three logs alike), and the topic group's term is read for the elections the drill
 //! cost. A line of JSON per drill goes to `--out`; the first drill that fails stops the lab.
+//!
+//! `quiver-lab stall --hosts … --nodes … --stalled ID [--stalls K] [--every-ms R] [--seconds D]
+//! [--at-ms T] [--out FILE] [--work DIR]`
+//!
+//! The stall drills: node ID made the leader (its leaders killed until it leads), then K times a
+//! publish every R ms through a follower for D seconds, and T ms in, node ID's disk stalled; each
+//! held to no election (the topic group's term unchanged, ID still leading), what was published
+//! during the stall acknowledged, and every acknowledged publish read back.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt::Write as _;
@@ -133,6 +145,8 @@ impl Talk {
 struct Host {
     dir: PathBuf,
     drill: PathBuf,
+    /// The request a root helper waits on to stall this node's disk, and what it writes once done.
+    stall: Option<(PathBuf, PathBuf)>,
     child: Arc<Mutex<Option<Child>>>,
     talk: Mutex<Option<Talk>>,
     run: Mutex<Run>,
@@ -301,6 +315,9 @@ impl Host {
                 Err(_) => "error poisoned".into(),
             },
             "ask" => self.ask(rest),
+            "stall" => self
+                .stall()
+                .map_or_else(|e| format!("error {e}"), |ms| format!("stalled {ms}")),
             "kill" => {
                 let frames = self.frames();
                 if kill_now(&self.child) {
@@ -336,6 +353,26 @@ impl Host {
             },
             _ => format!("error unknown {verb:?}"),
         }
+    }
+
+    /// Asks the root helper for a stall of the disk and waits for its end: the milliseconds from
+    /// the request to the helper's word.
+    fn stall(&self) -> Result<u128, Fault> {
+        let (request, done) = self.stall.as_ref().ok_or("no stall: --stall-request and --stall-done")?;
+        match std::fs::remove_file(done) {
+            Ok(()) => {}
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
+            Err(e) => return Err(format!("{}: {e}", done.display())),
+        }
+        let began = Instant::now();
+        std::fs::write(request, b"stall").map_err(|e| format!("{}: {e}", request.display()))?;
+        while !done.exists() {
+            if began.elapsed() > Duration::from_secs(30) {
+                return Err("the root helper didn't answer within 30 s".into());
+            }
+            pause(Duration::from_millis(5));
+        }
+        Ok(began.elapsed().as_millis())
     }
 
     fn ask(&self, line: &str) -> String {
@@ -387,9 +424,15 @@ fn host(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         .append(true)
         .open(dir.join("node.log"))
         .map_err(|e| e.to_string())?;
+    let stall = match (flags.get("stall-request"), flags.get("stall-done")) {
+        (Some(request), Some(done)) => Some((PathBuf::from(request), PathBuf::from(done))),
+        (None, None) => None,
+        _ => return Err("--stall-request and --stall-done go together".into()),
+    };
     let host = Arc::new(Host {
         dir,
         drill,
+        stall,
         child: Arc::new(Mutex::new(None)),
         talk: Mutex::new(None),
         run: Mutex::new(Host::new_run()),
@@ -848,6 +891,37 @@ impl Lab {
         })
     }
 
+    /// Node `id` made the topic's leader: each other leader killed and started again until it
+    /// leads. The elections it took, none if it led already.
+    fn lead(&mut self, id: u64) -> Result<u64, Fault> {
+        let mut kills = 0u64;
+        loop {
+            let leader = self.leader()?;
+            if leader == id {
+                return Ok(kills);
+            }
+            if kills >= 40 {
+                return Err(format!("node {id} didn't come to lead in 40 elections"));
+            }
+            let killed = self.control(leader, "kill")?;
+            if !killed.starts_with("killed") {
+                return Err(format!("node {leader}'s kill: {killed}"));
+            }
+            // Its successor chosen before it's back, so it can't win again at once.
+            wait_for("a leader among the others", || {
+                for other in self.ids().into_iter().filter(|o| *o != leader) {
+                    if self.talk(other)?.figures()?.0 {
+                        return Ok(Some(()));
+                    }
+                }
+                Ok(None)
+            })?;
+            self.spawn(leader)?;
+            self.ready(leader)?;
+            kills = kills.saturating_add(1);
+        }
+    }
+
     fn drill(&mut self, n: u64, kind: Kind, rng: &mut Rng, heard: &mut Heard) -> Result<String, Fault> {
         let began = Instant::now();
         let term_before = self.term()?;
@@ -952,7 +1026,9 @@ fn files(dir: &Path, under: &str, found: &mut Vec<(String, Vec<u8>)>) -> Result<
     Ok(())
 }
 
-fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
+/// The lab `flags` name: each host reached, the cluster's identities made once, and the file the
+/// records go to.
+fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::File>), Fault> {
     let hosts = pairs(flags.get("hosts").ok_or("--hosts is needed")?, "hosts")?;
     let nodes = flags.get("nodes").ok_or("--nodes is needed")?.clone();
     for (_, address) in pairs(&nodes, "nodes")? {
@@ -960,18 +1036,6 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             .parse::<SocketAddr>()
             .map_err(|e| format!("--nodes: {address}: {e}"))?;
     }
-    let drills: u64 = flags
-        .get("drills")
-        .ok_or("--drills is needed")?
-        .parse()
-        .map_err(|_| "--drills: a count")?;
-    let fresh_every: u64 = flags.get("fresh-every").map_or(Ok(100), |v| v.parse()).map_err(|_| "--fresh-every: a count")?;
-    let seed: u64 = match flags.get("seed") {
-        Some(s) => s.parse().map_err(|_| "--seed: a number")?,
-        None => SystemTime::now()
-            .duration_since(SystemTime::UNIX_EPOCH)
-            .map_or(1, |d| u64::try_from(d.as_nanos() & u128::from(u64::MAX)).unwrap_or(1)),
-    };
     let work = PathBuf::from(flags.get("work").cloned().unwrap_or_else(|| format!("quiver-lab-{}", std::process::id())));
     // The cluster's identities, made once here and given to every host: as an operator makes them.
     focal_bus::pki::load_or_make(&work.join("identities"), Some(&work.join("identities.key")), 3, 3)
@@ -989,11 +1053,27 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         let os = pong.strip_prefix("pong ").ok_or_else(|| format!("{address}: {pong}"))?.to_owned();
         machines.push(Machine { id: *id, os, talk: Some(Conn::open(address)?), control });
     }
-    let mut record = match flags.get("out") {
+    let record = match flags.get("out") {
         Some(path) => Some(std::fs::OpenOptions::new().create(true).append(true).open(path).map_err(|e| format!("{path}: {e}"))?),
         None => None,
     };
-    let mut lab = Lab { nodes, machines, identities };
+    Ok((Lab { nodes, machines, identities }, record))
+}
+
+fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
+    let drills: u64 = flags
+        .get("drills")
+        .ok_or("--drills is needed")?
+        .parse()
+        .map_err(|_| "--drills: a count")?;
+    let fresh_every: u64 = flags.get("fresh-every").map_or(Ok(100), |v| v.parse()).map_err(|_| "--fresh-every: a count")?;
+    let seed: u64 = match flags.get("seed") {
+        Some(s) => s.parse().map_err(|_| "--seed: a number")?,
+        None => SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .map_or(1, |d| u64::try_from(d.as_nanos() & u128::from(u64::MAX)).unwrap_or(1)),
+    };
+    let (mut lab, mut record) = open_lab(flags)?;
     let mut rng = Rng(seed);
     out(&format!("seed {seed}, {drills} drills, a fresh cluster every {fresh_every}"));
     let kinds = [Kind::Leader, Kind::Follower, Kind::Own, Kind::TwoInTurn];
@@ -1046,12 +1126,138 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     if lost_any { Err("a drill failed".into()) } else { Ok(()) }
 }
 
+/// What one publish of a stall drill came to: its payload, when it went and was answered (from the
+/// drill's start), and its offset if it was acknowledged.
+type Sent = (String, Duration, Duration, Option<u64>);
+
+/// The duration at `per_mille` of the sorted `sorted`, in milliseconds.
+fn at_ms(sorted: &[Duration], per_mille: usize) -> f64 {
+    let last = sorted.len().saturating_sub(1);
+    let at = last.saturating_mul(per_mille).checked_div(1000).unwrap_or(0);
+    sorted.get(at).map_or(0.0, |d| d.as_secs_f64() * 1000.0)
+}
+
+fn stall(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
+    let number = |name: &str, default: u64| -> Result<u64, Fault> {
+        flags.get(name).map_or(Ok(default), |v| v.parse().map_err(|_| format!("--{name}: a number")))
+    };
+    let stalled = flags.get("stalled").ok_or("--stalled is needed")?.parse::<u64>().map_err(|_| "--stalled: a node")?;
+    let stalls = number("stalls", 10)?;
+    let every = Duration::from_millis(number("every-ms", 10)?);
+    let seconds = Duration::from_secs(number("seconds", 8)?);
+    let at = Duration::from_millis(number("at-ms", 2000)?);
+    let (mut lab, mut record) = open_lab(flags)?;
+    lab.fresh()?;
+    out(&format!("{stalls} stalls of node {stalled}'s disk ({}), a publish every {every:?} for {seconds:?}, the stall {at:?} in", lab.os(stalled)));
+    let mut heard = Heard::default();
+    let (mut elections, mut moved, mut during_offered, mut during_acked) = (0u64, 0u64, 0u64, 0u64);
+    for k in 1..=stalls {
+        let setup = lab.lead(stalled)?;
+        let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+        lab.converge(end)?;
+        let term_before = lab.term()?;
+        let through = lab.ids().into_iter().find(|id| *id != stalled).ok_or("no follower")?;
+        let mut talk = lab.machine(through)?.talk.take().ok_or("lent")?;
+        let start = Instant::now();
+        let publisher = std::thread::spawn(move || {
+            let mut sent: Vec<Sent> = Vec::new();
+            let mut i = 0u32;
+            while start.elapsed() < seconds {
+                let due = every.saturating_mul(i);
+                let now = start.elapsed();
+                if now < due {
+                    pause(due.saturating_sub(now));
+                    continue;
+                }
+                let payload = format!("s{k}-{i}");
+                let went = start.elapsed();
+                let acked = talk.publish(&payload).ok();
+                sent.push((payload, went, start.elapsed(), acked));
+                i = i.saturating_add(1);
+            }
+            (sent, talk)
+        });
+        while start.elapsed() < at {
+            pause(at.saturating_sub(start.elapsed()));
+        }
+        let began = start.elapsed();
+        let answer = lab.control(stalled, "stall");
+        let ended = start.elapsed();
+        let (sent, talk) = publisher.join().map_err(|_| "the publisher's thread panicked".to_owned())?;
+        lab.machine(through)?.talk = Some(talk);
+        let answer = answer?;
+        if !answer.starts_with("stalled ") {
+            return Err(format!("stall {k}: {answer}"));
+        }
+        let term_after = lab.term()?;
+        let leader_after = lab.leader()?;
+        let (mut offered, mut acked, mut in_offered, mut in_acked) = (0u64, 0u64, 0u64, 0u64);
+        let (mut latencies, mut in_latencies) = (Vec::new(), Vec::new());
+        for (payload, went, answered, offset) in sent {
+            let during = went >= began && went <= ended;
+            offered = offered.saturating_add(1);
+            if during {
+                in_offered = in_offered.saturating_add(1);
+            }
+            match offset {
+                Some(offset) => {
+                    acked = acked.saturating_add(1);
+                    latencies.push(answered.saturating_sub(went));
+                    if during {
+                        in_acked = in_acked.saturating_add(1);
+                        in_latencies.push(answered.saturating_sub(went));
+                    }
+                    heard.acked.insert(payload, offset);
+                }
+                None => {
+                    heard.unknown.insert(payload);
+                }
+            }
+        }
+        latencies.sort_unstable();
+        in_latencies.sort_unstable();
+        let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+        lab.converge(end)?;
+        let mut logs = Vec::new();
+        for id in lab.ids() {
+            logs.push((id, lab.talk(id)?.log()?));
+        }
+        check(&heard, &logs).map_err(|why| format!("stall {k}: {why}"))?;
+        let cost = term_after.saturating_sub(term_before);
+        elections = elections.saturating_add(cost);
+        if leader_after != stalled {
+            moved = moved.saturating_add(1);
+        }
+        during_offered = during_offered.saturating_add(in_offered);
+        during_acked = during_acked.saturating_add(in_acked);
+        let line = format!(
+            "{{\"stall\":{k},\"stalled\":{stalled},\"os\":\"{}\",\"setup_elections\":{setup},\"term_before\":{term_before},\"term_after\":{term_after},\"elections\":{cost},\"leader_after\":{leader_after},\"helper\":\"{answer}\",\"began_ms\":{},\"ended_ms\":{},\"offered\":{offered},\"acked\":{acked},\"during_offered\":{in_offered},\"during_acked\":{in_acked},\"during_max_ms\":{:.1},\"p50_ms\":{:.1},\"p99_ms\":{:.1},\"max_ms\":{:.1}}}",
+            lab.os(stalled),
+            began.as_millis(),
+            ended.as_millis(),
+            at_ms(&in_latencies, 1000),
+            at_ms(&latencies, 500),
+            at_ms(&latencies, 990),
+            at_ms(&latencies, 1000)
+        );
+        if let Some(file) = record.as_mut() {
+            let _ = writeln!(file, "{line}");
+        }
+        out(&line);
+    }
+    out(&format!(
+        "summary: {stalls} stalls of node {stalled}'s disk, {elections} elections, the leader moved {moved} times, {during_acked} of {during_offered} publishes made during the stalls acknowledged"
+    ));
+    if elections == 0 && moved == 0 { Ok(()) } else { Err("a stall cost an election".into()) }
+}
+
 fn main() -> ExitCode {
     let args: Result<Vec<String>, _> = std::env::args_os().skip(1).map(|a| a.into_string()).collect();
     let outcome = match args.as_deref() {
         Ok([mode, rest @ ..]) => flags(rest).and_then(|f| match mode.as_str() {
             "host" => host(&f),
             "drive" => drive(&f),
+            "stall" => stall(&f),
             other => Err(format!("unknown mode {other}: host or drive")),
         }),
         Ok([]) => Err("quiver-lab host|drive …".into()),
