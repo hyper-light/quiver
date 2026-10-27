@@ -1091,8 +1091,15 @@ impl Lab {
             .copied()
             .filter(|id| *id != leader_before)
             .collect();
-        let (Some(&one), Some(&other)) = (followers.first(), followers.get(1)) else {
+        let (Some(&first), Some(&second)) = (followers.first(), followers.get(1)) else {
             return Err("fewer than two followers".into());
+        };
+        // Either follower the victim, at random: taken by its place, the node of the greatest id
+        // was never a follower killed.
+        let (one, other) = if rng.upto(2) == 1 {
+            (first, second)
+        } else {
+            (second, first)
         };
         let mut kills = Vec::new();
         match kind {
