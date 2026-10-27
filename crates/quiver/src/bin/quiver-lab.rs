@@ -18,7 +18,7 @@
 //! with dm-delay) and answers once the helper says it's done.
 //!
 //! `quiver-lab drive --hosts 1=ADDRESS,2=ADDRESS,3=ADDRESS --nodes 1=ADDRESS,2=ADDRESS,3=ADDRESS
-//! --token-file PATH --drills N [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
+//! --token-file PATH --drills N [--first F] [--seed S] [--fresh-every M] [--out FILE] [--work DIR]`
 //!
 //! The drills. Each kills one node, or two in turn, while a run of publishes goes through another:
 //! the leader (publishing through a follower), a follower, the leader with the publisher's
@@ -1307,6 +1307,12 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         .get("fresh-every")
         .map_or(Ok(100), |v| v.parse())
         .map_err(|_| "--fresh-every: a count")?;
+    // A lab stopped part way goes on from the drill after its last (`--first`), on a fresh cluster,
+    // its numbers and its round of victims where they were.
+    let first: u64 = flags
+        .get("first")
+        .map_or(Ok(1), |v| v.parse())
+        .map_err(|_| "--first: a drill's number")?;
     let seed: u64 = match flags.get("seed") {
         Some(s) => s.parse().map_err(|_| "--seed: a number")?,
         None => SystemTime::now()
@@ -1323,8 +1329,8 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     let kinds = [Kind::Leader, Kind::Follower, Kind::Own, Kind::TwoInTurn];
     let mut heard = Heard::default();
     let (mut lost_any, mut follower_elections, mut leader_elections) = (false, 0u64, Vec::new());
-    for n in 1..=drills {
-        if n.saturating_sub(1).checked_rem(fresh_every.max(1)) == Some(0) {
+    for n in first..first.saturating_add(drills) {
+        if n == first || n.saturating_sub(1).checked_rem(fresh_every.max(1)) == Some(0) {
             lab.fresh()?;
             heard = Heard::default();
         }
