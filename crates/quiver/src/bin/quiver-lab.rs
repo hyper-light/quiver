@@ -292,10 +292,17 @@ impl Host {
     fn put(&self, path: &str, data: &str) -> Result<(), Fault> {
         let target = self.dir.join(path);
         if let Some(parent) = target.parent() {
-            focal_platform::fs::create_dir_all_durable(parent, focal_platform::fs::create_dir_private)
-                .map_err(|e| format!("{}: {e}", parent.display()))?;
+            focal_platform::fs::create_dir_all_durable(
+                parent,
+                focal_platform::fs::create_dir_private,
+            )
+            .map_err(|e| format!("{}: {e}", parent.display()))?;
         }
-        let bytes = if data == "-" { Vec::new() } else { unhex(data)? };
+        let bytes = if data == "-" {
+            Vec::new()
+        } else {
+            unhex(data)?
+        };
         match std::fs::remove_file(&target) {
             Ok(()) => {}
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
@@ -321,8 +328,7 @@ impl Host {
                         .components()
                         .all(|c| matches!(c, std::path::Component::Normal(_))) =>
                 {
-                    self
-                        .put(path, data)
+                    self.put(path, data)
                         .map_or_else(|e| format!("error {e}"), |()| "ok".to_owned())
                 }
                 _ => "error put PATH HEX".into(),
@@ -381,7 +387,11 @@ impl Host {
                         "{} {} {}",
                         if self.up() { "up" } else { "down" },
                         run.frames.load(Ordering::Acquire),
-                        if fired == u64::MAX { "-".to_owned() } else { fired.to_string() }
+                        if fired == u64::MAX {
+                            "-".to_owned()
+                        } else {
+                            fired.to_string()
+                        }
                     )
                 }
                 Err(_) => "error poisoned".into(),
@@ -393,7 +403,10 @@ impl Host {
     /// Asks the root helper for a stall of the disk and waits for its end: the milliseconds from
     /// the request to the helper's word.
     fn stall(&self) -> Result<u128, Fault> {
-        let (request, done) = self.stall.as_ref().ok_or("no stall: --stall-request and --stall-done")?;
+        let (request, done) = self
+            .stall
+            .as_ref()
+            .ok_or("no stall: --stall-request and --stall-done")?;
         match std::fs::remove_file(done) {
             Ok(()) => {}
             Err(e) if e.kind() == std::io::ErrorKind::NotFound => {}
@@ -416,7 +429,13 @@ impl Host {
             && let Ok(mut file) = trace.lock()
         {
             let first = answer.lines().next().unwrap_or_default();
-            let _ = writeln!(file, "{:?} {line} => {first}", SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap_or_default());
+            let _ = writeln!(
+                file,
+                "{:?} {line} => {first}",
+                SystemTime::now()
+                    .duration_since(SystemTime::UNIX_EPOCH)
+                    .unwrap_or_default()
+            );
         }
         answer
     }
@@ -503,20 +522,31 @@ fn host(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         let (host, token) = (Arc::clone(&host), Arc::clone(&token));
         std::thread::spawn(move || {
             let _ = stream.set_nodelay(true);
-            let Ok(write) = stream.try_clone() else { return };
+            let Ok(write) = stream.try_clone() else {
+                return;
+            };
             let mut write = std::io::BufWriter::new(write);
             let mut lines = BufReader::new(stream).lines();
             // The lab's token first, or nothing.
             let said = lines.next().and_then(Result::ok).unwrap_or_default();
-            let authorized = said.strip_prefix("auth ").is_some_and(|t| same(t.trim_end(), &token));
+            let authorized = said
+                .strip_prefix("auth ")
+                .is_some_and(|t| same(t.trim_end(), &token));
             let first = if authorized { "ok" } else { "error auth" };
-            if writeln!(write, "{first}").and_then(|()| write.flush()).is_err() || !authorized {
+            if writeln!(write, "{first}")
+                .and_then(|()| write.flush())
+                .is_err()
+                || !authorized
+            {
                 return;
             }
             for line in lines {
                 let Ok(line) = line else { return };
                 let answer = host.answer(line.trim_end());
-                if writeln!(write, "{answer}").and_then(|()| write.flush()).is_err() {
+                if writeln!(write, "{answer}")
+                    .and_then(|()| write.flush())
+                    .is_err()
+                {
                     return;
                 }
             }
@@ -541,7 +571,10 @@ impl Conn {
             .set_read_timeout(Some(STUCK))
             .map_err(|e| e.to_string())?;
         let read = BufReader::new(stream.try_clone().map_err(|e| e.to_string())?);
-        let mut conn = Self { write: stream, read };
+        let mut conn = Self {
+            write: stream,
+            read,
+        };
         match conn.ask(&format!("auth {token}"))?.as_str() {
             "ok" => Ok(conn),
             other => Err(format!("{address}: {other}")),
@@ -704,7 +737,10 @@ impl Rng {
 
     /// One of 1..=n.
     fn upto(&mut self, n: u64) -> u64 {
-        self.next().checked_rem(n.max(1)).unwrap_or(0).saturating_add(1)
+        self.next()
+            .checked_rem(n.max(1))
+            .unwrap_or(0)
+            .saturating_add(1)
     }
 }
 
@@ -822,7 +858,11 @@ impl Lab {
                 other => return Err(format!("node {id}'s wipe: {other}")),
             }
             for (path, bytes) in self.identities.clone() {
-                let data = if bytes.is_empty() { "-".to_owned() } else { hex(&bytes) };
+                let data = if bytes.is_empty() {
+                    "-".to_owned()
+                } else {
+                    hex(&bytes)
+                };
                 match self.control(id, &format!("put {path} {data}"))?.as_str() {
                     "ok" => {}
                     other => return Err(format!("node {id}'s {path}: {other}")),
@@ -872,7 +912,11 @@ impl Lab {
                 ends.push(self.talk(id)?.figures()?.2);
             }
             let first = ends.first().copied().unwrap_or(0);
-            Ok(if first >= end && ends.iter().all(|e| *e == first) { Some(()) } else { None })
+            Ok(if first >= end && ends.iter().all(|e| *e == first) {
+                Some(())
+            } else {
+                None
+            })
         })
     }
 
@@ -929,7 +973,9 @@ impl Lab {
         while fired.is_none() && !publisher.is_finished() {
             let status = self.control(victim, "status")?;
             if status.starts_with("exited") {
-                return Err(format!("drill {drill}: node {victim} ended by itself ({status})"));
+                return Err(format!(
+                    "drill {drill}: node {victim} ended by itself ({status})"
+                ));
             }
             if let Some(at) = status
                 .strip_prefix("down ")
@@ -939,7 +985,9 @@ impl Lab {
                 fired = Some(at.saturating_sub(base));
             }
             if began.elapsed() > STUCK {
-                return Err(format!("drill {drill}: the run didn't end within {STUCK:?}"));
+                return Err(format!(
+                    "drill {drill}: the run didn't end within {STUCK:?}"
+                ));
             }
             pause(POLL);
         }
@@ -1002,50 +1050,111 @@ impl Lab {
         }
     }
 
-    fn drill(&mut self, n: u64, kind: Kind, rng: &mut Rng, heard: &mut Heard) -> Result<String, Fault> {
+    fn drill(
+        &mut self,
+        n: u64,
+        kind: Kind,
+        rng: &mut Rng,
+        heard: &mut Heard,
+    ) -> Result<String, Fault> {
         let began = Instant::now();
         let term_before = self.term()?;
         let leader_before = self.leader()?;
         let ids = self.ids();
-        let followers: Vec<u64> = ids.iter().copied().filter(|id| *id != leader_before).collect();
+        let followers: Vec<u64> = ids
+            .iter()
+            .copied()
+            .filter(|id| *id != leader_before)
+            .collect();
         let (Some(&one), Some(&other)) = (followers.first(), followers.get(1)) else {
             return Err("fewer than two followers".into());
         };
         let mut kills = Vec::new();
         match kind {
-            Kind::Leader => kills.push(self.kill_during_run(n, 'a', leader_before, one, rng.upto(POINTS), heard)?),
-            Kind::Follower => kills.push(self.kill_during_run(n, 'a', one, other, rng.upto(POINTS), heard)?),
-            Kind::Own => kills.push(self.kill_during_run(n, 'a', leader_before, leader_before, rng.upto(POINTS), heard)?),
+            Kind::Leader => kills.push(self.kill_during_run(
+                n,
+                'a',
+                leader_before,
+                one,
+                rng.upto(POINTS),
+                heard,
+            )?),
+            Kind::Follower => {
+                kills.push(self.kill_during_run(n, 'a', one, other, rng.upto(POINTS), heard)?)
+            }
+            Kind::Own => kills.push(self.kill_during_run(
+                n,
+                'a',
+                leader_before,
+                leader_before,
+                rng.upto(POINTS),
+                heard,
+            )?),
             Kind::TwoInTurn => {
-                kills.push(self.kill_during_run(n, 'a', one, leader_before, rng.upto(POINTS), heard)?);
-                let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+                kills.push(self.kill_during_run(
+                    n,
+                    'a',
+                    one,
+                    leader_before,
+                    rng.upto(POINTS),
+                    heard,
+                )?);
+                let end = heard
+                    .acked
+                    .values()
+                    .max()
+                    .map_or(0, |o| o.saturating_add(1));
                 self.converge(end)?;
                 let leader = self.leader()?;
-                let through = ids.iter().copied().find(|id| *id != leader).ok_or("no follower")?;
-                kills.push(self.kill_during_run(n, 'c', leader, through, rng.upto(POINTS), heard)?);
+                let through = ids
+                    .iter()
+                    .copied()
+                    .find(|id| *id != leader)
+                    .ok_or("no follower")?;
+                kills.push(self.kill_during_run(
+                    n,
+                    'c',
+                    leader,
+                    through,
+                    rng.upto(POINTS),
+                    heard,
+                )?);
             }
         }
         // Once it's back, a publish through every node.
         for id in self.ids() {
             let mut attempt = 0u64;
-            wait_for(&format!("a publish through node {id} after the kill"), || {
-                attempt = attempt.saturating_add(1);
-                let payload = format!("{n}-b{id}-{attempt}");
-                match self.talk(id)?.publish(&payload) {
-                    Ok(offset) => {
-                        heard.acked.insert(payload, offset);
-                        Ok(Some(()))
+            wait_for(
+                &format!("a publish through node {id} after the kill"),
+                || {
+                    attempt = attempt.saturating_add(1);
+                    let payload = format!("{n}-b{id}-{attempt}");
+                    match self.talk(id)?.publish(&payload) {
+                        Ok(offset) => {
+                            heard.acked.insert(payload, offset);
+                            Ok(Some(()))
+                        }
+                        Err(why)
+                            if why.starts_with(LAB)
+                                || why.contains("ended")
+                                || why.contains("down") =>
+                        {
+                            Err(why)
+                        }
+                        // Refused while a leader is chosen: it may be appended yet.
+                        Err(_) => {
+                            heard.unknown.insert(payload);
+                            Ok(None)
+                        }
                     }
-                    Err(why) if why.starts_with(LAB) || why.contains("ended") || why.contains("down") => Err(why),
-                    // Refused while a leader is chosen: it may be appended yet.
-                    Err(_) => {
-                        heard.unknown.insert(payload);
-                        Ok(None)
-                    }
-                }
-            })?;
+                },
+            )?;
         }
-        let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+        let end = heard
+            .acked
+            .values()
+            .max()
+            .map_or(0, |o| o.saturating_add(1));
         self.converge(end)?;
         let mut logs = Vec::new();
         for id in self.ids() {
@@ -1072,7 +1181,8 @@ impl Lab {
                 self.os(kill.victim),
                 kill.leader,
                 kill.point,
-                kill.fired.map_or_else(|| "null".to_owned(), |f| f.to_string()),
+                kill.fired
+                    .map_or_else(|| "null".to_owned(), |f| f.to_string()),
                 kill.ready_ms
             );
         }
@@ -1085,8 +1195,13 @@ fn pairs(value: &str, flag: &str) -> Result<Vec<(u64, String)>, Fault> {
     value
         .split(',')
         .map(|pair| {
-            let (id, address) = pair.split_once('=').ok_or_else(|| format!("--{flag}: ID=ADDRESS,…"))?;
-            Ok((id.parse().map_err(|_| format!("--{flag}: {id}"))?, address.to_owned()))
+            let (id, address) = pair
+                .split_once('=')
+                .ok_or_else(|| format!("--{flag}: ID=ADDRESS,…"))?;
+            Ok((
+                id.parse().map_err(|_| format!("--{flag}: {id}"))?,
+                address.to_owned(),
+            ))
         })
         .collect()
 }
@@ -1095,12 +1210,22 @@ fn pairs(value: &str, flag: &str) -> Result<Vec<(u64, String)>, Fault> {
 fn files(dir: &Path, under: &str, found: &mut Vec<(String, Vec<u8>)>) -> Result<(), Fault> {
     for entry in std::fs::read_dir(dir).map_err(|e| format!("{}: {e}", dir.display()))? {
         let entry = entry.map_err(|e| e.to_string())?;
-        let name = entry.file_name().into_string().map_err(|_| "a file name isn't Unicode")?;
-        let path = if under.is_empty() { name } else { format!("{under}/{name}") };
+        let name = entry
+            .file_name()
+            .into_string()
+            .map_err(|_| "a file name isn't Unicode")?;
+        let path = if under.is_empty() {
+            name
+        } else {
+            format!("{under}/{name}")
+        };
         if entry.file_type().map_err(|e| e.to_string())?.is_dir() {
             files(&entry.path(), &path, found)?;
         } else {
-            found.push((path, std::fs::read(entry.path()).map_err(|e| e.to_string())?));
+            found.push((
+                path,
+                std::fs::read(entry.path()).map_err(|e| e.to_string())?,
+            ));
         }
     }
     Ok(())
@@ -1116,10 +1241,20 @@ fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::Fi
             .parse::<SocketAddr>()
             .map_err(|e| format!("--nodes: {address}: {e}"))?;
     }
-    let work = PathBuf::from(flags.get("work").cloned().unwrap_or_else(|| format!("quiver-lab-{}", std::process::id())));
+    let work = PathBuf::from(
+        flags
+            .get("work")
+            .cloned()
+            .unwrap_or_else(|| format!("quiver-lab-{}", std::process::id())),
+    );
     // The cluster's identities, made once here and given to every host: as an operator makes them.
-    focal_bus::pki::load_or_make(&work.join("identities"), Some(&work.join("identities.key")), 3, 3)
-        .map_err(|e| format!("the identities: {e:?}"))?;
+    focal_bus::pki::load_or_make(
+        &work.join("identities"),
+        Some(&work.join("identities.key")),
+        3,
+        3,
+    )
+    .map_err(|e| format!("the identities: {e:?}"))?;
     let mut identities = Vec::new();
     files(&work.join("identities"), "identities", &mut identities)?;
     identities.push((
@@ -1131,14 +1266,35 @@ fn open_lab(flags: &BTreeMap<String, String>) -> Result<(Lab, Option<std::fs::Fi
     for (id, address) in &hosts {
         let mut control = Conn::open(address, &token)?;
         let pong = control.ask("ping")?;
-        let os = pong.strip_prefix("pong ").ok_or_else(|| format!("{address}: {pong}"))?.to_owned();
-        machines.push(Machine { id: *id, os, talk: Some(Conn::open(address, &token)?), control });
+        let os = pong
+            .strip_prefix("pong ")
+            .ok_or_else(|| format!("{address}: {pong}"))?
+            .to_owned();
+        machines.push(Machine {
+            id: *id,
+            os,
+            talk: Some(Conn::open(address, &token)?),
+            control,
+        });
     }
     let record = match flags.get("out") {
-        Some(path) => Some(std::fs::OpenOptions::new().create(true).append(true).open(path).map_err(|e| format!("{path}: {e}"))?),
+        Some(path) => Some(
+            std::fs::OpenOptions::new()
+                .create(true)
+                .append(true)
+                .open(path)
+                .map_err(|e| format!("{path}: {e}"))?,
+        ),
         None => None,
     };
-    Ok((Lab { nodes, machines, identities }, record))
+    Ok((
+        Lab {
+            nodes,
+            machines,
+            identities,
+        },
+        record,
+    ))
 }
 
 fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
@@ -1147,16 +1303,23 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         .ok_or("--drills is needed")?
         .parse()
         .map_err(|_| "--drills: a count")?;
-    let fresh_every: u64 = flags.get("fresh-every").map_or(Ok(100), |v| v.parse()).map_err(|_| "--fresh-every: a count")?;
+    let fresh_every: u64 = flags
+        .get("fresh-every")
+        .map_or(Ok(100), |v| v.parse())
+        .map_err(|_| "--fresh-every: a count")?;
     let seed: u64 = match flags.get("seed") {
         Some(s) => s.parse().map_err(|_| "--seed: a number")?,
         None => SystemTime::now()
             .duration_since(SystemTime::UNIX_EPOCH)
-            .map_or(1, |d| u64::try_from(d.as_nanos() & u128::from(u64::MAX)).unwrap_or(1)),
+            .map_or(1, |d| {
+                u64::try_from(d.as_nanos() & u128::from(u64::MAX)).unwrap_or(1)
+            }),
     };
     let (mut lab, mut record) = open_lab(flags)?;
     let mut rng = Rng(seed);
-    out(&format!("seed {seed}, {drills} drills, a fresh cluster every {fresh_every}"));
+    out(&format!(
+        "seed {seed}, {drills} drills, a fresh cluster every {fresh_every}"
+    ));
     let kinds = [Kind::Leader, Kind::Follower, Kind::Own, Kind::TwoInTurn];
     let mut heard = Heard::default();
     let (mut lost_any, mut follower_elections, mut leader_elections) = (false, 0u64, Vec::new());
@@ -1174,7 +1337,11 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
             Ok(line) => line,
             Err(why) => {
                 lost_any = true;
-                let line = format!("{{\"drill\":{n},\"kind\":\"{}\",\"failed\":{:?}}}", kind.name(), why);
+                let line = format!(
+                    "{{\"drill\":{n},\"kind\":\"{}\",\"failed\":{:?}}}",
+                    kind.name(),
+                    why
+                );
                 if let Some(file) = record.as_mut() {
                     let _ = writeln!(file, "{line}");
                 }
@@ -1202,9 +1369,17 @@ fn drive(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     out(&format!(
         "summary: {} drills, lost {}, elections at follower kills {follower_elections}, drills killing a leader {leader_kills} ({without} without an election)",
         drills,
-        if lost_any { "see the failure above" } else { "0" }
+        if lost_any {
+            "see the failure above"
+        } else {
+            "0"
+        }
     ));
-    if lost_any { Err("a drill failed".into()) } else { Ok(()) }
+    if lost_any {
+        Err("a drill failed".into())
+    } else {
+        Ok(())
+    }
 }
 
 /// What one publish of a stall drill came to: its payload, when it went and was answered (from the
@@ -1214,30 +1389,50 @@ type Sent = (String, Duration, Duration, Option<u64>);
 /// The duration at `per_mille` of the sorted `sorted`, in milliseconds.
 fn at_ms(sorted: &[Duration], per_mille: usize) -> f64 {
     let last = sorted.len().saturating_sub(1);
-    let at = last.saturating_mul(per_mille).checked_div(1000).unwrap_or(0);
+    let at = last
+        .saturating_mul(per_mille)
+        .checked_div(1000)
+        .unwrap_or(0);
     sorted.get(at).map_or(0.0, |d| d.as_secs_f64() * 1000.0)
 }
 
 fn stall(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     let number = |name: &str, default: u64| -> Result<u64, Fault> {
-        flags.get(name).map_or(Ok(default), |v| v.parse().map_err(|_| format!("--{name}: a number")))
+        flags.get(name).map_or(Ok(default), |v| {
+            v.parse().map_err(|_| format!("--{name}: a number"))
+        })
     };
-    let stalled = flags.get("stalled").ok_or("--stalled is needed")?.parse::<u64>().map_err(|_| "--stalled: a node")?;
+    let stalled = flags
+        .get("stalled")
+        .ok_or("--stalled is needed")?
+        .parse::<u64>()
+        .map_err(|_| "--stalled: a node")?;
     let stalls = number("stalls", 10)?;
     let every = Duration::from_millis(number("every-ms", 10)?);
     let seconds = Duration::from_secs(number("seconds", 8)?);
     let at = Duration::from_millis(number("at-ms", 2000)?);
     let (mut lab, mut record) = open_lab(flags)?;
     lab.fresh()?;
-    out(&format!("{stalls} stalls of node {stalled}'s disk ({}), a publish every {every:?} for {seconds:?}, the stall {at:?} in", lab.os(stalled)));
+    out(&format!(
+        "{stalls} stalls of node {stalled}'s disk ({}), a publish every {every:?} for {seconds:?}, the stall {at:?} in",
+        lab.os(stalled)
+    ));
     let mut heard = Heard::default();
     let (mut elections, mut moved, mut during_offered, mut during_acked) = (0u64, 0u64, 0u64, 0u64);
     for k in 1..=stalls {
         let setup = lab.lead(stalled)?;
-        let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+        let end = heard
+            .acked
+            .values()
+            .max()
+            .map_or(0, |o| o.saturating_add(1));
         lab.converge(end)?;
         let term_before = lab.term()?;
-        let through = lab.ids().into_iter().find(|id| *id != stalled).ok_or("no follower")?;
+        let through = lab
+            .ids()
+            .into_iter()
+            .find(|id| *id != stalled)
+            .ok_or("no follower")?;
         let mut talk = lab.machine(through)?.talk.take().ok_or("lent")?;
         let start = Instant::now();
         let publisher = std::thread::spawn(move || {
@@ -1264,7 +1459,9 @@ fn stall(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         let began = start.elapsed();
         let answer = lab.control(stalled, "stall");
         let ended = start.elapsed();
-        let (sent, talk) = publisher.join().map_err(|_| "the publisher's thread panicked".to_owned())?;
+        let (sent, talk) = publisher
+            .join()
+            .map_err(|_| "the publisher's thread panicked".to_owned())?;
         lab.machine(through)?.talk = Some(talk);
         let answer = answer?;
         if !answer.starts_with("stalled ") {
@@ -1297,7 +1494,11 @@ fn stall(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
         }
         latencies.sort_unstable();
         in_latencies.sort_unstable();
-        let end = heard.acked.values().max().map_or(0, |o| o.saturating_add(1));
+        let end = heard
+            .acked
+            .values()
+            .max()
+            .map_or(0, |o| o.saturating_add(1));
         lab.converge(end)?;
         let mut logs = Vec::new();
         for id in lab.ids() {
@@ -1329,11 +1530,18 @@ fn stall(flags: &BTreeMap<String, String>) -> Result<(), Fault> {
     out(&format!(
         "summary: {stalls} stalls of node {stalled}'s disk, {elections} elections, the leader moved {moved} times, {during_acked} of {during_offered} publishes made during the stalls acknowledged"
     ));
-    if elections == 0 && moved == 0 { Ok(()) } else { Err("a stall cost an election".into()) }
+    if elections == 0 && moved == 0 {
+        Ok(())
+    } else {
+        Err("a stall cost an election".into())
+    }
 }
 
 fn main() -> ExitCode {
-    let args: Result<Vec<String>, _> = std::env::args_os().skip(1).map(|a| a.into_string()).collect();
+    let args: Result<Vec<String>, _> = std::env::args_os()
+        .skip(1)
+        .map(|a| a.into_string())
+        .collect();
     let outcome = match args.as_deref() {
         Ok([mode, rest @ ..]) => flags(rest).and_then(|f| match mode.as_str() {
             "host" => host(&f),

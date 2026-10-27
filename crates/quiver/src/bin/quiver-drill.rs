@@ -95,7 +95,8 @@ fn config(args: &[String]) -> Result<PersistedConfig, String> {
 fn answer(node: &Node, line: &str) -> String {
     let words: Vec<&str> = line.split_whitespace().collect();
     // One line whatever the refusal says: every answer but a read's is a line.
-    let refused = |e: quiver_api::Refusal| format!("refused {}", e.to_string().replace(['\n', '\r'], " "));
+    let refused =
+        |e: quiver_api::Refusal| format!("refused {}", e.to_string().replace(['\n', '\r'], " "));
     match words.as_slice() {
         ["create", name] => {
             let topic = Topic {
