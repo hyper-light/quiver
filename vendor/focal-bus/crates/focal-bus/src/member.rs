@@ -203,14 +203,19 @@ pub struct MemberStats {
     pub redirected_not_leading: u64,
     pub redirected_stepped_down: u64,
     pub redirected_unkept: u64,
+    /// Of the unkept, the publisher's lanes the transport would not hold for a publish to park.
+    pub lanes_unheld: u64,
     /// Publishes parked now, and the oldest's age, nanoseconds (zero with none), by the clock the
     /// node's owner tells it.
     pub parked_now: u64,
     pub parked_oldest_ns: u64,
     /// Proposals the replica refused while the node led, by cause: the budget's room, the log's
-    /// room, the core (not leading, a proposal dropped), and any other.
+    /// room, the core finding it led no more (or was no member), the core handing its lead over
+    /// (stopping), the core for another cause, and any other refusal.
     pub refused_budget: u64,
     pub refused_stalled: u64,
+    pub refused_not_leading: u64,
+    pub refused_stopping: u64,
     pub refused_core: u64,
     pub refused_other: u64,
     /// Publishes sent again while their first was in flight: answered when it commits, never
@@ -1840,6 +1845,12 @@ impl Member {
             let cause = match refused {
                 ReplicaError::Budget(_) => &mut self.stats.refused_budget,
                 ReplicaError::Stalled => &mut self.stats.refused_stalled,
+                ReplicaError::Refused(hyper_raft::Error::ProposalDropped(
+                    hyper_raft::Dropped::NoLeader | hyper_raft::Dropped::NotMember,
+                )) => &mut self.stats.refused_not_leading,
+                ReplicaError::Refused(hyper_raft::Error::ProposalDropped(
+                    hyper_raft::Dropped::Transferring,
+                )) => &mut self.stats.refused_stopping,
                 ReplicaError::Refused(_) => &mut self.stats.refused_core,
                 _ => &mut self.stats.refused_other,
             };
@@ -1879,10 +1890,17 @@ impl Member {
         // (no memory, or a lane it cannot hold) is answered with the leader, sent again by its
         // publisher.
         let mut batch = Vec::new();
-        if batch.try_reserve_exact(bytes.len()).is_err()
+        let unkept = if batch.try_reserve_exact(bytes.len()).is_err()
             || self.parked.try_reserve(1).is_err()
-            || endpoint.hold_lane(peer, lane).is_err()
         {
+            true
+        } else if endpoint.hold_lane(peer, lane).is_err() {
+            self.stats.lanes_unheld = self.stats.lanes_unheld.saturating_add(1);
+            true
+        } else {
+            false
+        };
+        if unkept {
             if let Ok(parsed) = Batch::parse_verified(bytes, bytes.len()) {
                 let key = (parsed.stream(), parsed.producer(), parsed.sequence());
                 self.redirect(endpoint, peer, key, Redirected::Unkept);

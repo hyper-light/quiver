@@ -1197,6 +1197,10 @@ fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
         leader_report.contains("for the budget's room"),
         "{leader_report}"
     );
+    // The step's other causes and the lanes it couldn't hold are figures of their own, told beside.
+    for figure in ["leading no more", "stopping", "lanes it could not hold"] {
+        assert!(leader_report.contains(figure), "{figure}: {leader_report}");
+    }
     assert_eq!(at_publisher.target, Some(leader), "{publisher_report}");
     assert!(
         publisher_report.contains(&format!("publisher target Some({leader})")),
