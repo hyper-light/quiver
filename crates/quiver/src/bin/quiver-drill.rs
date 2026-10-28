@@ -270,7 +270,8 @@ fn run(args: &[String]) -> Result<(), String> {
                                 continue;
                             };
                             let grew = |now: u64, then: u64| now.saturating_sub(then);
-                            let short = g.member_wire.up & g.member_wire.peers != g.member_wire.peers;
+                            let short =
+                                g.member_wire.up & g.member_wire.peers != g.member_wire.peers;
                             let slow = waiting.iter().any(|(n, since, _)| {
                                 n == name && now.saturating_duration_since(*since) >= SLOW
                             });
@@ -323,7 +324,8 @@ fn run(args: &[String]) -> Result<(), String> {
                         let _ = writeln!(
                             std::io::stderr().lock(),
                             "{}",
-                            g.slow_report(name, Some(waited))                        );
+                            g.slow_report(name, Some(waited))
+                        );
                     }
                 }
                 // A member whose oldest parked publish waits past SLOW: its report, every SLOW, so
@@ -341,11 +343,13 @@ fn run(args: &[String]) -> Result<(), String> {
                         Some((_, told)) if now.saturating_duration_since(*told) < SLOW => {}
                         Some((_, told)) => {
                             *told = now;
-                            let _ = writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
+                            let _ =
+                                writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
                         }
                         None => {
                             parked_told.push((name.clone(), now));
-                            let _ = writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
+                            let _ =
+                                writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
                         }
                     }
                 }

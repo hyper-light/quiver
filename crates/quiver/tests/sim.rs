@@ -1165,7 +1165,9 @@ fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
         });
         leader.is_some()
     });
-    let leader = leader.filter(|_| led).expect("the topic's group took a leader");
+    let leader = leader
+        .filter(|_| led)
+        .expect("the topic's group took a leader");
     let follower = (1..=3).find(|node| *node != leader).unwrap();
     let began = world.now_ns();
     let mut publish = world.publish(follower, "t", b"planted");
@@ -1182,13 +1184,19 @@ fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
     let waited = Duration::from_nanos(world.now_ns() - began);
     let publisher_report = at_publisher.slow_report("t", Some(waited));
     eprintln!("leader {leader}: {leader_report}\npublisher {follower}: {publisher_report}");
-    assert!(publish.take().is_none(), "the publish waits while proposals are refused");
+    assert!(
+        publish.take().is_none(),
+        "the publish waits while proposals are refused"
+    );
     assert!(at_leader.refused_budget > 0, "{leader_report}");
     assert!(
         at_leader.parked_now >= 1 && at_leader.parked_oldest_ns > 5_000 * MS,
         "{leader_report}"
     );
-    assert!(leader_report.contains("for the budget's room"), "{leader_report}");
+    assert!(
+        leader_report.contains("for the budget's room"),
+        "{leader_report}"
+    );
     assert_eq!(at_publisher.target, Some(leader), "{publisher_report}");
     assert!(
         publisher_report.contains(&format!("publisher target Some({leader})")),
@@ -1199,6 +1207,9 @@ fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
         answer = publish.take();
         answer.is_some()
     });
-    assert!(acknowledged, "the publish was answered once the refusals ended");
+    assert!(
+        acknowledged,
+        "the publish was answered once the refusals ended"
+    );
     assert!(matches!(answer, Some(Ok(_))), "acknowledged: {answer:?}");
 }

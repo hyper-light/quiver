@@ -389,7 +389,8 @@ impl Host {
                 let frames = self.frames();
                 if kill_now(&self.child) {
                     if let Ok(mut file) = self.log.lock() {
-                        let _ = writeln!(file, "{} lab: killed at once, frames {frames}", wall_ms());
+                        let _ =
+                            writeln!(file, "{} lab: killed at once, frames {frames}", wall_ms());
                     }
                     format!("killed {frames}")
                 } else {

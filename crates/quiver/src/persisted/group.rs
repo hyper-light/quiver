@@ -313,7 +313,10 @@ impl Redial {
 /// What `driver`'s endpoint holds and its sockets did, `peers` the ids it is to reach and
 /// `redials` those it is to dial again (`super::WireFigures`).
 fn wire(driver: &mut Drv, peers: impl Iterator<Item = u64>, redials: usize) -> super::WireFigures {
-    let bit = |id: u64| 1u64.checked_shl(u32::try_from(id).unwrap_or(u32::MAX)).unwrap_or(0);
+    let bit = |id: u64| {
+        1u64.checked_shl(u32::try_from(id).unwrap_or(u32::MAX))
+            .unwrap_or(0)
+    };
     let mut established = Vec::new();
     driver.endpoint().established(&mut established);
     let stats = driver.endpoint().stats();
