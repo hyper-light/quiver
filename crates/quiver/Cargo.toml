@@ -43,6 +43,10 @@ sim = ["dep:hyper-block", "hyper-block/sim", "focal-bus/sim"]
 # its leader's own log holds, before a quorum's flush (`hyper_raft::Mutant::OwnLogCommit`). A test
 # build, never a product's.
 plant-own-log-commit = ["sim", "dep:hyper-raft", "hyper-raft/mutants", "focal-bus/mutants"]
+# The publisher-after-kill plan's planted stall (tests/sim.rs, kiln's CP-T2.2 step 7): every
+# member refuses every proposal for 8 s after taking the lead, as a budget with no room does
+# (`focal_bus::member::Member::plant_refusals`). A test build, never a product's.
+plant-refused-proposals = ["sim", "focal-bus/mutants"]
 
 [dev-dependencies]
 event-listener = "5.4"

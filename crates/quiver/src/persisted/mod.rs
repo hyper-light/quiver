@@ -209,6 +209,19 @@ pub struct GroupFigures {
     pub relieved: u64,
     pub answers_waited: u64,
     pub terms: u64,
+    /// The member's publishes parked now and the oldest's age (ns); the proposals its replica
+    /// refused while it led, by cause (the budget's room, the log's room, the core, other); and
+    /// what it answered with the leader, by why (not leading, the lead given up while owing it,
+    /// a publish it could not keep: no memory, or a lane it could not hold).
+    pub parked_now: u64,
+    pub parked_oldest_ns: u64,
+    pub refused_budget: u64,
+    pub refused_stalled: u64,
+    pub refused_core: u64,
+    pub refused_other: u64,
+    pub redirected_not_leading: u64,
+    pub redirected_stepped_down: u64,
+    pub redirected_unkept: u64,
     /// What the member's endpoint and the publisher's hold and what their sockets did.
     pub member_wire: WireFigures,
     pub publisher_wire: WireFigures,
@@ -243,6 +256,49 @@ pub struct WireFigures {
 }
 
 impl GroupFigures {
+    /// What a slow publish's report says of this group at this node (kiln's CP-T2.2 step 7; the
+    /// publisher-after-kill plan, step 1): its publisher's side, where it sends and what it owes,
+    /// holds, sent again and was redirected; and its member's, the leader it knows, its parked
+    /// publishes and the oldest's age, its proposals refused by cause and what it answered with the
+    /// leader and why. `waited`: how long the node's own publish has waited, where one has; without
+    /// one, the report is the leader's, for its oldest parked publish.
+    #[must_use]
+    pub fn slow_report(&self, name: &str, waited: Option<Duration>) -> String {
+        let oldest = Duration::from_nanos(self.parked_oldest_ns).as_secs_f64();
+        let what = waited.map_or_else(
+            || format!("a parked publish waits {oldest:.1} s"),
+            |waited| format!("a publish waits {:.1} s", waited.as_secs_f64()),
+        );
+        format!(
+            "slow {name}: {what}; publisher target {:?}, owed {}, queued {}, sent {}, resent {}, \
+             redirects {}, connects {}, losses {}, dials refused {}; member leader {:?} in term {}, \
+             leads {}, applied {}; parked {}, the oldest {oldest:.1} s; proposals refused {} for the \
+             budget's room, {} for the log's room, {} by the core, {} other; redirected {} not \
+             leading, {} for a lead given up, {} it could not keep",
+            self.target,
+            self.owed,
+            self.queued,
+            self.sent,
+            self.resent,
+            self.redirects,
+            self.connects,
+            self.losses,
+            self.dials_refused,
+            self.leader,
+            self.term,
+            self.leads,
+            self.applied,
+            self.parked_now,
+            self.refused_budget,
+            self.refused_stalled,
+            self.refused_core,
+            self.refused_other,
+            self.redirected_not_leading,
+            self.redirected_stepped_down,
+            self.redirected_unkept,
+        )
+    }
+
     fn of(seat: &mut group::Seat, publisher: &mut group::Publisher, incarnation: u64) -> Self {
         let leader = seat.member.leader();
         let stats = seat.member.stats();
@@ -271,6 +327,15 @@ impl GroupFigures {
             relieved: stats.relieved,
             answers_waited: stats.answers_waited,
             terms: stats.terms,
+            parked_now: stats.parked_now,
+            parked_oldest_ns: stats.parked_oldest_ns,
+            refused_budget: stats.refused_budget,
+            refused_stalled: stats.refused_stalled,
+            refused_core: stats.refused_core,
+            refused_other: stats.refused_other,
+            redirected_not_leading: stats.redirected_not_leading,
+            redirected_stepped_down: stats.redirected_stepped_down,
+            redirected_unkept: stats.redirected_unkept,
             member_wire: seat.wire(),
             publisher_wire: publisher.wire(),
         }

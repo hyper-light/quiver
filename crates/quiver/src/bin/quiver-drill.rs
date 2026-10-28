@@ -13,7 +13,8 @@
 //! the topic's endpoints hold and did since they began. Standard error carries
 //! `frames N` each time the frames its logs wrote and flushed reach N: its persistence points;
 //! `ended WHY` if its host ended; and, every 5 s while a publish waits past 5 s, `slow NAME: …`
-//! with what the topic's publisher and member know, since the node takes no line meanwhile; and,
+//! with what the topic's publisher and member know, since the node takes no line meanwhile, and
+//! the same report every 5 s while the topic's member holds a parked publish older than 5 s; and,
 //! every 5 s while the topic's member lacks a connection to a peer or a publish waits past 5 s,
 //! `wire NAME: …` with what its endpoints hold and their sockets did in those 5 s; and each time a
 //! topic's member's term, leader or lead changes, `leader NAME: term T, leader L, leads B`.
@@ -223,6 +224,10 @@ fn run(args: &[String]) -> Result<(), String> {
             // told: a publish that waits past SLOW is told every SLOW, with what the publisher
             // knows, since the node takes no line while one waits (kiln's CP-T2.2 step 7).
             let mut waiting: Vec<(String, std::time::Instant, std::time::Instant)> = Vec::new();
+            // Each topic whose member's oldest parked publish waits past SLOW, and when it was last
+            // told.
+            let mut parked_told: Vec<(String, std::time::Instant)> = Vec::new();
+            let slow_ns = u64::try_from(SLOW.as_nanos()).unwrap_or(u64::MAX);
             // Each topic's figures as they were SLOW ago: a member that answered publishes with
             // the leader, or parked them, since then is told, with what else it did meanwhile.
             let mut sampled: Option<(std::time::Instant, PersistedStats)> = None;
@@ -314,24 +319,34 @@ fn run(args: &[String]) -> Result<(), String> {
                         && now.saturating_duration_since(at.2) >= SLOW
                     {
                         at.2 = now;
+                        let waited = now.saturating_duration_since(at.1);
                         let _ = writeln!(
                             std::io::stderr().lock(),
-                            "slow {name}: a publish waits {:.1} s; publisher target {:?}, owed {}, queued {}, sent {}, resent {}, redirects {}, connects {}, losses {}, dials refused {}; member leader {:?} in term {}, leads {}, applied {}",
-                            now.saturating_duration_since(at.1).as_secs_f64(),
-                            g.target,
-                            g.owed,
-                            g.queued,
-                            g.sent,
-                            g.resent,
-                            g.redirects,
-                            g.connects,
-                            g.losses,
-                            g.dials_refused,
-                            g.leader,
-                            g.term,
-                            g.leads,
-                            g.applied
-                        );
+                            "{}",
+                            g.slow_report(name, Some(waited))                        );
+                    }
+                }
+                // A member whose oldest parked publish waits past SLOW: its report, every SLOW, so
+                // the leader's side of a stall is told as the publisher's is.
+                parked_told.retain(|(name, _)| {
+                    stats
+                        .topic(name)
+                        .is_some_and(|g| g.parked_oldest_ns >= slow_ns)
+                });
+                for (name, g) in &stats.topics {
+                    if g.parked_oldest_ns < slow_ns {
+                        continue;
+                    }
+                    match parked_told.iter_mut().find(|(n, _)| n == name) {
+                        Some((_, told)) if now.saturating_duration_since(*told) < SLOW => {}
+                        Some((_, told)) => {
+                            *told = now;
+                            let _ = writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
+                        }
+                        None => {
+                            parked_told.push((name.clone(), now));
+                            let _ = writeln!(std::io::stderr().lock(), "{}", g.slow_report(name, None));
+                        }
                     }
                 }
                 let frames = stats.frames();

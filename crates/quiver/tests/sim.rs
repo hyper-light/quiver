@@ -15,7 +15,10 @@
 //! `QUIVER_SIM_REPLAY` names a trace to run again.
 #![cfg(feature = "sim")]
 // The planted bug's build runs its own test alone, leaving the fault test's helpers unread.
-#![cfg_attr(feature = "plant-own-log-commit", allow(dead_code))]
+#![cfg_attr(
+    any(feature = "plant-own-log-commit", feature = "plant-refused-proposals"),
+    allow(dead_code)
+)]
 #![allow(
     clippy::unwrap_used,
     clippy::expect_used,
@@ -979,7 +982,7 @@ fn keep_trace(report: &Report) -> PathBuf {
 
 /// With no fault, every publish through any node is acknowledged, at its own offset, and every
 /// node's view holds each at that offset; and the run is the same run twice from its seed.
-#[cfg(not(feature = "plant-own-log-commit"))]
+#[cfg(not(any(feature = "plant-own-log-commit", feature = "plant-refused-proposals")))]
 #[test]
 fn a_seeds_run_is_the_same_run_twice() {
     let first = run("twice", 7);
@@ -1034,7 +1037,7 @@ fn a_kept_trace_replays() {
 /// Every seed `seeds` names: no acknowledged publish lost, out of order, twice or apart; a failing
 /// seed's trace kept, and the seed run again to the same digest. (Not in the planted bug's build,
 /// which fails it by design.)
-#[cfg(not(feature = "plant-own-log-commit"))]
+#[cfg(not(any(feature = "plant-own-log-commit", feature = "plant-refused-proposals")))]
 #[test]
 fn faults_over_many_seeds() {
     let mut failed = Vec::new();
@@ -1134,4 +1137,68 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
         return;
     }
     panic!("no seed from {first} found the planted bug");
+}
+
+/// The publisher-after-kill plan's planted stall (kiln's CP-T2.2 step 7, step 1's test): every
+/// member refuses every proposal for 8 s after taking the lead, as a budget with no room does. Do:
+/// three nodes; a topic; once its group has a leader, a publish through a follower; 6.5 s on. Expect:
+/// the leader's report names the refusals' cause (the budget's room) and its parked publish older
+/// than 5 s, and the publisher's names the leader it was redirected to; once the 8 s have passed,
+/// the publish is acknowledged.
+#[cfg(feature = "plant-refused-proposals")]
+#[test]
+fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
+    let mut world = World::new(settings("refusals", 1, SimPath::in_order(500_000, 0))).unwrap();
+    for node in 1..=3 {
+        world.start(node, Kill::Never).unwrap();
+    }
+    let mut created = world.create(1, "t", topic());
+    let made = run_until_done(&mut world, 60_000 * MS, |_| created.take().is_some());
+    assert!(made, "the topic was made");
+    let mut leader = None;
+    let led = run_until_done(&mut world, 60_000 * MS, |world| {
+        leader = (1..=3).find(|node| {
+            world
+                .stats(*node)
+                .and_then(|stats| stats.topic("t").copied())
+                .is_some_and(|figures| figures.leads)
+        });
+        leader.is_some()
+    });
+    let leader = leader.filter(|_| led).expect("the topic's group took a leader");
+    let follower = (1..=3).find(|node| *node != leader).unwrap();
+    let began = world.now_ns();
+    let mut publish = world.publish(follower, "t", b"planted");
+    world.run_until(began + 6_500 * MS);
+    let figures = |world: &World, node: u64| {
+        world
+            .stats(node)
+            .and_then(|stats| stats.topic("t").copied())
+            .unwrap()
+    };
+    let at_leader = figures(&world, leader);
+    let at_publisher = figures(&world, follower);
+    let leader_report = at_leader.slow_report("t", None);
+    let waited = Duration::from_nanos(world.now_ns() - began);
+    let publisher_report = at_publisher.slow_report("t", Some(waited));
+    eprintln!("leader {leader}: {leader_report}\npublisher {follower}: {publisher_report}");
+    assert!(publish.take().is_none(), "the publish waits while proposals are refused");
+    assert!(at_leader.refused_budget > 0, "{leader_report}");
+    assert!(
+        at_leader.parked_now >= 1 && at_leader.parked_oldest_ns > 5_000 * MS,
+        "{leader_report}"
+    );
+    assert!(leader_report.contains("for the budget's room"), "{leader_report}");
+    assert_eq!(at_publisher.target, Some(leader), "{publisher_report}");
+    assert!(
+        publisher_report.contains(&format!("publisher target Some({leader})")),
+        "{publisher_report}"
+    );
+    let mut answer = None;
+    let acknowledged = run_until_done(&mut world, 20_000 * MS, |_| {
+        answer = publish.take();
+        answer.is_some()
+    });
+    assert!(acknowledged, "the publish was answered once the refusals ended");
+    assert!(matches!(answer, Some(Ok(_))), "acknowledged: {answer:?}");
 }

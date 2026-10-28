@@ -384,13 +384,19 @@ impl Plan {
                 device: machine.handle(&self.data)?,
                 settings,
             };
-            #[cfg_attr(not(feature = "plant-own-log-commit"), allow(unused_mut))]
+            #[cfg_attr(
+                not(any(feature = "plant-own-log-commit", feature = "plant-refused-proposals")),
+                allow(unused_mut)
+            )]
             let mut member =
                 Member::open_simulated(simulated, node, members, clients, window, budget, now)
                     .map_err(said)?;
             // The planted bug's build: a commit on the leader's own log alone.
             #[cfg(feature = "plant-own-log-commit")]
             member.plant(Some(hyper_raft::Mutant::OwnLogCommit));
+            // The planted stall's build: no proposal taken for 8 s after the lead is taken.
+            #[cfg(feature = "plant-refused-proposals")]
+            member.plant_refusals(Some(std::time::Duration::from_secs(8)));
             return persisted(member);
         }
         let member =

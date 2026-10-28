@@ -198,6 +198,21 @@ pub struct MemberStats {
     pub parked: u64,
     /// Publishes redirected to the leader.
     pub redirected: u64,
+    /// Of those, redirected for this node not leading as they came, for a lead it gave up while it
+    /// owed them, and for a publish the node could not keep (no memory, or a lane it could not hold).
+    pub redirected_not_leading: u64,
+    pub redirected_stepped_down: u64,
+    pub redirected_unkept: u64,
+    /// Publishes parked now, and the oldest's age, nanoseconds (zero with none), by the clock the
+    /// node's owner tells it.
+    pub parked_now: u64,
+    pub parked_oldest_ns: u64,
+    /// Proposals the replica refused while the node led, by cause: the budget's room, the log's
+    /// room, the core (not leading, a proposal dropped), and any other.
+    pub refused_budget: u64,
+    pub refused_stalled: u64,
+    pub refused_core: u64,
+    pub refused_other: u64,
     /// Publishes sent again while their first was in flight: answered when it commits, never
     /// proposed twice.
     pub duplicates: u64,
@@ -487,6 +502,17 @@ impl hyper_liveness::Output for Asked {
     }
 }
 
+/// Why a publish was answered with the leader rather than taken (`MemberStats::redirected`).
+#[derive(Clone, Copy, Debug)]
+enum Redirected {
+    /// The node did not lead as it came.
+    NotLeading,
+    /// The node gave up the lead while it owed the publish.
+    SteppedDown,
+    /// The node could not keep it: no memory, or a lane it could not hold.
+    Unkept,
+}
+
 /// A publish the replica could not take yet, its publisher's lane held until it does.
 #[derive(Debug)]
 struct Parked {
@@ -726,6 +752,15 @@ pub struct Member {
     traffic: std::collections::BTreeMap<String, u64>,
     /// Whether the node led at its last turn: a node that stops leading redirects what it owed.
     leading: bool,
+    /// The latest time its owner told it (`turn`, `on_event`): the clock its parked publishes and
+    /// its lead are stamped by, so a simulation's virtual time ages them as a real one does.
+    told: Option<Instant>,
+    /// When this node last took the lead, by that clock.
+    led_at: Option<Instant>,
+    /// A test build's planted refusal (the `mutants` feature): every proposal refused, as the
+    /// budget refuses one it has no room for, for this long after the node takes the lead.
+    #[cfg(feature = "mutants")]
+    refuse_after_lead: Option<Duration>,
     /// The drives one turn makes at most: the store's depth and one.
     drives: usize,
     /// A turn left the replica more to do: the next is due at once.
@@ -1320,6 +1355,10 @@ impl Member {
             #[cfg(feature = "sim")]
             traffic: std::collections::BTreeMap::new(),
             leading: false,
+            told: None,
+            led_at: None,
+            #[cfg(feature = "mutants")]
+            refuse_after_lead: None,
             drives,
             due: false,
             origin: now,
@@ -1350,6 +1389,19 @@ impl Member {
     #[cfg(feature = "mutants")]
     pub fn plant(&mut self, mutant: Option<hyper_raft::Mutant>) {
         self.replica.plant(mutant);
+    }
+
+    /// Plants a stall at the lead, or takes it out: every proposal refused, counted as the budget's
+    /// refusals are, for `window` after the node takes the lead (`mutants`, a test build's): what a
+    /// leader whose budget holds nothing does, for its owner's figures to tell.
+    #[cfg(feature = "mutants")]
+    pub fn plant_refusals(&mut self, window: Option<Duration>) {
+        self.refuse_after_lead = window;
+    }
+
+    /// The latest time the node's owner told it, or now before the first.
+    fn told(&self) -> Instant {
+        self.told.unwrap_or_else(Instant::now)
     }
 
     /// Tells the node's log to read the entries its replica asked for and the log holds
@@ -1428,6 +1480,10 @@ impl Member {
     /// What the node did, its log's writes as the log counts them now.
     pub fn stats(&self) -> MemberStats {
         let mut stats = self.stats;
+        stats.parked_now = u64::try_from(self.parked.len()).unwrap_or(u64::MAX);
+        stats.parked_oldest_ns = self.parked.front().map_or(0, |parked| {
+            nanos(self.told().saturating_duration_since(parked.parked_at))
+        });
         if let Ok(log) = self.log.stats(None) {
             stats.log = LogWrites::of(&log, self.written_in_place);
         }
@@ -1570,6 +1626,7 @@ impl Member {
         B: Budget<<Bus as Classes>::Class>,
         D: Directory<Role = <Bus as Classes>::Role>,
     {
+        self.told = Some(now);
         match event {
             Event::Frame {
                 kind: Kind::Raft,
@@ -1710,7 +1767,7 @@ impl Member {
         };
         let key = (batch.stream(), batch.producer(), batch.sequence());
         if !self.replica.is_leader() {
-            self.redirect(endpoint, peer, key);
+            self.redirect(endpoint, peer, key, Redirected::NotLeading);
             return;
         }
         if self.owed.contains_key(&(peer, key)) {
@@ -1760,6 +1817,13 @@ impl Member {
     /// Proposes `batch`, owing `peer` its acknowledgement; whether the core took it. A core that
     /// holds as many uncommitted bytes as it may refuses it, and its publisher waits.
     fn propose(&mut self, peer: PeerId, batch: &[u8], key: Owed) -> bool {
+        #[cfg(feature = "mutants")]
+        if let (Some(window), Some(led_at)) = (self.refuse_after_lead, self.led_at)
+            && self.told().saturating_duration_since(led_at) < window
+        {
+            self.stats.refused_budget = self.stats.refused_budget.saturating_add(1);
+            return false;
+        }
         // The entry states the identity that published it: every replica judges the batch by that
         // identity's sessions (`group`, doc 34 P6). One the node's memory cannot hold is proposed
         // again once the window gave memory back ([`Member::relieve_window`]); parked without it,
@@ -1772,7 +1836,14 @@ impl Member {
                 .replica
                 .propose(peer.to_le_bytes().to_vec(), batch.to_vec());
         }
-        if proposed.is_err() {
+        if let Err(refused) = &proposed {
+            let cause = match refused {
+                ReplicaError::Budget(_) => &mut self.stats.refused_budget,
+                ReplicaError::Stalled => &mut self.stats.refused_stalled,
+                ReplicaError::Refused(_) => &mut self.stats.refused_core,
+                _ => &mut self.stats.refused_other,
+            };
+            *cause = cause.saturating_add(1);
             return false;
         }
         self.owed.insert((peer, key), Instant::now());
@@ -1814,7 +1885,7 @@ impl Member {
         {
             if let Ok(parsed) = Batch::parse_verified(bytes, bytes.len()) {
                 let key = (parsed.stream(), parsed.producer(), parsed.sequence());
-                self.redirect(endpoint, peer, key);
+                self.redirect(endpoint, peer, key, Redirected::Unkept);
             }
             return;
         }
@@ -1823,7 +1894,7 @@ impl Member {
             peer,
             lane,
             batch,
-            parked_at: Instant::now(),
+            parked_at: self.told(),
         });
         self.stats.parked = self.stats.parked.saturating_add(1);
     }
@@ -1857,11 +1928,13 @@ impl Member {
                         // The group has yet to commit enough: the publisher waits on.
                         break;
                     }
-                    self.stages.parked.record(nanos(parked_at.elapsed()));
+                    self.stages
+                        .parked
+                        .record(nanos(self.told().saturating_duration_since(parked_at)));
                     true
                 }
                 Some(key) => {
-                    self.redirect(endpoint, peer, key);
+                    self.redirect(endpoint, peer, key, Redirected::NotLeading);
                     true
                 }
                 None => true,
@@ -1878,8 +1951,13 @@ impl Member {
     }
 
     /// Tells `peer` its publish `key` was not taken here, naming the leader the node knows.
-    fn redirect<B, D>(&mut self, endpoint: &mut Endpoint<Bus, B, D>, peer: PeerId, key: Owed)
-    where
+    fn redirect<B, D>(
+        &mut self,
+        endpoint: &mut Endpoint<Bus, B, D>,
+        peer: PeerId,
+        key: Owed,
+        why: Redirected,
+    ) where
         B: Budget<<Bus as Classes>::Class>,
         D: Directory<Role = <Bus as Classes>::Role>,
     {
@@ -1892,6 +1970,12 @@ impl Member {
         };
         self.answer(endpoint, peer, Answer::Redirect(redirect.encode()));
         self.stats.redirected = self.stats.redirected.saturating_add(1);
+        let cause = match why {
+            Redirected::NotLeading => &mut self.stats.redirected_not_leading,
+            Redirected::SteppedDown => &mut self.stats.redirected_stepped_down,
+            Redirected::Unkept => &mut self.stats.redirected_unkept,
+        };
+        *cause = cause.saturating_add(1);
     }
 
     /// Sends `answer` to the publisher `peer`, or keeps it, in order, while the publisher's lane has
@@ -2203,6 +2287,7 @@ impl Member {
         B: Budget<<Bus as Classes>::Class>,
         D: Directory<Role = <Bus as Classes>::Role>,
     {
+        self.told = Some(now);
         self.redial(endpoint, now);
         self.written(now);
         self.pairs();
@@ -2400,10 +2485,13 @@ impl Member {
             // In order, not the map's: the redirects go out the same way every run.
             owed.sort_unstable();
             for (peer, key) in owed {
-                self.redirect(endpoint, peer, key);
+                self.redirect(endpoint, peer, key, Redirected::SteppedDown);
             }
             let leader = self.leader();
             self.node_mut().stop_delivering(endpoint, leader);
+        }
+        if leading && !self.leading {
+            self.led_at = Some(self.told());
         }
         self.leading = leading;
     }
