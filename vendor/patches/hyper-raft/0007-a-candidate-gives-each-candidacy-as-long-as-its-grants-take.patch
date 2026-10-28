@@ -1,0 +1,255 @@
+Subject: a candidate gives each candidacy as long as its grants take
+Why: kiln's CP-T2.2 step 7: in Quiver's three-machine lab a leader's kill cost up to 113 terms; a candidate on a fast disk asked again before its voters, on a slow one, could make their votes durable and grant. Upstream as hyper-raft cp/t2.2-grant-wait (831bfd9, the test; d804110, the fix), offered for hyper-raft main.
+
+diff --git a/crates/hyper-raft/src/raft.rs b/crates/hyper-raft/src/raft.rs
+index d666bc66fefa77b7d47650d94d6b8531788d8f4c..aa6d88a0b017386637a59862ef77a0692fed35cf 100644
+--- a/crates/hyper-raft/src/raft.rs
++++ b/crates/hyper-raft/src/raft.rs
+@@ -2669,6 +2669,7 @@ impl<S: Storage> Raft<S> {
+             return Ok(false);
+         };
+         watch.now = watch.now.max(now);
++        watch.time_grant();
+         let mut acted = false;
+         if self.state == StateRole::Leader {
+             if self.trusted_quorum() {
+@@ -2742,6 +2743,7 @@ impl<S: Storage> Raft<S> {
+     }
+     fn wake_follower(&mut self, now: u64) -> Result<bool> {
+         let (promotable, local, term) = (self.promotable(), self.config.seed, self.term);
++        let candidate = self.state == StateRole::Candidate;
+         let alone = self.tracker.is_singleton() && self.tracker.configuration().votes(self.id);
+         // A sole voter's campaign in its term waits for its own vote to be durable (I9), which
+         // alone elects it.
+@@ -2773,16 +2775,20 @@ impl<S: Storage> Raft<S> {
+             Arm::Off => Arm::Unset { round: true },
+             armed => armed,
+         };
++        // A round, and at least as long as a grant takes (`Watch::grant_wait`): a candidacy given
++        // up before its voters could grant spends a term and asks them again.
++        let grant_wait = watch.grant_wait;
+         watch.campaign = match armed {
+             Arm::Unset { round } => match (watch.round(), watch.draw(local)) {
+                 (Some(tail), Some(delay)) => Arm::At(
+-                    now.saturating_add(if round { tail } else { 0 })
++                    now.saturating_add(if round { tail.max(grant_wait) } else { 0 })
+                         .saturating_add(delay),
+                 ),
+                 _ => armed,
+             },
+             armed => armed,
+         };
++        watch.hold_candidacy(candidate.then_some(term));
+         // A sole voter has no one to split a vote with, nor a leader to
+         // suspect: it campaigns at once, timed or not.
+         let due = (alone && promotable)
+@@ -2865,6 +2871,9 @@ impl<S: Storage> Raft<S> {
+         self.reset(term)?;
+         self.vote = self.id;
+         self.state = StateRole::Candidate;
++        if let Some(watch) = self.watch.as_mut() {
++            watch.stand(term);
++        }
+         self.refresh_held_promise()
+     }
+     fn become_pre_candidate(&mut self) -> Result<()> {
+@@ -3093,6 +3102,14 @@ impl<S: Storage> Raft<S> {
+                 "a term or an index beyond what is counted",
+             ));
+         }
++        if kind == MessageType::MsgRequestVoteResponse
++            && !message.reject
++            && let Some(watch) = self.watch.as_mut()
++        {
++            // A grant, of whatever term and whatever this member is now: timed at the next wake,
++            // on its clock (`Watch::grant_wait`).
++            watch.heard_grant = Some(message.term);
++        }
+         if self.step_term(kind, &message)? == TermChecked::Done {
+             return Ok(());
+         }
+diff --git a/crates/hyper-raft/src/watch.rs b/crates/hyper-raft/src/watch.rs
+index 8a29b7700ef17c4f1eb1e3194f4e203cd2d3316b..8e7299b5433375d011d9edd1a925e3b732dec941 100644
+--- a/crates/hyper-raft/src/watch.rs
++++ b/crates/hyper-raft/src/watch.rs
+@@ -137,14 +137,94 @@ pub(crate) struct Watch {
+     /// The owner holds this member's campaigns: its log may lack what it acknowledged, or it is
+     /// stalled for room (`docs/durable.md` §5, §8).
+     pub(crate) held: bool,
++    /// The terms this member last stood in as a candidate and when it asked for their votes, on
++    /// the owner's clock as of its latest wake, the latest last: a grant that comes after the
++    /// member moved on still tells how long a grant takes.
++    stood: [(u64, u64); STOOD],
++    /// The term of a grant taken since the last wake, which times it (`Watch::time_grant`): a
++    /// message is stepped on the clock of the wake before it.
++    pub(crate) heard_grant: Option<u64>,
++    /// How long a grant took lately, from the asking to its arrival, nanoseconds; zero before
++    /// one. A voter grants once its vote is durable, on its own disk, which the round
++    /// (`Timing::round`) does not count: the owner's ballot counts this member's writes. An
++    /// unresolved candidacy waits at least this long before the member asks again, as a reset
++    /// waits at least a round (`Raft::wake`). Asking sooner, a candidate whose voter wrote slower
++    /// than itself moved on before every grant came, and spent a term each time it asked: 113
++    /// terms for one leader's kill, 70 % of the grants coming after their candidate had moved on
++    /// (Quiver's lab, a candidate on an NVMe disk and voters on a loaded btrfs one; kiln's
++    /// CP-T2.2 step 7). A grant that took longer raises it to that; a quicker one brings it
++    /// halfway down.
++    pub(crate) grant_wait: u64,
+ }
+ 
++/// The candidacies a member remembers for timing late grants (`Watch::stood`).
++const STOOD: usize = 4;
++
+ /// `duration` in nanoseconds, saturating at `u64::MAX` (584 years).
+ pub(crate) fn nanos(duration: Duration) -> u64 {
+     u64::try_from(duration.as_nanos()).unwrap_or(u64::MAX)
+ }
+ 
+ impl Watch {
++    /// The member stands as a candidate in `term`, asking for its votes now.
++    pub(crate) fn stand(&mut self, term: u64) {
++        self.stood.rotate_left(1);
++        if let Some(last) = self.stood.last_mut() {
++            *last = (term, self.now);
++        }
++    }
++    /// Times the grant taken since the last wake, if it is of a term this member stood in lately
++    /// (`Watch::grant_wait`).
++    pub(crate) fn time_grant(&mut self) {
++        let Some(term) = self.heard_grant.take() else {
++            return;
++        };
++        let Some(&(_, asked)) = self
++            .stood
++            .iter()
++            .rev()
++            .find(|(stood, _)| *stood == term && term != 0)
++        else {
++            return;
++        };
++        let took = self.now.saturating_sub(asked);
++        self.grant_wait = if took >= self.grant_wait {
++            took
++        } else {
++            self.grant_wait
++                .saturating_sub(self.grant_wait.saturating_sub(took) / 2)
++        };
++    }
++    /// The earliest the candidacy of `term` may be given up, if this member stood in it lately and
++    /// a grant has been timed: when it asked, and as long as a grant takes and a round more
++    /// (`Watch::grant_wait`).
++    pub(crate) fn candidacy_floor(&self, term: u64) -> Option<u64> {
++        if self.grant_wait == 0 {
++            return None;
++        }
++        let &(_, asked) = self
++            .stood
++            .iter()
++            .rev()
++            .find(|(stood, _)| *stood == term && term != 0)?;
++        Some(
++            asked
++                .saturating_add(self.grant_wait)
++                .saturating_add(self.round().unwrap_or(0)),
++        )
++    }
++    /// The candidacy of `term` under way, if the member is a candidate, timed before a grant told
++    /// how long one takes, waits that long all the same and a round more from when it asked
++    /// (`Watch::candidacy_floor`): given up sooner, the grant it asked for comes to the next
++    /// candidacy, which drops it.
++    pub(crate) fn hold_candidacy(&mut self, term: Option<u64>) {
++        if let (Arm::At(at), Some(floor)) = (
++            self.campaign,
++            term.and_then(|term| self.candidacy_floor(term)),
++        ) {
++            self.campaign = Arm::At(at.max(floor));
++        }
++    }
+     /// Whether the owner's detectors suspect `member`.
+     pub(crate) fn suspects(&self, member: NodeId) -> bool {
+         self.suspected.binary_search(&member).is_ok()
+diff --git a/crates/hyper-raft/tests/suspicion.rs b/crates/hyper-raft/tests/suspicion.rs
+index 4992c77e8e88b5cf36134cf91f0db3589dba16ed..519f9ca6ef4804130a47000a1650d93ead9ec46c 100644
+--- a/crates/hyper-raft/tests/suspicion.rs
++++ b/crates/hyper-raft/tests/suspicion.rs
+@@ -92,6 +92,9 @@ struct Sim {
+     leaders: BTreeMap<u64, u64>,
+     /// The members' timing: how long a run may go with nothing moving.
+     timing: Timing,
++    /// How much later than its other messages each member's vote answers arrive: its vote's
++    /// write, on a disk slower than the others' (a member grants once its vote is durable).
++    slow_votes: BTreeMap<u64, u64>,
+ }
+ 
+ impl Sim {
+@@ -122,6 +125,7 @@ impl Sim {
+             cut: Vec::new(),
+             leaders: BTreeMap::new(),
+             timing,
++            slow_votes: BTreeMap::new(),
+         }
+     }
+     fn voters(voters: &[u64]) -> ConfState {
+@@ -157,11 +161,16 @@ impl Sim {
+             assert_eq!(leader, id, "two leaders of term {}", view.term);
+         }
+         for message in output.messages {
++            let write = if message.msg_type == MessageType::MsgRequestVoteResponse {
++                self.slow_votes.get(&id).copied().unwrap_or(0)
++            } else {
++                0
++            };
+             self.sent.push(message.clone());
+             self.sent_at.push(self.now);
+             self.sent_count += 1;
+             self.flight
+-                .insert((self.now + LATENCY, self.sent_count), message);
++                .insert((self.now + LATENCY + write, self.sent_count), message);
+         }
+     }
+     /// The next event: a message arriving, or a member's deadline. False when there is none.
+@@ -1245,3 +1254,45 @@ fn ticks_and_suspicion_do_not_mix() {
+         Err(hyper_raft::Error::Settings(_))
+     ));
+ }
++
++/// A candidate whose voter writes its vote slower than the candidate writes its own is elected by
++/// that voter's grant: once a grant has come, late or not, it knows how long one takes and gives
++/// each candidacy that long before it asks again (`Watch::grant_wait`). The round counts only the
++/// candidate's own writes (the owner's ballot): asking again a round and a draw on, it moved on
++/// before every grant came and spent a term each time, for ever while the voter's disk stayed slow
++/// (Quiver's lab, kiln's CP-T2.2 step 7: 113 terms for one leader's kill, 70 % of the grants
++/// coming after their candidate had moved on). The candidacies that start before the first grant
++/// can come go, each at least a round and a pre-vote's round trip; the one under way when it
++/// comes waits for its own grant and is elected.
++#[test]
++fn a_candidate_waits_for_a_voter_that_writes_its_vote_slowly() {
++    let (timing, _) = timing_for(3);
++    let slow = 8 * timing.round.as_nanos() as u64;
++    for seed in 0..64 {
++        let mut sim = Sim::new(3, &Sim::voters(&[1, 2, 3]), timing, seed);
++        sim.found(1);
++        // Node 2 grants eight rounds after it is asked, and campaigns not at all: node 3 is the
++        // one candidate.
++        sim.slow_votes.insert(2, slow);
++        sim.node(2).raw.hold_campaigns(true).unwrap();
++        let before = sim.term(3);
++        sim.stop(1);
++        sim.suspect(2, 1);
++        sim.suspect(3, 1);
++        let until = sim.now + 200 * slow;
++        assert!(
++            sim.run_until_time(until, |sim| sim.leader() == Some(3)),
++            "seed {seed}: node 3 not elected within {} ms; in term {}, {} terms on",
++            200 * slow / 1_000_000,
++            sim.term(3),
++            sim.term(3) - before
++        );
++        let terms = sim.term(3) - before;
++        let round = timing.round.as_nanos() as u64;
++        let bound = 1 + (slow + 2 * LATENCY).div_ceil(round + 2 * LATENCY);
++        assert!(
++            terms <= bound,
++            "seed {seed}: {terms} terms to elect node 3, more than {bound}"
++        );
++    }
++}
