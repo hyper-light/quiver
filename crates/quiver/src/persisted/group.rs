@@ -721,8 +721,6 @@ pub(crate) struct Publisher {
     retry_at: Option<Instant>,
     /// When the node it sends to, not connected, is dialed again.
     dial_at: Option<Instant>,
-    /// When it last knew a leader, or was made.
-    led_at: Instant,
     /// When the node it sends to last answered, or it began sending there.
     answered_at: Instant,
     pub(crate) stats: PublisherStats,
@@ -757,7 +755,6 @@ impl Publisher {
             heard: VecDeque::new(),
             #[cfg(feature = "sim")]
             counts: BTreeMap::new(),
-            led_at: now,
             answered_at: now,
             stats: PublisherStats::default(),
         }
@@ -766,7 +763,6 @@ impl Publisher {
     /// The group's members, every one's address known: the publisher may send.
     pub(crate) fn set_nodes(&mut self, nodes: Vec<(u64, SocketAddr)>, now: Instant) {
         self.nodes = nodes;
-        self.led_at = now;
         self.choose(None, now);
     }
 
@@ -784,10 +780,6 @@ impl Publisher {
             }
         }
         nodes.clone_into(&mut self.nodes);
-    }
-
-    pub(crate) fn has_nodes(&self) -> bool {
-        !self.nodes.is_empty()
     }
 
     pub(crate) fn queue(&mut self, record: Vec<u8>, at_us: u64, ticket: u64, now: Instant) {
@@ -951,7 +943,6 @@ impl Publisher {
         }
         if acked_by.is_some() {
             self.leads = true;
-            self.led_at = now;
         }
         // A redirect naming the node it already sends to, in the term it knows, is no answer for
         // its silence: it leaves the publisher where it is, so SILENT must still move it on (a
@@ -975,7 +966,6 @@ impl Publisher {
                         || (leader.term == self.term && Some(node) != self.target) =>
                 {
                     self.term = leader.term;
-                    self.led_at = now;
                     self.choose(Some(node), now);
                     self.leads = true;
                 }
@@ -1123,19 +1113,22 @@ impl Publisher {
     }
 
     /// The tickets of publishes refused for no quorum: those never sent, asked `wait` ago or
-    /// longer with no leader known for as long; and those sent whose answer hasn't come within
-    /// `wait`, their fate unknown — a leader took the batch (a kill mid-publish, a one-way loss)
-    /// but never answered, so the publisher stops waiting, as Kafka bounds a send
+    /// longer — a batch the publisher could not deliver within the quorum wait, whether it knew
+    /// no leader for as long or leadership flapped as a multi-node kill was recovered (a brief
+    /// leader seen each round keeps a "leaderless for `wait`" test from ever holding, so the bound
+    /// is the batch's own age, as for a sent one); and those sent whose commit hasn't been
+    /// confirmed within `wait`, their fate unknown — the leader never answered (a kill
+    /// mid-publish, a one-way loss), or answered that it took the batch but its commit was never
+    /// seen (the connection to the leader dropped before it came, leaving the batch owed with
+    /// nothing more to resend), so the publisher stops waiting, as Kafka bounds a send
     /// (`delivery.timeout.ms`) and Raft's clients time out. A retry is safe: the session's
     /// sequence has the part answer a resent batch from its state, never appending it twice
-    /// (`docs/design/persisted.md`). (CP-T2.2; the publisher-after-kill plan, step 3.)
+    /// (`docs/design/persisted.md`). (CP-T2.2; the publisher-after-kill plan, step 3; the
+    /// two-in-turn and follower-kill hangs the three-machine lab found.)
     pub(crate) fn expire(&mut self, wait: Duration, now: Instant) -> Vec<u64> {
-        let leaderless = !self.leads && now.saturating_duration_since(self.led_at) >= wait;
         let mut gone = Vec::new();
         while let Some(front) = self.queued.front() {
-            if !(leaderless || !self.has_nodes())
-                || now.saturating_duration_since(front.asked) < wait
-            {
+            if now.saturating_duration_since(front.asked) < wait {
                 break;
             }
             if let Some(expired) = self.queued.pop_front() {
@@ -1145,9 +1138,7 @@ impl Publisher {
         let overdue: Vec<u32> = self
             .owed
             .iter()
-            .filter(|(_, owed)| {
-                owed.batch.is_some() && now.saturating_duration_since(owed.since) >= wait
-            })
+            .filter(|(_, owed)| now.saturating_duration_since(owed.since) >= wait)
             .map(|(sequence, _)| *sequence)
             .collect();
         for sequence in overdue {
@@ -1209,11 +1200,11 @@ impl Publisher {
 
     pub(crate) fn deadline(&self, wait: Duration) -> Option<Instant> {
         let expiry = self.queued.front().and_then(|q| q.asked.checked_add(wait));
-        // A sent batch still awaiting its answer is refused `wait` after it went (expire).
+        // A sent batch is refused `wait` after it went unless its commit is confirmed by then,
+        // whether or not the leader acknowledged taking it (expire).
         let owed_expiry = self
             .owed
             .values()
-            .filter(|owed| owed.batch.is_some())
             .filter_map(|owed| owed.since.checked_add(wait))
             .min();
         let dial = self
