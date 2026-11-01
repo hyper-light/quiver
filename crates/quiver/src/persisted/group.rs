@@ -673,6 +673,9 @@ struct Owed {
     ticket: u64,
     /// The offset its acknowledgement gave it.
     base: Option<u64>,
+    /// When it was first sent: a batch whose answer hasn't come within the quorum wait is refused
+    /// from here, its fate unknown (`Publisher::expire`).
+    since: Instant,
 }
 
 /// What a publisher's answers settled.
@@ -950,7 +953,16 @@ impl Publisher {
             self.leads = true;
             self.led_at = now;
         }
-        if acked_by.is_some() || !redirects.is_empty() {
+        // A redirect naming the node it already sends to, in the term it knows, is no answer for
+        // its silence: it leaves the publisher where it is, so SILENT must still move it on (a
+        // leader that redirects to itself hung publishes in the kill-drill lab, drills 432 and 536;
+        // the publisher-after-kill plan, step 3). An acknowledgement, or a redirect naming another
+        // node or a later term, answers.
+        let answered = acked_by.is_some()
+            || redirects
+                .iter()
+                .any(|leader| leader.node != self.target || leader.term != self.term);
+        if answered {
             self.answered_at = now;
         }
         if out_of_order {
@@ -1097,6 +1109,7 @@ impl Publisher {
                         batch: Some(batch),
                         ticket: sent.ticket,
                         base: None,
+                        since: now,
                     },
                 );
                 self.next = next;
@@ -1109,8 +1122,13 @@ impl Publisher {
         refused
     }
 
-    /// The tickets of publishes never sent, asked `wait` ago or longer, with no leader known
-    /// for as long: refused, for no quorum.
+    /// The tickets of publishes refused for no quorum: those never sent, asked `wait` ago or
+    /// longer with no leader known for as long; and those sent whose answer hasn't come within
+    /// `wait`, their fate unknown — a leader took the batch (a kill mid-publish, a one-way loss)
+    /// but never answered, so the publisher stops waiting, as Kafka bounds a send
+    /// (`delivery.timeout.ms`) and Raft's clients time out. A retry is safe: the session's
+    /// sequence has the part answer a resent batch from its state, never appending it twice
+    /// (`docs/design/persisted.md`). (CP-T2.2; the publisher-after-kill plan, step 3.)
     pub(crate) fn expire(&mut self, wait: Duration, now: Instant) -> Vec<u64> {
         let leaderless = !self.leads && now.saturating_duration_since(self.led_at) >= wait;
         let mut gone = Vec::new();
@@ -1122,6 +1140,19 @@ impl Publisher {
             }
             if let Some(expired) = self.queued.pop_front() {
                 gone.push(expired.ticket);
+            }
+        }
+        let overdue: Vec<u32> = self
+            .owed
+            .iter()
+            .filter(|(_, owed)| {
+                owed.batch.is_some() && now.saturating_duration_since(owed.since) >= wait
+            })
+            .map(|(sequence, _)| *sequence)
+            .collect();
+        for sequence in overdue {
+            if let Some(owed) = self.owed.remove(&sequence) {
+                gone.push(owed.ticket);
             }
         }
         gone
@@ -1178,6 +1209,13 @@ impl Publisher {
 
     pub(crate) fn deadline(&self, wait: Duration) -> Option<Instant> {
         let expiry = self.queued.front().and_then(|q| q.asked.checked_add(wait));
+        // A sent batch still awaiting its answer is refused `wait` after it went (expire).
+        let owed_expiry = self
+            .owed
+            .values()
+            .filter(|owed| owed.batch.is_some())
+            .filter_map(|owed| owed.since.checked_add(wait))
+            .min();
         let dial = self
             .target
             .filter(|target| !self.connected.contains(target))
@@ -1188,6 +1226,7 @@ impl Publisher {
             dial,
             self.redial.deadline(),
             expiry,
+            owed_expiry,
         ]
         .into_iter()
         .flatten()

@@ -38,6 +38,8 @@ use std::path::PathBuf;
 use std::time::Duration;
 
 use quiver::persisted::sim::{Answer, Crash, Doom, Kill, Settings, SimLoss, SimPath, When, World};
+#[cfg(not(any(feature = "plant-own-log-commit", feature = "plant-refused-proposals")))]
+use quiver_api::Refusal;
 use quiver_api::{Class, Offset, Topic};
 
 const TOPIC: &str = "sim";
@@ -1216,4 +1218,67 @@ fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
         "the publish was answered once the refusals ended"
     );
     assert!(matches!(answer, Some(Ok(_))), "acknowledged: {answer:?}");
+}
+
+/// CP-T2.2, the publisher-after-kill plan step 3 (AC-T2.2.4; found by step 7's lab): a leader
+/// takes a batch and commits it through its other follower, but its answer to the publisher's
+/// node is lost (its replies cut one way, as a kill mid-publish or a one-way loss would). The
+/// publisher must not wait for good: once the quorum wait passes, the batch is refused for no
+/// quorum, its fate unknown, as Kafka bounds a send (`delivery.timeout.ms`) and Raft's clients
+/// time out. Fails before the bound (the publish hangs, bouncing between the leader and the
+/// follower that redirects to it); passes after.
+#[cfg(not(any(feature = "plant-own-log-commit", feature = "plant-refused-proposals")))]
+#[test]
+fn a_sent_batch_whose_answer_never_returns_is_refused_at_the_quorum_wait() {
+    let mut world = World::new(settings("answerless", 1, SimPath::in_order(500_000, 0))).unwrap();
+    for node in 1..=3 {
+        world.start(node, Kill::Never).unwrap();
+    }
+    let mut created = world.create(1, "t", topic());
+    let made = run_until_done(&mut world, 60_000 * MS, |_| created.take().is_some());
+    assert!(made, "the topic was made");
+    let mut leader = None;
+    let led = run_until_done(&mut world, 60_000 * MS, |world| {
+        leader = (1..=3).find(|node| {
+            world
+                .stats(*node)
+                .and_then(|stats| stats.topic("t").copied())
+                .is_some_and(|figures| figures.leads)
+        });
+        leader.is_some()
+    });
+    let leader = leader
+        .filter(|_| led)
+        .expect("the topic's group took a leader");
+    let publisher = (1..=3).find(|node| *node != leader).unwrap();
+    let other = (1..=3)
+        .find(|node| *node != leader && *node != publisher)
+        .unwrap();
+    // The leader's answers to the publisher's node are lost (one way), and the publisher's node is
+    // cut off from the other follower both ways, so it cannot win an election and be rescued by a
+    // leader change. The leader keeps its quorum through that follower and stays, the batch commits
+    // there, but its answer never reaches the publisher: the batch's fate is unknown to it.
+    world.cut(leader, publisher, false).unwrap();
+    world.cut(publisher, other, true).unwrap();
+    let began = world.now_ns();
+    let mut publish = world.publish(publisher, "t", b"answerless");
+    // quorum_wait is 3 s in the sim: the publish is answered soon after it, never left for good.
+    let mut answer = None;
+    let answered = run_until_done(&mut world, 30_000 * MS, |_| {
+        answer = publish.take();
+        answer.is_some()
+    });
+    let waited = Duration::from_nanos(world.now_ns() - began);
+    assert!(
+        answered,
+        "the publish was answered, not left waiting ({waited:?})"
+    );
+    assert!(
+        waited <= Duration::from_millis(4_000),
+        "answered within the quorum wait and a margin, not left hanging: {waited:?}"
+    );
+    assert!(
+        matches!(answer, Some(Err(Refusal::NoQuorum(_)))),
+        "refused for no quorum, its fate unknown: {answer:?}"
+    );
 }

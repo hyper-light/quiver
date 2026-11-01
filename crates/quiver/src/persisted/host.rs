@@ -996,7 +996,7 @@ impl Host {
         let mut refusals: Vec<(u64, Refusal)> = Vec::new();
         let no_quorum = |what: &str| {
             Refusal::NoQuorum(format!(
-                "no leader of {what}'s group was known for {wait:?}"
+                "{what}: no answer within the quorum wait {wait:?} (no leader was known, or a sent batch's fate is unknown)"
             ))
         };
         for (ticket, why) in self.catalog_publisher.pump(now) {
