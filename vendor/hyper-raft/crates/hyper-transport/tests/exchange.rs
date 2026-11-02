@@ -1263,6 +1263,40 @@ fn frames_on_a_lane_arrive_in_order() {
     }
 }
 
+/// Session-lab send windows refer to the socket's completed datagram, never merely a frame
+/// queued in a lane or copied into encrypted packets by poll_transmit.
+#[test]
+fn session_lab_frame_receipt_waits_for_all_datagrams_and_its_connection() {
+    let pair = Pair::new();
+    let mut net = connected::<Mantle, Mantle>(&pair, limits(), 256 << 20);
+    net.now += Duration::from_millis(100);
+    // Drain handshake-only work before choosing the frame's first packet.
+    let mut bytes = Vec::new();
+    while net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_some() {}
+    net.a.send_frame_receipt(2, 0, Kind::Append, &vec![42; 4096], 71).unwrap();
+    let mut proofs = Vec::new();
+    for _ in 0..32 {
+        if net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_none() { break; }
+        if let Some(proof) = net.a.take_transmission() && !proof.is_empty() { proofs.push(proof); }
+    }
+    assert!(proofs.len() > 1, "the frame must span datagrams");
+    let first = proofs.remove(0);
+    // Creating every packet and completing all but the first must leave the token pending.
+    for proof in proofs { assert!(net.a.sent_transmission(proof).is_empty()); }
+    assert_eq!(net.a.sent_transmission(first), vec![71]);
+
+    net.now += Duration::from_millis(100);
+    net.a.send_frame_receipt(2, 0, Kind::Append, b"old connection", 72).unwrap();
+    let mut pending = Vec::new();
+    for _ in 0..32 {
+        if net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_none() { break; }
+        if let Some(proof) = net.a.take_transmission() && !proof.is_empty() { pending.push(proof); }
+    }
+    assert!(!pending.is_empty());
+    net.a.disconnect(net.now, 2);
+    for proof in pending { assert!(net.a.sent_transmission(proof).is_empty()); }
+}
+
 /// A lane frame of a kind that carries its own CRC-32C is checked by it as it arrives
 /// (`Classes::embedded_checksum`): the prefix's checksum covers only the bytes before the frame's
 /// covered span, so each byte is summed once, and a frame whose covered bytes changed after they

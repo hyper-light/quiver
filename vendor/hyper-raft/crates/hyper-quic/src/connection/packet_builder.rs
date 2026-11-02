@@ -212,6 +212,12 @@ impl PacketBuilder {
             Some(sent) => sent,
             None => return,
         };
+        if let Some(ranges) = &mut conn.transmissions {
+            ranges.extend(sent.stream_frames.iter().map(|frame| crate::TransmissionRange {
+                stream: frame.id,
+                bytes: frame.offsets.clone(),
+            }));
+        }
 
         // A packet is no larger than its datagram, whose size is a u16
         let size = match padded || ack_eliciting {

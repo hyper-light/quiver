@@ -47,6 +47,7 @@ mod lane;
 mod pool;
 mod progress;
 mod receive;
+mod receipt;
 mod round;
 mod state;
 mod tally;
@@ -62,7 +63,7 @@ pub use credit::{
 };
 pub use endpoint::{
     AskQueue, Config, Endpoint, Limits, PathFacts, Stats, StreamCredit, connection_charge,
-    state_charge,
+    state_charge, Transmission,
 };
 pub use error::Refusal;
 pub use frame::Embedded;

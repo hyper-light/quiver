@@ -1,0 +1,568 @@
+Subject: Session lab observes frames after their UDP datagrams were sent
+Why: Plan 01a17197 step 3 requires crash windows after an answer and uplink update actually leave the process. A successful driver flush only attempts sending: a blocked socket, pacing or flow control may leave the selected frame unsent. Opt-in frame receipts join protected QUIC stream ranges to completed UDP datagrams without allocations or changed batching on the normal path.
+
+diff --git a/crates/hyper-quic/src/connection/mod.rs b/crates/hyper-quic/src/connection/mod.rs
+index 424550e9ad309c7fa98f2f7c821d811ffcaf8366..131cc5a9e123ec802ddded86a9641582d3a229c5 100644
+--- a/crates/hyper-quic/src/connection/mod.rs
++++ b/crates/hyper-quic/src/connection/mod.rs
+@@ -145,6 +145,8 @@ use timer::{Timer, TimerTable};
+ /// call to [`handle_event`](Self::handle_event) at that same instant; however
+ /// events or timeouts with different instants must not be interleaved.
+ pub struct Connection {
++    /// Opt-in packet evidence; absent on the ordinary transport path.
++    transmissions: Option<Vec<crate::TransmissionRange>>,
+     /// Whether to grease the QUIC bit (RFC 9287), from the endpoint's configuration
+     grease_quic_bit: bool,
+     config: TransportConfig,
+@@ -418,6 +420,7 @@ impl Connection {
+             handshake_datagram: false,
+             application_from: None,
+ 
++            transmissions: None,
+             receiving_ecn: false,
+             total_authed_packets: 0,
+ 
+@@ -529,6 +532,17 @@ impl Connection {
+         }
+     }
+ 
++    /// Enable opt-in stream-range evidence for outgoing protected packets.
++    pub fn record_transmissions(&mut self) {
++        self.transmissions.get_or_insert_with(Vec::new);
++    }
++
++    /// The ranges in the last transmit. The caller must keep them with its datagram until the
++    /// socket has accepted it; constructing a packet alone does not prove it was sent.
++    pub fn take_transmissions(&mut self) -> Vec<crate::TransmissionRange> {
++        self.transmissions.as_mut().map(std::mem::take).unwrap_or_default()
++    }
++
+     /// Returns packets to transmit
+     ///
+     /// Connections should be polled for transmit after:
+@@ -547,6 +561,9 @@ impl Connection {
+         buf: &mut Vec<u8>,
+         configs: &Configs,
+     ) -> Option<Transmit> {
++        if let Some(ranges) = &mut self.transmissions {
++            ranges.clear();
++        }
+         if max_datagrams == 0 {
+             return None;
+         }
+diff --git a/crates/hyper-quic/src/connection/packet_builder.rs b/crates/hyper-quic/src/connection/packet_builder.rs
+index 165e4e299bd96b7a83378b941ed6127cf60c1f0a..b2061564c63234ea5125c21f6644d80b69318922 100644
+--- a/crates/hyper-quic/src/connection/packet_builder.rs
++++ b/crates/hyper-quic/src/connection/packet_builder.rs
+@@ -212,6 +212,12 @@ impl PacketBuilder {
+             Some(sent) => sent,
+             None => return,
+         };
++        if let Some(ranges) = &mut conn.transmissions {
++            ranges.extend(sent.stream_frames.iter().map(|frame| crate::TransmissionRange {
++                stream: frame.id,
++                bytes: frame.offsets.clone(),
++            }));
++        }
+ 
+         // A packet is no larger than its datagram, whose size is a u16
+         let size = match padded || ack_eliciting {
+diff --git a/crates/hyper-quic/src/lib.rs b/crates/hyper-quic/src/lib.rs
+index 4ccad9e2f0bdeca8c25fcf25fe78d04d46184593..cc040b34f86963a30281c5de721167a9a034b231 100644
+--- a/crates/hyper-quic/src/lib.rs
++++ b/crates/hyper-quic/src/lib.rs
+@@ -384,6 +384,16 @@ pub struct Transmit {
+     pub src_ip: Option<IpAddr>,
+ }
+ 
++/// Stream bytes in a protected outgoing packet. Only the driver's successful socket send
++/// makes these evidence that the bytes actually left the transport.
++#[derive(Clone, Debug)]
++pub struct TransmissionRange {
++    /// The stream these bytes belong to.
++    pub stream: StreamId,
++    /// Stream offsets, excluding the end.
++    pub bytes: std::ops::Range<u64>,
++}
++
+ //
+ // Useful internal constants
+ //
+diff --git a/crates/hyper-rt-transport/src/driver.rs b/crates/hyper-rt-transport/src/driver.rs
+index 7b4a448785254601d1a245c25366d3e54f72792f..37ca2202e9df22a0db81714c2f98bda8945a3507 100644
+--- a/crates/hyper-rt-transport/src/driver.rs
++++ b/crates/hyper-rt-transport/src/driver.rs
+@@ -50,7 +50,7 @@ use hyper_rt::udp::{
+     Batched, Io, IoStats, MAX_BATCH, QueueCharge, Queued, RECEIVE_BYTES, Ring, UdpSocket,
+ };
+ use hyper_transport::{Account, Reservation, SocketCharge};
+-use hyper_transport::{Budget, Classes, Directory, Endpoint, Event, Lateness, PeerId};
++use hyper_transport::{Budget, Classes, Directory, Endpoint, Event, Lateness, PeerId, Transmission};
+ 
+ /// Derived: the turns one poll of [`Driver::event`] takes before it yields to the shard, the bound
+ /// hyper-tokio takes from tokio's cooperative budget (128 operations a task a poll,
+@@ -80,6 +80,8 @@ struct Held {
+     done: usize,
+     /// Each datagram's size but the last's.
+     segment: usize,
++    /// Present only for opt-in frame receipts, kept until the socket accepts this datagram.
++    proof: Option<Transmission>,
+ }
+ 
+ /// The kernel's account of a queue, as hyper-transport takes it.
+@@ -172,6 +174,7 @@ fn member_key(key: u64, writable: bool) -> u64 {
+ 
+ /// Drives an [`Endpoint`] on a hyper-rt shard (module doc of the crate).
+ pub struct Driver<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> {
++    frame_sent: Option<Box<dyn FnMut(u64) + Send>>,
+     endpoint: Endpoint<C, B, D>,
+     socket: Batched,
+     /// The shard clock's reading and the instant anchored to it.
+@@ -317,6 +320,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+             listed: Vec::new(),
+             told: Vec::new(),
+             held: None,
++            frame_sent: None,
+             outgoing: Vec::new(),
+             ring,
+             ring_charge: Reservation::default(),
+@@ -500,6 +504,14 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+         self.now()
+     }
+ 
++    /// Observe completed frame tokens immediately after the socket accepts their last byte.
++    /// While enabled, transmits contain one datagram, so a partial GSO batch cannot make a
++    /// receipt premature. The ordinary path allocates no receipts and keeps batching.
++    pub fn on_frame_sent(&mut self, observe: impl FnMut(u64) + Send + 'static) {
++        self.endpoint.observe_sends();
++        self.frame_sent = Some(Box::new(observe));
++    }
++
+     /// Sends what the endpoint has to send now, as far as the socket takes it without waiting.
+     pub fn flush(&mut self) -> Result<(), RtError> {
+         let now = self.now()?;
+@@ -1027,9 +1039,10 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+         while datagrams < DATAGRAMS_A_TURN {
+             let mut outgoing = std::mem::take(&mut self.outgoing);
+             outgoing.clear();
++            let segments = if self.frame_sent.is_some() { 1 } else { SEGMENTS_A_TRANSMIT };
+             let Some(transmit) =
+                 self.endpoint
+-                    .poll_transmit_batch(now, SEGMENTS_A_TRANSMIT, &mut outgoing)
++                    .poll_transmit_batch(now, segments, &mut outgoing)
+             else {
+                 self.outgoing = outgoing;
+                 break;
+@@ -1042,6 +1055,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+                 bytes: outgoing,
+                 done: 0,
+                 segment,
++                proof: self.endpoint.take_transmission(),
+             };
+             if let Some(rest) = self.send_held(held) {
+                 self.held = Some(rest);
+@@ -1056,9 +1070,15 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+     /// or the rest when the socket took no more.
+     fn send_held(&mut self, mut held: Held) -> Option<Held> {
+         let rest = held.bytes.get(held.done..).unwrap_or(&[]);
+-        let sent = self
+-            .socket_for(held.to)
+-            .send_segments(held.to, rest, held.segment);
++        let socket = self.socket_for(held.to);
++        let errors = socket.stats().send_errors;
++        let sent = socket.send_segments(held.to, rest, held.segment);
++        // The socket counts a refused datagram as consumed, so the transport can recover via
++        // retransmission. Only accepted datagrams prove a send; a one-datagram receipt is
++        // discarded here on any error, and a later retransmission can complete its frame.
++        if socket.stats().send_errors != errors {
++            held.proof = None;
++        }
+         held.done = held
+             .done
+             .saturating_add(sent.saturating_mul(held.segment))
+@@ -1066,6 +1086,12 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
+         if held.done < held.bytes.len() {
+             return Some(held);
+         }
++        if let Some(proof) = held.proof {
++            let completed = self.endpoint.sent_transmission(proof);
++            if let Some(observe) = &mut self.frame_sent {
++                for token in completed { observe(token); }
++            }
++        }
+         self.outgoing = held.bytes;
+         None
+     }
+diff --git a/crates/hyper-rt-transport/tests/peer_sockets.rs b/crates/hyper-rt-transport/tests/peer_sockets.rs
+index 06526aed0dad252f0e59d7bbe3d4098c7ae59b1d..e7f87c6e5fd21a11f082bd88ef7e1b9e95c5642c 100644
+--- a/crates/hyper-rt-transport/tests/peer_sockets.rs
++++ b/crates/hyper-rt-transport/tests/peer_sockets.rs
+@@ -247,6 +247,47 @@ fn each_connection_receives_on_a_socket_of_its_own_and_lets_it_go_with_the_conne
+     eprintln!("{report}");
+ }
+ 
++#[test]
++fn session_lab_receipts_follow_real_udp_sends_once_per_complete_frame() {
++    let pki = Pki::new();
++    let one = pki.issue(&name(1));
++    let two = pki.issue(&name(2));
++    let mut rt = LocalRuntime::new(&config()).unwrap();
++    rt.block_on(async move {
++        let loopback: SocketAddr = "127.0.0.1:0".parse().unwrap();
++        let mut server: Drv = Driver::bind(endpoint(&pki, &two, &one.0, CLIENT, true), loopback, IO).unwrap();
++        let mut client: Drv = Driver::bind(endpoint(&pki, &one, &two.0, SERVER, false), loopback, IO).unwrap();
++        let now = client.clock().unwrap();
++        client.endpoint().connect(now, SERVER, server.local_addr().unwrap()).unwrap();
++        let mut seen = Seen::default();
++        let began = Instant::now();
++        while seen.connected < 2 {
++            step(&mut server, &mut client, &mut seen).await;
++            assert!(began.elapsed() < GUARD);
++        }
++        let receipts = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
++        let observed = std::sync::Arc::clone(&receipts);
++        client.on_frame_sent(move |token| observed.lock().unwrap().push(token));
++        let before = client.stats().sent + client.peer_stats().sent;
++        client.endpoint().send_frame_receipt(SERVER, 0, Kind::Append, &[9; 4096], 71).unwrap();
++        assert!(receipts.lock().unwrap().is_empty(), "queuing is not sending");
++        client.flush().unwrap();
++        while seen.frames < 1 || receipts.lock().unwrap().is_empty() {
++            step(&mut server, &mut client, &mut seen).await;
++            assert!(began.elapsed() < GUARD, "the first frame or receipt never arrived");
++        }
++        client.endpoint().send_frame_receipt(SERVER, 0, Kind::Append, &[8; 4096], 72).unwrap();
++        assert_eq!(*receipts.lock().unwrap(), vec![71]);
++        client.flush().unwrap();
++        while seen.frames < 2 || receipts.lock().unwrap().len() < 2 {
++            step(&mut server, &mut client, &mut seen).await;
++            assert!(began.elapsed() < GUARD, "frames or receipts never arrived");
++        }
++        assert!(client.stats().sent + client.peer_stats().sent > before);
++        assert_eq!(*receipts.lock().unwrap(), vec![71, 72]);
++    }).unwrap();
++}
++
+ /// A driver given a socket already bound shares its port as a bound one does, where the socket was
+ /// bound with its port shared: a caller that holds its port from the moment it learns it and hands
+ /// the socket over loses no peer's queue of its own. Do: a client connects to a server driven on a
+diff --git a/crates/hyper-transport/src/endpoint.rs b/crates/hyper-transport/src/endpoint.rs
+index 1332f6fb2a06cea8e6b1ce7944276697bec17113..4755f9786164098708cb14d7a24ed1e0ad4e15ef 100644
+--- a/crates/hyper-transport/src/endpoint.rs
++++ b/crates/hyper-transport/src/endpoint.rs
+@@ -543,6 +543,8 @@ impl<C: Classes> Waiting<C> {
+ 
+ /// The endpoint: see the crate's documentation.
+ pub struct Endpoint<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> {
++    receipts: bool,
++    transmission: Option<Transmission>,
+     quic: hyper_quic::Endpoint,
+     client: ClientConfigHandle,
+     conns: Vec<Option<Box<Conn<C::Role>>>>,
+@@ -582,6 +584,21 @@ pub struct Endpoint<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role
+     keys: Vec<usize>,
+ }
+ 
++/// The protected stream ranges of one outgoing datagram. A driver keeps this opaque proof
++/// beside the datagram and commits it only after the socket accepts all its bytes.
++pub struct Transmission {
++    key: usize,
++    serial: u64,
++    ranges: Vec<hyper_quic::TransmissionRange>,
++}
++
++impl Transmission {
++    /// Whether this datagram carries no stream bytes (for example, a QUIC acknowledgement).
++    pub fn is_empty(&self) -> bool {
++        self.ranges.is_empty()
++    }
++}
++
+ /// What a window's growth or a connection's first window was refused for since the endpoint last
+ /// set back idle windows: room in the shared socket's queue, or the budget's bytes.
+ #[derive(Clone, Copy, Debug, Default)]
+@@ -903,6 +920,8 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C,
+             receive: Receive::new(limits.receive_chunks),
+             scratch: Vec::new(),
+             path_ceiling: None,
++            receipts: false,
++            transmission: None,
+             responses: VecDeque::new(),
+             spare: Vec::new(),
+             marks: Vec::new(),
+@@ -962,6 +981,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C,
+         max_datagrams: usize,
+         out: &mut Vec<u8>,
+     ) -> Option<Transmit> {
++        self.transmission = None;
+         self.core.now = now;
+         out.clear();
+         if let Some((transmit, bytes)) = self.responses.pop_front() {
+@@ -983,9 +1003,19 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C,
+             let Some(Some(conn)) = self.conns.get_mut(key) else {
+                 continue;
+             };
++            if self.receipts {
++                conn.quic.record_transmissions();
++            }
+             let sent = conn
+                 .quic
+                 .poll_transmit(now, max_datagrams.max(1), out, self.quic.configs());
++            if sent.is_some() && self.receipts {
++                self.transmission = Some(Transmission {
++                    key,
++                    serial: conn.serial,
++                    ranges: conn.quic.take_transmissions(),
++                });
++            }
+             // Sending, or finding nothing to send, moves the connection's timers.
+             self.rearm_later(key);
+             if let Some(transmit) = sent {
+@@ -1606,6 +1636,31 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C,
+         lane: crate::LaneId,
+         kind: C::Kind,
+         frame: &[u8],
++    ) -> Result<(), Refusal> {
++        self.send_frame_observed(peer, lane, kind, frame, None)
++    }
++
++    /// Queue a frame with the owner's unique token. Its receipt is completed only when a driver
++    /// commits all the frame's stream bytes after successful socket sends.
++    pub fn send_frame_receipt(
++        &mut self,
++        peer: PeerId,
++        lane: crate::LaneId,
++        kind: C::Kind,
++        frame: &[u8],
++        token: u64,
++    ) -> Result<(), Refusal> {
++        self.receipts = true;
++        self.send_frame_observed(peer, lane, kind, frame, Some(token))
++    }
++
++    fn send_frame_observed(
++        &mut self,
++        peer: PeerId,
++        lane: crate::LaneId,
++        kind: C::Kind,
++        frame: &[u8],
++        token: Option<u64>,
+     ) -> Result<(), Refusal> {
+         let class = C::class_of(kind, self.core.role).ok_or(Refusal::Kind)?;
+         if length(frame.len()) > C::frame_bound(class) {
+@@ -1618,11 +1673,41 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C,
+             lane,
+             (C::kind_code(kind), class, C::embedded_checksum(kind)),
+             frame,
++            token,
+         );
+         self.put(key, conn);
+         queued
+     }
+ 
++    /// Enable exact socket-send observations. The driver must use one datagram per transmit
++    /// while observing, so a partially sent batch cannot make a receipt premature.
++    pub fn observe_sends(&mut self) {
++        self.receipts = true;
++    }
++
++    /// Evidence for the most recently polled datagram, taken once by its driver.
++    pub fn take_transmission(&mut self) -> Option<Transmission> {
++        self.transmission.take()
++    }
++
++    /// Called only after the socket accepts the complete datagram associated with this proof.
++    /// A removed connection or stopped lane never transfers its proof to a replacement.
++    pub fn sent_transmission(&mut self, proof: Transmission) -> Vec<u64> {
++        let mut completed = Vec::new();
++        let Some(Some(conn)) = self.conns.get_mut(proof.key) else { return completed; };
++        if conn.serial != proof.serial || conn.lost { return completed; }
++        for range in proof.ranges {
++            let Some(lane) = conn.lanes_out.iter_mut().find(|lane| lane.stream == Some(range.stream)) else { continue; };
++            lane.receipts.retain_mut(|receipt| {
++                if receipt.sent(&range.bytes) {
++                    completed.push(receipt.token);
++                    false
++                } else { true }
++            });
++        }
++        completed
++    }
++
+     /// Keying material from the TLS session of the connection to `peer` (RFC 5705, RFC 8446
+     /// §7.5), for the datagram plane's keys, and the epoch it belongs to.
+     pub fn export_keying_material(
+@@ -4193,6 +4278,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Core<C, B, D
+         lane: crate::LaneId,
+         (kind, class, embedded): (u16, C::Class, Option<crate::Embedded>),
+         frame: &[u8],
++        token: Option<u64>,
+     ) -> Result<(), Refusal> {
+         if conn.peer.is_none() || conn.lost {
+             return Err(Refusal::NotConnected);
+@@ -4237,10 +4323,19 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Core<C, B, D
+             }
+             None => Prefix::encode(kind, frame, None)?,
+         };
++        let begin = conn.lanes_out.get(at).map_or(0, |out| out.queued_bytes);
++        let end = begin.checked_add(length(PREFIX_BYTES).saturating_add(length(frame.len())))
++            .ok_or(Refusal::FrameBound)?;
+         let mut bytes = self.budget.reserve(
+             length(PREFIX_BYTES).saturating_add(length(frame.len())),
+             Lane::Class(class),
+         )?;
++        if let Some(out) = conn.lanes_out.get_mut(at) {
++            out.queued_bytes = end;
++            if let Some(token) = token {
++                out.receipts.push(crate::receipt::Receipt::new(token, begin..end));
++            }
++        }
+         // A connection carrying frames is in use as one carrying exchanges is.
+         if let Some((peer, _)) = conn.peer {
+             self.admission.carried(peer, conn.key, self.now);
+diff --git a/crates/hyper-transport/src/lane.rs b/crates/hyper-transport/src/lane.rs
+index 7c9cbbc039123496e37e3c62f75c66a05615c0dc..9d98215edc48344a02136ff42c3a10354315457a 100644
+--- a/crates/hyper-transport/src/lane.rs
++++ b/crates/hyper-transport/src/lane.rs
+@@ -44,6 +44,10 @@ pub(crate) struct LaneOut {
+     pub(crate) lane: LaneId,
+     pub(crate) stream: Option<StreamId>,
+     pub(crate) opener_written: usize,
++    /// End of all accepted frame bytes, including the opening and each frame's prefix.
++    pub(crate) queued_bytes: u64,
++    /// Allocated only when an owner asks to observe actual UDP sends.
++    pub(crate) receipts: Vec<crate::receipt::Receipt>,
+     /// Frames waiting, each its prefix and bytes, with the rank of its class.
+     pub(crate) queue: VecDeque<(u8, Reservation)>,
+     /// What of the front frame was written.
+@@ -61,6 +65,8 @@ impl LaneOut {
+             lane,
+             stream: None,
+             opener_written: 0,
++            queued_bytes: OPENER_BYTES as u64,
++            receipts: Vec::new(),
+             queue: VecDeque::with_capacity(window),
+             written: 0,
+             refused: false,
+diff --git a/crates/hyper-transport/src/lib.rs b/crates/hyper-transport/src/lib.rs
+index e28201e48aac03595d1ba5bad3bfdf555e035f45..0f30181a892c1c5930a6ce156436a9d0f7b90227 100644
+--- a/crates/hyper-transport/src/lib.rs
++++ b/crates/hyper-transport/src/lib.rs
+@@ -47,6 +47,7 @@ mod lane;
+ mod pool;
+ mod progress;
+ mod receive;
++mod receipt;
+ mod round;
+ mod state;
+ mod tally;
+@@ -62,7 +63,7 @@ pub use credit::{
+ };
+ pub use endpoint::{
+     AskQueue, Config, Endpoint, Limits, PathFacts, Stats, StreamCredit, connection_charge,
+-    state_charge,
++    state_charge, Transmission,
+ };
+ pub use error::Refusal;
+ pub use frame::Embedded;
+diff --git a/crates/hyper-transport/src/receipt.rs b/crates/hyper-transport/src/receipt.rs
+new file mode 100644
+index 0000000000000000000000000000000000000000..383032a31b4bf96cfb35b9ae0baaab2f890d6f04
+--- /dev/null
++++ b/crates/hyper-transport/src/receipt.rs
+@@ -0,0 +1,51 @@
++//! Opt-in evidence that every byte of one frame reached the sending socket.
++
++use std::ops::Range;
++
++/// One application's token and the stream bytes not yet accepted by the UDP socket.
++#[derive(Debug)]
++pub(crate) struct Receipt {
++    pub(crate) token: u64,
++    left: Vec<Range<u64>>,
++}
++
++impl Receipt {
++    pub(crate) fn new(token: u64, bytes: Range<u64>) -> Self {
++        Self { token, left: Vec::from([bytes]) }
++    }
++
++    /// A later range cannot excuse an earlier hole; a retransmission is not fresh progress.
++    pub(crate) fn sent(&mut self, bytes: &Range<u64>) -> bool {
++        let mut left = Vec::new();
++        for range in self.left.drain(..) {
++            if range.end <= bytes.start || range.start >= bytes.end {
++                left.push(range);
++                continue;
++            }
++            if range.start < bytes.start {
++                left.push(range.start..bytes.start);
++            }
++            if range.end > bytes.end {
++                left.push(bytes.end..range.end);
++            }
++        }
++        self.left = left;
++        self.left.is_empty()
++    }
++}
++
++#[cfg(test)]
++mod tests {
++    use super::*;
++
++    #[test]
++    fn session_lab_receipt_needs_every_frame_byte_sent_not_queued() {
++        let mut receipt = Receipt::new(7, 8..108);
++        assert!(!receipt.sent(&(58..108)));
++        assert!(!receipt.sent(&(58..108)));
++        assert!(!receipt.sent(&(0..28)));
++        assert!(!receipt.sent(&(38..58)));
++        assert!(receipt.sent(&(28..38)));
++        assert_eq!(receipt.token, 7);
++    }
++}
+diff --git a/crates/hyper-transport/tests/exchange.rs b/crates/hyper-transport/tests/exchange.rs
+index 8f63d4414842f527c2d802d18b503dadbb33e161..a2c4251e0a7e464f097c6d90cbe567a8a96b8151 100644
+--- a/crates/hyper-transport/tests/exchange.rs
++++ b/crates/hyper-transport/tests/exchange.rs
+@@ -1263,6 +1263,40 @@ fn frames_on_a_lane_arrive_in_order() {
+     }
+ }
+ 
++/// Session-lab send windows refer to the socket's completed datagram, never merely a frame
++/// queued in a lane or copied into encrypted packets by poll_transmit.
++#[test]
++fn session_lab_frame_receipt_waits_for_all_datagrams_and_its_connection() {
++    let pair = Pair::new();
++    let mut net = connected::<Mantle, Mantle>(&pair, limits(), 256 << 20);
++    net.now += Duration::from_millis(100);
++    // Drain handshake-only work before choosing the frame's first packet.
++    let mut bytes = Vec::new();
++    while net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_some() {}
++    net.a.send_frame_receipt(2, 0, Kind::Append, &vec![42; 4096], 71).unwrap();
++    let mut proofs = Vec::new();
++    for _ in 0..32 {
++        if net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_none() { break; }
++        if let Some(proof) = net.a.take_transmission() && !proof.is_empty() { proofs.push(proof); }
++    }
++    assert!(proofs.len() > 1, "the frame must span datagrams");
++    let first = proofs.remove(0);
++    // Creating every packet and completing all but the first must leave the token pending.
++    for proof in proofs { assert!(net.a.sent_transmission(proof).is_empty()); }
++    assert_eq!(net.a.sent_transmission(first), vec![71]);
++
++    net.now += Duration::from_millis(100);
++    net.a.send_frame_receipt(2, 0, Kind::Append, b"old connection", 72).unwrap();
++    let mut pending = Vec::new();
++    for _ in 0..32 {
++        if net.a.poll_transmit_batch(net.now, 1, &mut bytes).is_none() { break; }
++        if let Some(proof) = net.a.take_transmission() && !proof.is_empty() { pending.push(proof); }
++    }
++    assert!(!pending.is_empty());
++    net.a.disconnect(net.now, 2);
++    for proof in pending { assert!(net.a.sent_transmission(proof).is_empty()); }
++}
++
+ /// A lane frame of a kind that carries its own CRC-32C is checked by it as it arrives
+ /// (`Classes::embedded_checksum`): the prefix's checksum covers only the bytes before the frame's
+ /// covered span, so each byte is summed once, and a frame whose covered bytes changed after they

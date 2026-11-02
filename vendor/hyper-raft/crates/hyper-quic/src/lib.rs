@@ -384,6 +384,16 @@ pub struct Transmit {
     pub src_ip: Option<IpAddr>,
 }
 
+/// Stream bytes in a protected outgoing packet. Only the driver's successful socket send
+/// makes these evidence that the bytes actually left the transport.
+#[derive(Clone, Debug)]
+pub struct TransmissionRange {
+    /// The stream these bytes belong to.
+    pub stream: StreamId,
+    /// Stream offsets, excluding the end.
+    pub bytes: std::ops::Range<u64>,
+}
+
 //
 // Useful internal constants
 //

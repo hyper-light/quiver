@@ -44,6 +44,10 @@ pub(crate) struct LaneOut {
     pub(crate) lane: LaneId,
     pub(crate) stream: Option<StreamId>,
     pub(crate) opener_written: usize,
+    /// End of all accepted frame bytes, including the opening and each frame's prefix.
+    pub(crate) queued_bytes: u64,
+    /// Allocated only when an owner asks to observe actual UDP sends.
+    pub(crate) receipts: Vec<crate::receipt::Receipt>,
     /// Frames waiting, each its prefix and bytes, with the rank of its class.
     pub(crate) queue: VecDeque<(u8, Reservation)>,
     /// What of the front frame was written.
@@ -61,6 +65,8 @@ impl LaneOut {
             lane,
             stream: None,
             opener_written: 0,
+            queued_bytes: OPENER_BYTES as u64,
+            receipts: Vec::new(),
             queue: VecDeque::with_capacity(window),
             written: 0,
             refused: false,

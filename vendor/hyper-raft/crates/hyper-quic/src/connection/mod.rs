@@ -145,6 +145,8 @@ use timer::{Timer, TimerTable};
 /// call to [`handle_event`](Self::handle_event) at that same instant; however
 /// events or timeouts with different instants must not be interleaved.
 pub struct Connection {
+    /// Opt-in packet evidence; absent on the ordinary transport path.
+    transmissions: Option<Vec<crate::TransmissionRange>>,
     /// Whether to grease the QUIC bit (RFC 9287), from the endpoint's configuration
     grease_quic_bit: bool,
     config: TransportConfig,
@@ -418,6 +420,7 @@ impl Connection {
             handshake_datagram: false,
             application_from: None,
 
+            transmissions: None,
             receiving_ecn: false,
             total_authed_packets: 0,
 
@@ -529,6 +532,17 @@ impl Connection {
         }
     }
 
+    /// Enable opt-in stream-range evidence for outgoing protected packets.
+    pub fn record_transmissions(&mut self) {
+        self.transmissions.get_or_insert_with(Vec::new);
+    }
+
+    /// The ranges in the last transmit. The caller must keep them with its datagram until the
+    /// socket has accepted it; constructing a packet alone does not prove it was sent.
+    pub fn take_transmissions(&mut self) -> Vec<crate::TransmissionRange> {
+        self.transmissions.as_mut().map(std::mem::take).unwrap_or_default()
+    }
+
     /// Returns packets to transmit
     ///
     /// Connections should be polled for transmit after:
@@ -547,6 +561,9 @@ impl Connection {
         buf: &mut Vec<u8>,
         configs: &Configs,
     ) -> Option<Transmit> {
+        if let Some(ranges) = &mut self.transmissions {
+            ranges.clear();
+        }
         if max_datagrams == 0 {
             return None;
         }

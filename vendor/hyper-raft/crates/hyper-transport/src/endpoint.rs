@@ -543,6 +543,8 @@ impl<C: Classes> Waiting<C> {
 
 /// The endpoint: see the crate's documentation.
 pub struct Endpoint<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> {
+    receipts: bool,
+    transmission: Option<Transmission>,
     quic: hyper_quic::Endpoint,
     client: ClientConfigHandle,
     conns: Vec<Option<Box<Conn<C::Role>>>>,
@@ -580,6 +582,21 @@ pub struct Endpoint<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role
     serials: u64,
     /// A peer's connections, gathered to read its paused lanes again.
     keys: Vec<usize>,
+}
+
+/// The protected stream ranges of one outgoing datagram. A driver keeps this opaque proof
+/// beside the datagram and commits it only after the socket accepts all its bytes.
+pub struct Transmission {
+    key: usize,
+    serial: u64,
+    ranges: Vec<hyper_quic::TransmissionRange>,
+}
+
+impl Transmission {
+    /// Whether this datagram carries no stream bytes (for example, a QUIC acknowledgement).
+    pub fn is_empty(&self) -> bool {
+        self.ranges.is_empty()
+    }
 }
 
 /// What a window's growth or a connection's first window was refused for since the endpoint last
@@ -903,6 +920,8 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C, 
             receive: Receive::new(limits.receive_chunks),
             scratch: Vec::new(),
             path_ceiling: None,
+            receipts: false,
+            transmission: None,
             responses: VecDeque::new(),
             spare: Vec::new(),
             marks: Vec::new(),
@@ -962,6 +981,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C, 
         max_datagrams: usize,
         out: &mut Vec<u8>,
     ) -> Option<Transmit> {
+        self.transmission = None;
         self.core.now = now;
         out.clear();
         if let Some((transmit, bytes)) = self.responses.pop_front() {
@@ -983,9 +1003,19 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C, 
             let Some(Some(conn)) = self.conns.get_mut(key) else {
                 continue;
             };
+            if self.receipts {
+                conn.quic.record_transmissions();
+            }
             let sent = conn
                 .quic
                 .poll_transmit(now, max_datagrams.max(1), out, self.quic.configs());
+            if sent.is_some() && self.receipts {
+                self.transmission = Some(Transmission {
+                    key,
+                    serial: conn.serial,
+                    ranges: conn.quic.take_transmissions(),
+                });
+            }
             // Sending, or finding nothing to send, moves the connection's timers.
             self.rearm_later(key);
             if let Some(transmit) = sent {
@@ -1607,6 +1637,31 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C, 
         kind: C::Kind,
         frame: &[u8],
     ) -> Result<(), Refusal> {
+        self.send_frame_observed(peer, lane, kind, frame, None)
+    }
+
+    /// Queue a frame with the owner's unique token. Its receipt is completed only when a driver
+    /// commits all the frame's stream bytes after successful socket sends.
+    pub fn send_frame_receipt(
+        &mut self,
+        peer: PeerId,
+        lane: crate::LaneId,
+        kind: C::Kind,
+        frame: &[u8],
+        token: u64,
+    ) -> Result<(), Refusal> {
+        self.receipts = true;
+        self.send_frame_observed(peer, lane, kind, frame, Some(token))
+    }
+
+    fn send_frame_observed(
+        &mut self,
+        peer: PeerId,
+        lane: crate::LaneId,
+        kind: C::Kind,
+        frame: &[u8],
+        token: Option<u64>,
+    ) -> Result<(), Refusal> {
         let class = C::class_of(kind, self.core.role).ok_or(Refusal::Kind)?;
         if length(frame.len()) > C::frame_bound(class) {
             return Err(Refusal::FrameBound);
@@ -1618,9 +1673,39 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Endpoint<C, 
             lane,
             (C::kind_code(kind), class, C::embedded_checksum(kind)),
             frame,
+            token,
         );
         self.put(key, conn);
         queued
+    }
+
+    /// Enable exact socket-send observations. The driver must use one datagram per transmit
+    /// while observing, so a partially sent batch cannot make a receipt premature.
+    pub fn observe_sends(&mut self) {
+        self.receipts = true;
+    }
+
+    /// Evidence for the most recently polled datagram, taken once by its driver.
+    pub fn take_transmission(&mut self) -> Option<Transmission> {
+        self.transmission.take()
+    }
+
+    /// Called only after the socket accepts the complete datagram associated with this proof.
+    /// A removed connection or stopped lane never transfers its proof to a replacement.
+    pub fn sent_transmission(&mut self, proof: Transmission) -> Vec<u64> {
+        let mut completed = Vec::new();
+        let Some(Some(conn)) = self.conns.get_mut(proof.key) else { return completed; };
+        if conn.serial != proof.serial || conn.lost { return completed; }
+        for range in proof.ranges {
+            let Some(lane) = conn.lanes_out.iter_mut().find(|lane| lane.stream == Some(range.stream)) else { continue; };
+            lane.receipts.retain_mut(|receipt| {
+                if receipt.sent(&range.bytes) {
+                    completed.push(receipt.token);
+                    false
+                } else { true }
+            });
+        }
+        completed
     }
 
     /// Keying material from the TLS session of the connection to `peer` (RFC 5705, RFC 8446
@@ -4193,6 +4278,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Core<C, B, D
         lane: crate::LaneId,
         (kind, class, embedded): (u16, C::Class, Option<crate::Embedded>),
         frame: &[u8],
+        token: Option<u64>,
     ) -> Result<(), Refusal> {
         if conn.peer.is_none() || conn.lost {
             return Err(Refusal::NotConnected);
@@ -4237,10 +4323,19 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Core<C, B, D
             }
             None => Prefix::encode(kind, frame, None)?,
         };
+        let begin = conn.lanes_out.get(at).map_or(0, |out| out.queued_bytes);
+        let end = begin.checked_add(length(PREFIX_BYTES).saturating_add(length(frame.len())))
+            .ok_or(Refusal::FrameBound)?;
         let mut bytes = self.budget.reserve(
             length(PREFIX_BYTES).saturating_add(length(frame.len())),
             Lane::Class(class),
         )?;
+        if let Some(out) = conn.lanes_out.get_mut(at) {
+            out.queued_bytes = end;
+            if let Some(token) = token {
+                out.receipts.push(crate::receipt::Receipt::new(token, begin..end));
+            }
+        }
         // A connection carrying frames is in use as one carrying exchanges is.
         if let Some((peer, _)) = conn.peer {
             self.admission.carried(peer, conn.key, self.now);

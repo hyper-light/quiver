@@ -50,7 +50,7 @@ use hyper_rt::udp::{
     Batched, Io, IoStats, MAX_BATCH, QueueCharge, Queued, RECEIVE_BYTES, Ring, UdpSocket,
 };
 use hyper_transport::{Account, Reservation, SocketCharge};
-use hyper_transport::{Budget, Classes, Directory, Endpoint, Event, Lateness, PeerId};
+use hyper_transport::{Budget, Classes, Directory, Endpoint, Event, Lateness, PeerId, Transmission};
 
 /// Derived: the turns one poll of [`Driver::event`] takes before it yields to the shard, the bound
 /// hyper-tokio takes from tokio's cooperative budget (128 operations a task a poll,
@@ -80,6 +80,8 @@ struct Held {
     done: usize,
     /// Each datagram's size but the last's.
     segment: usize,
+    /// Present only for opt-in frame receipts, kept until the socket accepts this datagram.
+    proof: Option<Transmission>,
 }
 
 /// The kernel's account of a queue, as hyper-transport takes it.
@@ -172,6 +174,7 @@ fn member_key(key: u64, writable: bool) -> u64 {
 
 /// Drives an [`Endpoint`] on a hyper-rt shard (module doc of the crate).
 pub struct Driver<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> {
+    frame_sent: Option<Box<dyn FnMut(u64) + Send>>,
     endpoint: Endpoint<C, B, D>,
     socket: Batched,
     /// The shard clock's reading and the instant anchored to it.
@@ -317,6 +320,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
             listed: Vec::new(),
             told: Vec::new(),
             held: None,
+            frame_sent: None,
             outgoing: Vec::new(),
             ring,
             ring_charge: Reservation::default(),
@@ -498,6 +502,14 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
     /// `ask`), on the shard's clock as the driver's own are.
     pub fn clock(&self) -> Result<Instant, RtError> {
         self.now()
+    }
+
+    /// Observe completed frame tokens immediately after the socket accepts their last byte.
+    /// While enabled, transmits contain one datagram, so a partial GSO batch cannot make a
+    /// receipt premature. The ordinary path allocates no receipts and keeps batching.
+    pub fn on_frame_sent(&mut self, observe: impl FnMut(u64) + Send + 'static) {
+        self.endpoint.observe_sends();
+        self.frame_sent = Some(Box::new(observe));
     }
 
     /// Sends what the endpoint has to send now, as far as the socket takes it without waiting.
@@ -1027,9 +1039,10 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
         while datagrams < DATAGRAMS_A_TURN {
             let mut outgoing = std::mem::take(&mut self.outgoing);
             outgoing.clear();
+            let segments = if self.frame_sent.is_some() { 1 } else { SEGMENTS_A_TRANSMIT };
             let Some(transmit) =
                 self.endpoint
-                    .poll_transmit_batch(now, SEGMENTS_A_TRANSMIT, &mut outgoing)
+                    .poll_transmit_batch(now, segments, &mut outgoing)
             else {
                 self.outgoing = outgoing;
                 break;
@@ -1042,6 +1055,7 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
                 bytes: outgoing,
                 done: 0,
                 segment,
+                proof: self.endpoint.take_transmission(),
             };
             if let Some(rest) = self.send_held(held) {
                 self.held = Some(rest);
@@ -1056,15 +1070,27 @@ impl<C: Classes, B: Budget<C::Class>, D: Directory<Role = C::Role>> Driver<C, B,
     /// or the rest when the socket took no more.
     fn send_held(&mut self, mut held: Held) -> Option<Held> {
         let rest = held.bytes.get(held.done..).unwrap_or(&[]);
-        let sent = self
-            .socket_for(held.to)
-            .send_segments(held.to, rest, held.segment);
+        let socket = self.socket_for(held.to);
+        let errors = socket.stats().send_errors;
+        let sent = socket.send_segments(held.to, rest, held.segment);
+        // The socket counts a refused datagram as consumed, so the transport can recover via
+        // retransmission. Only accepted datagrams prove a send; a one-datagram receipt is
+        // discarded here on any error, and a later retransmission can complete its frame.
+        if socket.stats().send_errors != errors {
+            held.proof = None;
+        }
         held.done = held
             .done
             .saturating_add(sent.saturating_mul(held.segment))
             .min(held.bytes.len());
         if held.done < held.bytes.len() {
             return Some(held);
+        }
+        if let Some(proof) = held.proof {
+            let completed = self.endpoint.sent_transmission(proof);
+            if let Some(observe) = &mut self.frame_sent {
+                for token in completed { observe(token); }
+            }
         }
         self.outgoing = held.bytes;
         None

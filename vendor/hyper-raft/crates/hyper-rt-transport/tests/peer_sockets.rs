@@ -247,6 +247,47 @@ fn each_connection_receives_on_a_socket_of_its_own_and_lets_it_go_with_the_conne
     eprintln!("{report}");
 }
 
+#[test]
+fn session_lab_receipts_follow_real_udp_sends_once_per_complete_frame() {
+    let pki = Pki::new();
+    let one = pki.issue(&name(1));
+    let two = pki.issue(&name(2));
+    let mut rt = LocalRuntime::new(&config()).unwrap();
+    rt.block_on(async move {
+        let loopback: SocketAddr = "127.0.0.1:0".parse().unwrap();
+        let mut server: Drv = Driver::bind(endpoint(&pki, &two, &one.0, CLIENT, true), loopback, IO).unwrap();
+        let mut client: Drv = Driver::bind(endpoint(&pki, &one, &two.0, SERVER, false), loopback, IO).unwrap();
+        let now = client.clock().unwrap();
+        client.endpoint().connect(now, SERVER, server.local_addr().unwrap()).unwrap();
+        let mut seen = Seen::default();
+        let began = Instant::now();
+        while seen.connected < 2 {
+            step(&mut server, &mut client, &mut seen).await;
+            assert!(began.elapsed() < GUARD);
+        }
+        let receipts = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+        let observed = std::sync::Arc::clone(&receipts);
+        client.on_frame_sent(move |token| observed.lock().unwrap().push(token));
+        let before = client.stats().sent + client.peer_stats().sent;
+        client.endpoint().send_frame_receipt(SERVER, 0, Kind::Append, &[9; 4096], 71).unwrap();
+        assert!(receipts.lock().unwrap().is_empty(), "queuing is not sending");
+        client.flush().unwrap();
+        while seen.frames < 1 || receipts.lock().unwrap().is_empty() {
+            step(&mut server, &mut client, &mut seen).await;
+            assert!(began.elapsed() < GUARD, "the first frame or receipt never arrived");
+        }
+        client.endpoint().send_frame_receipt(SERVER, 0, Kind::Append, &[8; 4096], 72).unwrap();
+        assert_eq!(*receipts.lock().unwrap(), vec![71]);
+        client.flush().unwrap();
+        while seen.frames < 2 || receipts.lock().unwrap().len() < 2 {
+            step(&mut server, &mut client, &mut seen).await;
+            assert!(began.elapsed() < GUARD, "frames or receipts never arrived");
+        }
+        assert!(client.stats().sent + client.peer_stats().sent > before);
+        assert_eq!(*receipts.lock().unwrap(), vec![71, 72]);
+    }).unwrap();
+}
+
 /// A driver given a socket already bound shares its port as a bound one does, where the socket was
 /// bound with its port shared: a caller that holds its port from the moment it learns it and hands
 /// the socket over loses no peer's queue of its own. Do: a client connects to a server driven on a
