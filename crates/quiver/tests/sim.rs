@@ -1150,13 +1150,24 @@ fn the_planted_acknowledgement_before_a_quorums_flush_is_found_and_replayed() {
 #[cfg(feature = "plant-refused-proposals")]
 #[test]
 fn a_leader_refusing_every_proposal_is_told_by_the_leader_and_the_publisher() {
-    let mut world = World::new(settings("refusals", 1, SimPath::in_order(500_000, 0))).unwrap();
+    let mut configured = settings("refusals", 1, SimPath::in_order(500_000, 0));
+    // CP-T2.2: observe the planted 8 s stall within the lab's 10 s delivery budget.
+    // The default 3 s simulation budget refuses the catalog before the stall ends.
+    configured.quorum_wait = Duration::from_secs(10);
+    let mut world = World::new(configured).unwrap();
     for node in 1..=3 {
         world.start(node, Kill::Never).unwrap();
     }
     let mut created = world.create(1, "t", topic());
-    let made = run_until_done(&mut world, 60_000 * MS, |_| created.take().is_some());
-    assert!(made, "the topic was made");
+    let mut creation = None;
+    let made = run_until_done(&mut world, 60_000 * MS, |_| {
+        creation = created.take();
+        creation.is_some()
+    });
+    assert!(
+        made && matches!(creation, Some(Ok(_))),
+        "the topic was made: {creation:?}"
+    );
     let mut leader = None;
     let led = run_until_done(&mut world, 60_000 * MS, |world| {
         leader = (1..=3).find(|node| {
