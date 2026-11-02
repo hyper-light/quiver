@@ -73,6 +73,15 @@ batch, one Quiver record a batch (`ephemeral.rs`'s framing).
   one it knew (KIP-951's rule). A node that answers nothing for 500 ms while batches are owed is
   left for the next: a leader killed -9 says nothing, and its connection ends only at the
   transport's idle timeout, two minutes.
+- **An unavailable member.** CP-T2.2's publisher-after-kill fix in Focal holds a publish while a
+  stale leader hint names the member itself but its core cannot serve. Its parked batches share
+  Quiver's quorum-wait bound, including after a fenced member reopens; expiry runs even with no
+  proposal room. A batch it cannot keep or whose wait expires gets the existing redirect with no
+  available leader. It never sends the publisher back to itself. The publisher still applies its
+  own absolute delivery deadline: an unavailable answer does not acknowledge the batch, and an
+  earlier copy may yet commit under the same producer and sequence.
+  Before replacing a fenced member, its parked and answered publishers' lanes are released and
+  their connections closed in peer order, so the retained endpoint keeps no orphaned hold.
 - **Once, in order.** A batch once sent is sent again, in order, until its part has committed it:
   as the publisher's leader changes, its connection comes up, the part says the session waits for
   an earlier batch, or a resend period passes. The part's sessions recognise a batch they took

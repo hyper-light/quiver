@@ -349,6 +349,8 @@ pub(crate) struct Plan {
     pub(crate) members: Vec<u64>,
     pub(crate) clients: usize,
     pub(crate) lane_window: usize,
+    /// CP-T2.2: the member's parked publishes share the publisher's delivery bound.
+    pub(crate) publish_wait: Duration,
     /// Each node, and the peer its publisher is to this member (`Identities::publishers`).
     pub(crate) publishers: Vec<(u64, u64)>,
     /// Under the simulation, the node's simulated machine its log's device is on.
@@ -400,19 +402,20 @@ impl Plan {
             // The planted stall's build: no proposal taken for 8 s after the lead is taken.
             #[cfg(feature = "plant-refused-proposals")]
             member.plant_refusals(Some(std::time::Duration::from_secs(8)));
-            return persisted(member);
+            return persisted(member, self.publish_wait);
         }
         let member =
             Member::open(settings, node, members, clients, window, budget, now).map_err(said)?;
-        persisted(member)
+        persisted(member, self.publish_wait)
     }
 }
 
 /// `member`, if it acknowledges on a majority's disks: the persisted class.
-fn persisted(member: Member) -> Result<Member, String> {
+fn persisted(mut member: Member, wait: Duration) -> Result<Member, String> {
     if member.class() != Durability::Persisted {
         return Err("the part's group would not acknowledge on a majority's disks".to_owned());
     }
+    member.set_publish_wait(wait);
     Ok(member)
 }
 

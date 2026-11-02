@@ -302,6 +302,7 @@ impl Host {
             members: config.ids(),
             clients: ids.nodes(),
             lane_window: ids.lane_window()?,
+            publish_wait: config.quorum_wait,
             publishers: ids.publishers(),
             #[cfg(feature = "sim")]
             machine: sim.as_ref().map(super::sim::Start::machine),
@@ -836,6 +837,7 @@ impl Host {
                     members: self.config.ids(),
                     clients: self.ids.nodes(),
                     lane_window: self.ids.lane_window()?,
+                    publish_wait: self.config.quorum_wait,
                     publishers: self.ids.publishers(),
                     #[cfg(feature = "sim")]
                     machine: machine.clone(),
