@@ -24,6 +24,7 @@ Each change is recorded in `vendor/patches/hyper-raft/`, applied in this order o
 | File | Change | Why | Recorded as |
 |---|---|---|---|
 | `crates/hyper-durable/src/lib.rs`, `crates/hyper-durable/Cargo.toml` | `RamStore` compiled only for the crate's own tests or under the `test-store` feature, which a dev-dependency asks for (the crate's own tests ask through one on itself) | the write-ahead log is mandatory in Quiver and kiln: `GroupStore` on a real device, `RamStore` test-only, and a build that names it outside a test fails (kiln's CP-T2.1, T-T2.1.2; Quiver's `crates/quiver/tests/ram_store.rs`) | `0001-ramstore-for-tests-alone-the-write-ahead-log-mandatory.patch` |
+| `crates/hyper-rt-transport/src/driver.rs`, `crates/hyper-rt-transport/tests/received.rs` | `Driver::poll_received` and `Driver::received`: `poll_event`'s turn split at its seam, an event the turn's receive half made handed out before the turn's sends, which the caller then makes with `flush` in the same turn (the method's doc says what it owes, and what holding it costs); `poll_event` built from the same pieces (`receive`, the receive half; `turns`, the loop), doing what it did; a test of both | kiln's (its net thread hands what comes in to its shards before the turn's sends: kiln's goal 10, plan 01a1a87b2dae step 5), recorded here as kiln records it, so the one copy kiln holds is Quiver's; nothing in Quiver or Focal's bus calls it | `0003-driver-poll-received-a-turn-s-events-before-its-sends.patch` |
 
 The first change is Quiver's and kiln's policy, not hyper-raft's, so it isn't offered upstream: hyper-durable
 calls `RamStore` slates' case (each write complete as it's submitted), and gating it in hyper-raft
@@ -31,7 +32,11 @@ would reach slates. Focal's agent agrees (2026-10-22), and notes that Focal name
 test module (`focal-consensus`'s `shell_tests.rs`): sharing this copy, it would ask for `test-store`
 as a dev-dependency, as kiln's sync tests do.
 
-A second change, IOCP's widened AFD poll issued only once the old one's cancel completes (Jupiter,
+The change numbered 0003 is kiln's, under kiln's number (its 0002 is kiln's layout alone), offered
+upstream as it stands: it adds a method and changes no other, and Quiver and Focal's bus call `event`
+and `poll_event`, whose turns are the same.
+
+An earlier change, IOCP's widened AFD poll issued only once the old one's cancel completes (Jupiter,
 2026-10-24), was a fix of hyper-raft's own: hyper-raft carries it since `53a28a0` (with its test,
 `392407f`), so the re-vendor at `0856e05` dropped it.
 
