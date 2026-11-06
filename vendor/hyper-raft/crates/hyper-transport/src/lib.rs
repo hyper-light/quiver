@@ -62,8 +62,8 @@ pub use credit::{
     socket_buffer_ask, stream_window_ceiling,
 };
 pub use endpoint::{
-    AskQueue, Config, Endpoint, Limits, PathFacts, Stats, StreamCredit, connection_charge,
-    state_charge,
+    Acknowledgement, AskQueue, Config, Endpoint, Limits, PathFacts, REPLY_ACK_DELAY, Stats,
+    StreamCredit, connection_charge, state_charge,
 };
 pub use error::Refusal;
 pub use frame::Embedded;
@@ -87,6 +87,11 @@ use std::fmt::Debug;
 pub type PeerId = u64;
 /// A replication lane to a peer: one long-lived stream, frames in order (node.md §3.2).
 pub type LaneId = u32;
+
+/// The lane that carries an endpoint's notes to a peer, each the ids of the streams it serves whose
+/// owners' work advanced since the last ([`Endpoint::working`]); an owner's frame or hold on it is
+/// refused [`Refusal::Lanes`].
+pub const NOTES_LANE: LaneId = LaneId::MAX;
 /// A connection to a peer, counted: each new connection to a peer is a new epoch, and keying
 /// material exported under one epoch is never valid under another.
 pub type Epoch = u64;
