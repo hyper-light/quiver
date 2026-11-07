@@ -4,7 +4,7 @@ The crates Focal's bus, Quiver and Mantle are built on (`vendor/focal-bus`, `ven
 `vendor/mantle`), at one revision of hyper-raft for all of them.
 
 - **Upstream:** https://github.com/hyper-light/hyper-raft, commit
-  `0856e05df3d136f0870a98808113294a73399206` (2026-11-02), MIT (`LICENSE`): the merge of hyper-raft's
+  `820346685304e4d39c0e91df8ad3845334657c8d` (2026-11-02), MIT (`LICENSE`): the merge of hyper-raft's
   `main` (`22d5037`, kiln's CP-T2.2 line) and Mantle's `progress-notes-reachable` (`0a182ae`, the
   revision Mantle's `main` at `17eb8032` snapshots its hyper-* crates at), made for kiln's CP-T10.2 so
   kiln holds one copy (CP-M1). Before it, `25cf889` (2026-10-22), `main` since its `main` and
