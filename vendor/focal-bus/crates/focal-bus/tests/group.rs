@@ -258,6 +258,8 @@ struct Seen {
     /// Each moved subscription's next offset, as its node told it (doc 34 P7).
     moves: Vec<u64>,
     redirects: u64,
+    /// Each redirect's batch, as (stream, producer, sequence), in the order the client was told.
+    redirected: Vec<(u64, u64, u32)>,
     /// Times the client sent to another node (`Delivery::Rerouted`).
     reroutes: u64,
     /// Each node whose connection the client was told ended (`Delivery::Lost`), in order: what a
@@ -489,7 +491,11 @@ impl World {
                         seen.taken.insert(ack.sequence);
                     }
                 }
-                Delivery::Redirected(_) => seen.redirects += 1,
+                Delivery::Redirected(redirect) => {
+                    seen.redirects += 1;
+                    seen.redirected
+                        .push((redirect.stream, redirect.producer, redirect.sequence));
+                }
                 Delivery::Rerouted { .. } => seen.reroutes += 1,
                 Delivery::Batch(batch) => {
                     seen.delivered.push((batch.base_offset(), batch.sequence()))
@@ -766,6 +772,118 @@ fn a_steady_stream_writes_its_commits_with_its_entries() {
             }
         })
         .unwrap();
+}
+
+/// Do: with a leader elected and its publisher acknowledged, kill both followers, their sockets gone
+/// with nothing said, and publish eight batches more, which the leader proposes and owes the
+/// acknowledgements of but cannot commit: a leader its detectors leave no quorum leads on. Stall
+/// the leader's loop, reopen the two followers on their directories so they elect one of
+/// themselves in a later term, and let the leader run again, publishing nothing more: it hears the
+/// later term and stops leading. Expect: the publisher is redirected once for each batch owed, in
+/// (stream, producer, sequence) order, in every one of several groups, each leader owing from a
+/// map of its own (`Member::settle_leadership`; in the map's order, its redirects went out in
+/// another order each run, Focal's bus recorded change 0003).
+#[test]
+fn a_leader_stepping_down_redirects_what_it_owed_in_order() {
+    const RUNS: usize = 4;
+    const ACKED: u32 = 4;
+    const OWED: u32 = 8;
+    for run in 0..RUNS {
+        let ids = Identities::new();
+        let dir = tempfile::tempdir().unwrap();
+        let mut runtime = LocalRuntime::new(&runtime()).unwrap();
+        runtime
+            .block_on(async move {
+                let mut world =
+                    open_world(&ids, dir.path(), &[], Durability::Persisted, NODE_MEMORY, 0).await;
+                // The client learns the leader, redirected there by the node it first sent to: its
+                // first batches are acknowledged there. Those redirects were not owed.
+                publish_until(&mut world, ACKED).await;
+                world.seen.redirected.clear();
+                let leader = world.leader_now().unwrap();
+                assert_eq!(world.bus.node(), leader, "the client sends to the leader");
+                let leader_at = NODES.iter().position(|n| *n == leader).unwrap();
+                let followers: Vec<usize> =
+                    (0..NODES.len()).filter(|at| *at != leader_at).collect();
+                for at in &followers {
+                    world.nodes[*at] = None;
+                }
+                let stats = |world: &World| world.nodes[leader_at].as_ref().unwrap().member.stats();
+                let proposed = stats(&world).proposed;
+
+                // The leader proposes every batch more and owes each its acknowledgement.
+                let mut wait = ProgressDeadline::begin(&[0], u64::MAX, FROZEN);
+                while stats(&world).proposed < proposed + u64::from(OWED) {
+                    world.publish(ACKED + OWED);
+                    world.step().await;
+                    wait.check(&[stats(&world).proposed])
+                        .expect("the leader did not propose every batch");
+                }
+                assert_eq!(world.leader_now(), Some(leader), "run {run}: it leads on");
+                assert_eq!(
+                    world.seen.acknowledged(),
+                    ACKED as usize,
+                    "run {run}: none commits"
+                );
+                assert!(
+                    world.seen.redirected.is_empty(),
+                    "run {run}: redirected while it led: {:?}",
+                    world.seen.redirected
+                );
+
+                // The leader's loop stalls; the followers, reopened, hear nothing of it and elect
+                // one of themselves. Neither holds an entry the leader owes for.
+                world.paused = Some(leader_at);
+                for at in &followers {
+                    let id = NODES[*at];
+                    let budget = MemoryBudget::new(64 << 20, 0).unwrap();
+                    let driver = ids.bind_node(id, &budget, world.addresses[*at]);
+                    let mut running = open_node(
+                        &ids,
+                        id,
+                        dir.path(),
+                        &world.addresses,
+                        driver,
+                        &[],
+                        NODE_MEMORY,
+                    );
+                    running
+                        .member
+                        .connect(running.driver.endpoint(), Instant::now());
+                    world.nodes[*at] = Some(running);
+                }
+                let mut wait = ProgressDeadline::begin(&[world.terms()], u64::MAX, FROZEN);
+                while world.leader_now().is_none_or(|l| l == leader) {
+                    world.step().await;
+                    wait.check(&[world.terms()])
+                        .expect("the reopened followers elected no leader");
+                }
+
+                // The leader runs again and hears the later term. Nothing more is published: every
+                // redirect the client hears is one it owed.
+                world.paused = None;
+                let mut wait = ProgressDeadline::begin(&[0], u64::MAX, FROZEN);
+                while world.seen.redirected.len() < OWED as usize {
+                    world.step().await;
+                    if let Err(frozen) = wait.check(&[world.seen.redirected.len() as u64]) {
+                        panic!(
+                            "run {run}: the leader did not redirect what it owed: {frozen:?}, \
+                             redirected {:?}\n{}",
+                            world.seen.redirected,
+                            world.diagnose()
+                        );
+                    }
+                }
+                let owed: Vec<(u64, u64, u32)> = (ACKED..ACKED + OWED)
+                    .map(|sequence| (STREAM, PRODUCER, sequence))
+                    .collect();
+                assert_eq!(
+                    world.seen.redirected, owed,
+                    "run {run}: the redirects of what the leader owed, in order"
+                );
+            })
+            .unwrap();
+    }
 }
 
 /// A part whose publishes pass what its log may hold keeps taking them, and every node comes to
