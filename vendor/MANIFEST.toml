@@ -32,7 +32,7 @@ own = ["UPSTREAM.md"]
 [projects.hyper-raft]
 kind = "git"
 repository = "https://github.com/hyper-light/hyper-raft"
-commit = "f45fc563e05736dae734452c8eb0f6fc12d7704a"
+commit = "fb74b59533908472ade7e526eb08117601cede0e"
 path = "vendor/hyper-raft"
 take = [
   "Cargo.toml",
